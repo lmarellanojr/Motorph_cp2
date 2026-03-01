@@ -134,12 +134,12 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private void setCompensationDetails() {
         if (selectedEmployee != null) {
-            txtBasicSalary.setText(Utility.twoDecimalFormat.format(selectedEmployee.getBasicSalary()).replace(",", ""));
-            txtRiceSubsidy.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getRiceAllowance()).replace(",", ""));
-            txtPhoneAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getPhoneAllowance()).replace(",", ""));
-            txtClothingAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getClothingAllowance()).replace(",", ""));
-            txtGrossSemiMonthly.setText(Utility.twoDecimalFormat.format(selectedEmployee.getGrossSemiMonthlyRate()).replace(",", ""));
-            txtHourlyRate.setText(Utility.twoDecimalFormat.format(selectedEmployee.getHourlyRate()).replace(",", ""));
+            txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()).replace(",", ""));
+            txtRiceSubsidy.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getRiceAllowance()).replace(",", ""));
+            txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getPhoneAllowance()).replace(",", ""));
+            txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getClothingAllowance()).replace(",", ""));
+            txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()).replace(",", ""));
+            txtHourlyRate.setText(Utility.formatTwoDecimal(selectedEmployee.getHourlyRate()).replace(",", ""));
         }
     }
 

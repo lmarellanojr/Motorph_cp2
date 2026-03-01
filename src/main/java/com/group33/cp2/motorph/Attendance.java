@@ -7,20 +7,27 @@ import java.time.*;
  * Represents an attendance record for an employee, including login/logout
  * times, shift handling, and hour calculations.
  *
+ * <p><strong>Encapsulation:</strong> Business-rule constants (SHIFT_START, SHIFT_END,
+ * GRACE_PERIOD_MINUTES) are declared {@code private static final} so no external
+ * class can read or alter the shift rules directly. The auto-generated
+ * {@code attendanceID} has no public setter — it is immutable after construction.</p>
+ *
  * @author Group13
  * @version 1.0
  */
 public class Attendance {
 
-    private String attendanceID;
+    // BP1: Business-rule constants are private static final — no external access or mutation
+    private static final LocalTime SHIFT_START = LocalTime.of(8, 0);
+    private static final LocalTime SHIFT_END = LocalTime.of(17, 0);
+    private static final int GRACE_PERIOD_MINUTES = 10;
+
+    // BP5: attendanceID is auto-generated at construction — no public setter provided
+    private final String attendanceID;
     private String employeeID;
     private LocalDate date;
     private LocalTime loginTime;
     private LocalTime logoutTime;
-
-    LocalTime shiftStart = LocalTime.of(8, 0);
-    LocalTime shiftEnd = LocalTime.of(17, 0);
-    int gracePeriodMinutes = 10;
 
     /**
      * Constructs an Attendance object with the specified employee ID, date,
@@ -39,13 +46,17 @@ public class Attendance {
         this.logoutTime = logoutTime;
     }
 
+    /**
+     * Returns the auto-generated unique attendance identifier.
+     * This value is immutable after construction.
+     *
+     * @return the attendance UUID string
+     */
     public String getAttendanceID() {
         return attendanceID;
     }
 
-    public void setAttendanceID(String attendanceID) {
-        this.attendanceID = attendanceID;
-    }
+    // BP5: setAttendanceID() removed — attendanceID is set once via UUID in the constructor
 
     public String getEmployeeID() {
         return employeeID;
@@ -79,8 +90,8 @@ public class Attendance {
      */
     public LocalTime getLogoutTime() {
         if (isLate()) {
-            if (logoutTime.isAfter(shiftEnd)) {
-                logoutTime = shiftEnd;
+            if (logoutTime.isAfter(SHIFT_END)) {
+                logoutTime = SHIFT_END;
             }
         }
         return logoutTime;
@@ -150,15 +161,18 @@ public class Attendance {
 
     /**
      * Determines if the employee is considered late.
-     * A grace period of 10 minutes is allowed past 8:00 AM.
+     * A grace period of {@value #GRACE_PERIOD_MINUTES} minutes is allowed past 8:00 AM.
      *
      * @return true if late, false if on time or within grace period
      */
     public boolean isLate() {
-        if (!loginTime.isBefore(shiftStart) && loginTime.isBefore(shiftStart.plusMinutes(gracePeriodMinutes))) {
+        // Within grace window: at or after shift start but before shift start + grace period
+        if (!loginTime.isBefore(SHIFT_START)
+                && loginTime.isBefore(SHIFT_START.plusMinutes(GRACE_PERIOD_MINUTES))) {
             return false;
         }
-        if (loginTime.isAfter(shiftStart.plusMinutes(gracePeriodMinutes))) {
+        // Strictly after grace window
+        if (loginTime.isAfter(SHIFT_START.plusMinutes(GRACE_PERIOD_MINUTES))) {
             return true;
         }
         return false;

@@ -4,6 +4,12 @@ package com.group33.cp2.motorph;
  * Represents the full compensation details of an employee, including regular
  * pay, overtime, gross and net salary, as well as applicable allowances and deductions.
  *
+ * <p><strong>Encapsulation (BP7):</strong> The partial constructor (employeeID, payrollID)
+ * initializes {@code allowance} and {@code deductions} to zero-value defaults, ensuring
+ * this object is always in a valid state regardless of which constructor is used.
+ * This prevents NullPointerException when {@code toString()} or summary methods are
+ * called before {@code calculateNetSalary()} completes.</p>
+ *
  * @author Group13
  * @version 1.0
  */
@@ -20,6 +26,8 @@ public class CompensationDetails {
 
     /**
      * Constructs a CompensationDetails object with employee ID and payroll ID only.
+     * Allowance and deductions are initialized to zero-value defaults to ensure
+     * this object is always in a valid, non-null state after construction.
      *
      * @param employeeID the unique identifier of the employee
      * @param payrollID  the ID of the payroll entry
@@ -27,6 +35,9 @@ public class CompensationDetails {
     public CompensationDetails(String employeeID, String payrollID) {
         this.employeeID = employeeID;
         this.payrollID = payrollID;
+        // BP7: initialize to zero-value defaults — prevents NPE before calculation methods run
+        this.allowance = new Allowance();
+        this.deductions = new Deductions();
     }
 
     /**

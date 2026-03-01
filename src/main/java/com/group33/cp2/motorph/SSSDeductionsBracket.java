@@ -1,5 +1,6 @@
 package com.group33.cp2.motorph;
 
+import java.util.Collections;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
@@ -7,6 +8,10 @@ import java.util.TreeMap;
  * Provides a static SSS contribution bracket table for employee deduction lookups.
  * The table maps minimum salary thresholds to their corresponding SSS employee
  * contribution amounts using a floor-entry lookup strategy.
+ *
+ * <p><strong>Encapsulation (BP4):</strong> The internal {@code TreeMap} is populated
+ * during class loading and then exposed only through an unmodifiable wrapper, preventing
+ * any caller from altering the bracket table at runtime.</p>
  *
  * @author Group13
  * @version 1.0
@@ -64,12 +69,13 @@ public class SSSDeductionsBracket {
     }
 
     /**
-     * Returns the SSS deductions bracket table as a {@link NavigableMap}.
+     * Returns an unmodifiable view of the SSS deductions bracket table.
      * Use {@code floorEntry(salary)} to find the applicable contribution for a given salary.
+     * Callers cannot modify the returned map.
      *
      * @return unmodifiable view of the SSS bracket table
      */
     public static NavigableMap<Double, Double> getDeductions() {
-        return sssDeductions;
+        return Collections.unmodifiableNavigableMap(sssDeductions);
     }
 }

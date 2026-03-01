@@ -8,12 +8,16 @@ import java.util.UUID;
  * Includes working hours, compensation details, and deductions.
  * The payslip ID is auto-generated as a UUID on construction.
  *
+ * <p><strong>Encapsulation (BP5):</strong> {@code payslipID} is declared {@code final}
+ * and has no public setter — it is immutable after the UUID is assigned at construction.</p>
+ *
  * @author Group13
  * @version 1.0
  */
 public class Payslip {
 
-    private String payslipID;
+    // BP5: payslipID is auto-generated and immutable after construction
+    private final String payslipID;
     private String employeeID;
     private String payrollID;
     private String birthday;
@@ -53,19 +57,20 @@ public class Payslip {
         this.issueDate = issueDate;
     }
 
-    /**
-     * Default no-arg constructor.
-     */
-    public Payslip() {
-    }
+    // No-arg constructor removed: payslipID is final and must be assigned at construction.
+    // Use the full constructor to create Payslip instances.
 
+    /**
+     * Returns the auto-generated unique payslip identifier.
+     * This value is immutable after construction.
+     *
+     * @return the payslip UUID string
+     */
     public String getPayslipID() {
         return payslipID;
     }
 
-    public void setPayslipID(String payslipID) {
-        this.payslipID = payslipID;
-    }
+    // BP5: setPayslipID() removed — payslipID is set once via UUID in the constructor
 
     public String getEmployeeID() {
         return employeeID;
