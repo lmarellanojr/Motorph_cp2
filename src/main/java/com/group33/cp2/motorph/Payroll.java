@@ -8,6 +8,12 @@ import java.util.UUID;
  * Handles work-hour accumulation, gross salary computation, deduction and
  * allowance calculation, net salary derivation, and payslip generation.
  *
+ * <p><strong>Encapsulation (BP6):</strong> {@code totalRegularHours} and
+ * {@code totalOvertimeHours} are computed fields — their setters are {@code private}
+ * so only the internal {@link #calculateWorkHours()} method can write to them.
+ * External code must call {@link #getTotalRegularHours()} or
+ * {@link #getTotalOvertimeHours()}, which trigger the calculation on demand.</p>
+ *
  * @author Group13
  * @version 1.0
  */
@@ -128,7 +134,8 @@ public class Payroll {
         return (Math.round(this.totalRegularHours * 100.0) / 100.0);
     }
 
-    public void setTotalRegularHours(double totalRegularHours) {
+    // BP6: private — totalRegularHours is a computed value set only by calculateWorkHours()
+    private void setTotalRegularHours(double totalRegularHours) {
         this.totalRegularHours = totalRegularHours;
     }
 
@@ -144,7 +151,8 @@ public class Payroll {
         return (Math.round(this.totalOvertimeHours * 100.0) / 100.0);
     }
 
-    public void setTotalOvertimeHours(double totalOvertimeHours) {
+    // BP6: private — totalOvertimeHours is a computed value set only by calculateWorkHours()
+    private void setTotalOvertimeHours(double totalOvertimeHours) {
         this.totalOvertimeHours = totalOvertimeHours;
     }
 

@@ -1,11 +1,19 @@
 package com.group33.cp2.motorph;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Service class for managing employee data. Provides methods to add, delete,
  * update, and retrieve employees, as well as associate attendance records and
  * manage CSV persistence.
+ *
+ * <p><strong>Encapsulation (BP9):</strong> {@link #getAllEmployees()} returns an
+ * unmodifiable list view so callers cannot add, remove, or reorder the internal
+ * employee list directly. All mutations must go through the service methods
+ * ({@link #addEmployee}, {@link #deleteEmployee}, {@link #updateEmployee}).
+ * Similarly, {@link #loadAndAssociateAttendances} uses {@link Employee#addAttendance}
+ * instead of mutating the list returned by {@code getAttendanceList()}.</p>
  *
  * @author Group13
  * @version 1.0
@@ -111,16 +119,21 @@ public final class EmployeeService {
     }
 
     /**
-     * Returns all employees currently held in memory.
+     * Returns an unmodifiable view of all employees currently held in memory.
+     * To modify the employee list, use {@link #addEmployee}, {@link #deleteEmployee},
+     * or {@link #updateEmployee}.
      *
-     * @return list of employees
+     * @return unmodifiable list of employees
      */
     public List<Employee> getAllEmployees() {
-        return employeeList;
+        // BP9: return unmodifiable view — callers cannot alter the internal list
+        return Collections.unmodifiableList(employeeList);
     }
 
     /**
      * Links attendance records to their corresponding employees.
+     * Uses {@link Employee#addAttendance(Attendance)} to append records through the
+     * controlled mutator rather than bypassing encapsulation via the list getter.
      *
      * @param attendanceList list of all attendance entries
      */
@@ -128,7 +141,8 @@ public final class EmployeeService {
         for (Attendance attendance : attendanceList) {
             for (Employee employee : employeeList) {
                 if (employee.getEmployeeID().equals(attendance.getEmployeeID())) {
-                    employee.getAttendanceList().add(attendance);
+                    // BP9: use addAttendance() instead of employee.getAttendanceList().add()
+                    employee.addAttendance(attendance);
                     break;
                 }
             }
