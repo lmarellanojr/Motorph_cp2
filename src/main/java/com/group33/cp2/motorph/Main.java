@@ -5,19 +5,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
- * Main entry point for the MotorPH Payroll System (CP2).
- * Sets the Nimbus look-and-feel and opens the login screen.
- *
- * @author Group13
- * @version 1.0
+ * App entry point. Sets up the Nimbus theme and opens the login screen.
  */
 public class Main extends javax.swing.JFrame {
 
-    /**
-     * Application entry point. Applies the UI theme and launches the login window.
-     *
-     * @param args command-line arguments (not used)
-     */
     public static void main(String[] args) {
         setLookAndFeel();
         SwingUtilities.invokeLater(() -> {
@@ -26,9 +17,7 @@ public class Main extends javax.swing.JFrame {
         });
     }
 
-    /**
-     * Attempts to set the Nimbus look-and-feel. Falls back to the platform default if unavailable.
-     */
+    // falls back to the platform default if Nimbus isn't available
     public static void setLookAndFeel() {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {

@@ -1,11 +1,7 @@
 package com.group33.cp2.motorph;
 
 /**
- * Represents the government-related identification details for an employee,
- * including SSS, PhilHealth, TIN, and Pag-IBIG numbers.
- *
- * @author Group13
- * @version 1.0
+ * Holds government ID numbers for an employee (SSS, PhilHealth, TIN, Pag-IBIG).
  */
 public class GovernmentDetails {
 
@@ -15,15 +11,6 @@ public class GovernmentDetails {
     private String tinNumber;
     private String pagibigNumber;
 
-    /**
-     * Constructs a GovernmentDetails object with all government ID numbers.
-     *
-     * @param employeeID       the unique ID of the employee
-     * @param sssNumber        the Social Security System (SSS) number
-     * @param philHealthNumber the PhilHealth number
-     * @param tinNumber        the Tax Identification Number (TIN)
-     * @param pagibigNumber    the Pag-IBIG Fund number
-     */
     public GovernmentDetails(String employeeID, String sssNumber, String philHealthNumber,
                              String tinNumber, String pagibigNumber) {
         this.employeeID = employeeID;

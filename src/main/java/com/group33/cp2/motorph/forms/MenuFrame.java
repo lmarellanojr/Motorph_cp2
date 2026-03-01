@@ -17,8 +17,6 @@ import javax.swing.JOptionPane;
  * button now navigates to the Employee List frame instead, where a specific employee
  * can be selected and their payroll viewed.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class MenuFrame extends javax.swing.JFrame {
 

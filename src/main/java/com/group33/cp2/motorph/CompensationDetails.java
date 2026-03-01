@@ -1,17 +1,7 @@
 package com.group33.cp2.motorph;
 
 /**
- * Represents the full compensation details of an employee, including regular
- * pay, overtime, gross and net salary, as well as applicable allowances and deductions.
- *
- * <p><strong>Encapsulation (BP7):</strong> The partial constructor (employeeID, payrollID)
- * initializes {@code allowance} and {@code deductions} to zero-value defaults, ensuring
- * this object is always in a valid state regardless of which constructor is used.
- * This prevents NullPointerException when {@code toString()} or summary methods are
- * called before {@code calculateNetSalary()} completes.</p>
- *
- * @author Group13
- * @version 1.0
+ * Holds pay breakdown for one payroll record: regular pay, overtime, gross/net salary, allowances, deductions.
  */
 public class CompensationDetails {
 
@@ -25,32 +15,15 @@ public class CompensationDetails {
     private Deductions deductions;
 
     /**
-     * Constructs a CompensationDetails object with employee ID and payroll ID only.
-     * Allowance and deductions are initialized to zero-value defaults to ensure
-     * this object is always in a valid, non-null state after construction.
-     *
-     * @param employeeID the unique identifier of the employee
-     * @param payrollID  the ID of the payroll entry
+     * Creates a CompensationDetails with IDs only. Allowance and deductions default to zero.
      */
     public CompensationDetails(String employeeID, String payrollID) {
         this.employeeID = employeeID;
         this.payrollID = payrollID;
-        // BP7: initialize to zero-value defaults — prevents NPE before calculation methods run
         this.allowance = new Allowance();
         this.deductions = new Deductions();
     }
 
-    /**
-     * Constructs a CompensationDetails object with all fields.
-     *
-     * @param employeeID  the unique identifier of the employee
-     * @param regularPay  the amount earned from regular working hours
-     * @param overtimePay the amount earned from overtime hours
-     * @param grossSalary total salary before deductions
-     * @param netSalary   total salary after deductions
-     * @param allowance   the Allowance object containing benefits
-     * @param deductions  the Deductions object containing deductions
-     */
     public CompensationDetails(String employeeID, double regularPay, double overtimePay,
             double grossSalary, double netSalary,
             Allowance allowance, Deductions deductions) {

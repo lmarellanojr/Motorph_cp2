@@ -33,8 +33,6 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
  * validation (date format, government ID patterns, numeric fields), and persists
  * changes to the CSV via {@link EmployeeService#updateEmployee(Employee)}.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class UpdateEmployeeFrame extends javax.swing.JFrame {
 

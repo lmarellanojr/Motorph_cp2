@@ -1,11 +1,7 @@
 package com.group33.cp2.motorph;
 
 /**
- * Represents government-mandated payroll deductions for an employee,
- * including SSS, PhilHealth, Pag-IBIG, and withholding tax.
- *
- * @author Group13
- * @version 1.0
+ * Holds SSS, PhilHealth, Pag-IBIG, and withholding tax amounts for one payroll period.
  */
 public class Deductions {
 
@@ -15,15 +11,6 @@ public class Deductions {
     private double pagIbig;
     private double tax;
 
-    /**
-     * Constructs a Deductions object with all deduction amounts.
-     *
-     * @param employeeID the employee's unique ID
-     * @param sss        SSS contribution amount
-     * @param philHealth PhilHealth contribution amount
-     * @param pagIbig    Pag-IBIG contribution amount
-     * @param tax        withholding tax amount
-     */
     public Deductions(String employeeID, double sss, double philHealth, double pagIbig, double tax) {
         this.employeeID = employeeID;
         this.sss = sss;
@@ -32,9 +19,7 @@ public class Deductions {
         this.tax = tax;
     }
 
-    /**
-     * Default constructor initializing all deductions to zero.
-     */
+    // zero-value default
     public Deductions() {
         this.sss = 0.0;
         this.philHealth = 0.0;
@@ -82,11 +67,6 @@ public class Deductions {
         this.tax = tax;
     }
 
-    /**
-     * Calculates the total of all deductions.
-     *
-     * @return sum of SSS, PhilHealth, Pag-IBIG, and tax
-     */
     public double getTotal() {
         return sss + philHealth + pagIbig + tax;
     }

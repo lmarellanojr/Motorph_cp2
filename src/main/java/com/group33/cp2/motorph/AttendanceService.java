@@ -4,36 +4,20 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Service class that provides access to employee attendance data.
- * Loads attendance records from a CSV file using AttendanceCSVHandler.
- *
- * <p><strong>Encapsulation (BP9):</strong> {@link #getAllAttendance()} returns an
- * unmodifiable list view so callers cannot alter the loaded attendance data.</p>
- *
- * @author Group13
- * @version 1.0
+ * Loads attendance records from CSV and provides read-only access to them.
  */
 public class AttendanceService {
 
     private final List<Attendance> attendanceList;
     private final AttendanceCSVHandler attendanceCSVHandler;
 
-    /**
-     * Constructs an AttendanceService and loads attendance data from the CSV file.
-     */
     public AttendanceService() {
         attendanceCSVHandler = new AttendanceCSVHandler();
         attendanceList = attendanceCSVHandler.loadAllAttendanceFromCsv();
     }
 
-    /**
-     * Returns an unmodifiable view of all loaded attendance records.
-     * The underlying data cannot be altered through the returned list.
-     *
-     * @return an unmodifiable list of Attendance objects
-     */
+    // read-only; attendance data doesn't change after loading
     public List<Attendance> getAllAttendance() {
-        // BP9: return unmodifiable view — attendance data is read-only after loading
         return Collections.unmodifiableList(attendanceList);
     }
 }
