@@ -39,8 +39,6 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
  * {@code clearAllFields()} has been corrected to only reference fields that are
  * actually declared in this class.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class ViewEmployeeFrame extends javax.swing.JFrame {
 

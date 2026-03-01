@@ -36,8 +36,6 @@ import javax.swing.border.TitledBorder;
  *
  * <p>It is part of the MotorPH Employee Payroll System.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class ViewSalaryFrame extends javax.swing.JFrame {
 

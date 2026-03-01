@@ -11,34 +11,16 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Handles loading attendance data from a CSV file into Attendance objects.
- * Uses classpath resource loading so the application works from any working directory.
- *
- * <p>Original hardcoded path "src/main/java/com/group33/cp2/motorph/csv/MotorPHEmployeeAttendance.csv"
- * was replaced with {@code getClass().getResourceAsStream("/MotorPHEmployeeAttendance.csv")}
- * to support packaged JAR execution.</p>
- *
- * @author Group13
- * @version 1.0
+ * Loads attendance records from the bundled CSV resource into Attendance objects.
  */
 public class AttendanceCSVHandler {
 
-    // Classpath-relative path to the attendance CSV resource
     private static final String RESOURCE_PATH = "/MotorPHEmployeeAttendance.csv";
 
-    /**
-     * Constructs an AttendanceCSVHandler.
-     */
     public AttendanceCSVHandler() {
     }
 
-    /**
-     * Loads all attendance records from the CSV file and returns a sorted list of
-     * Attendance objects. Assumes the CSV has a header and follows the format:
-     * [0] Employee ID, [3] Date (MM/DD/YYYY), [4] Login time (HH:mm), [5] Logout time (HH:mm)
-     *
-     * @return a sorted list of Attendance objects based on employee ID
-     */
+    // columns used: [0] employee ID, [3] date MM/DD/YYYY, [4] login HH:mm, [5] logout HH:mm
     public List<Attendance> loadAllAttendanceFromCsv() {
         List<Attendance> attendanceList = new ArrayList<>();
 
@@ -49,7 +31,7 @@ public class AttendanceCSVHandler {
         }
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-            br.readLine(); // Skip the header line
+            br.readLine(); // skip header
             String line;
 
             while ((line = br.readLine()) != null) {
@@ -64,7 +46,7 @@ public class AttendanceCSVHandler {
                 try {
                     String employeeID = data[0].trim();
 
-                    // Parse date (format: MM/DD/YYYY)
+                    // date: MM/DD/YYYY
                     String[] dateParts = data[3].trim().split("/");
                     LocalDate date = LocalDate.of(
                             Integer.parseInt(dateParts[2]), // year
@@ -72,14 +54,14 @@ public class AttendanceCSVHandler {
                             Integer.parseInt(dateParts[1])  // day
                     );
 
-                    // Parse login time (format: HH:mm)
+                    // login: HH:mm
                     String[] logInParts = data[4].trim().split(":");
                     LocalTime logIn = LocalTime.of(
                             Integer.parseInt(logInParts[0]),
                             Integer.parseInt(logInParts[1])
                     );
 
-                    // Parse logout time (format: HH:mm)
+                    // logout: HH:mm
                     String[] logOutParts = data[5].trim().split(":");
                     LocalTime logOut = LocalTime.of(
                             Integer.parseInt(logOutParts[0]),
