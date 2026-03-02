@@ -209,9 +209,9 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtPosition.setText(selectedEmployee.getPosition());
         txtImmediateSupervisor.setText(selectedEmployee.getImmediateSupervisor());
         txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()));
-        txtRiceAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getRiceAllowance()));
-        txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getPhoneAllowance()));
-        txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getClothingAllowance()));
+        txtRiceAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getRiceAllowance()));
+        txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getPhoneAllowance()));
+        txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getClothingAllowance()));
         txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()));
         txtHourlyRate.setText(String.valueOf(selectedEmployee.getHourlyRate()));
     }

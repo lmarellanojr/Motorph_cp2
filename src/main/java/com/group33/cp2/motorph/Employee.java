@@ -5,9 +5,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents an employee with personal info, salary, allowances, and attendance records.
+ * Abstract base class for all employee types. Defines shared personal and salary data.
+ * Subclasses must implement payroll calculation methods.
  */
-public class Employee {
+public abstract class Employee {
 
     // salary validation limits
     private static final double MAX_BASIC_SALARY = 500_000.0;
@@ -83,6 +84,8 @@ public class Employee {
     }
 
     public String getFirstName() { return firstName; }
+
+    public String getFullName() { return firstName + " " + lastName; }
 
     public void setFirstName(String firstName) {
         if (firstName == null || firstName.isBlank()) {
@@ -161,8 +164,24 @@ public class Employee {
         this.immediateSupervisor = immediateSupervisor;
     }
 
-    public Allowance getAllowance() { return allowance; }
+    // returns the total allowance as a double (rice + phone + clothing)
+    public double getAllowance() { return allowance.getTotal(); }
+
+    // returns the full Allowance object for detailed breakdown
+    public Allowance getAllowanceDetails() { return allowance; }
+
+    // sets a scalar total allowance; stores it as rice subsidy, clears phone and clothing
+    public void setAllowance(double totalAllowance) {
+        if (totalAllowance < 0) {
+            throw new IllegalArgumentException("Allowance cannot be negative. Received: " + totalAllowance);
+        }
+        this.allowance = new Allowance(employeeID, totalAllowance, 0, 0);
+    }
+
     public void setAllowance(Allowance allowance) { this.allowance = allowance; }
+
+    // alias for getEmployeeID() for spec compatibility
+    public String getEmployeeNumber() { return employeeID; }
 
     public GovernmentDetails getGovernmentDetails() { return governmentDetails; }
     public void setGovernmentDetails(GovernmentDetails governmentDetails) {
@@ -227,4 +246,13 @@ public class Employee {
                 + "\n attendanceList=" + attendanceList.toString()
                 + "\n payslips=" + payslips.toString() + "\n";
     }
+
+    // subclasses define how gross salary is calculated based on employee type
+    public abstract double calculateGrossSalary();
+
+    // subclasses define which deductions apply (Regular: all four; Probationary: no tax)
+    public abstract double calculateDeductions();
+
+    // subclasses define net salary as gross minus applicable deductions
+    public abstract double calculateNetSalary();
 }
