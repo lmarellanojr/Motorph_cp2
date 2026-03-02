@@ -34,13 +34,21 @@ public interface PayrollCalculable {
     double calculateGrossSalary(double salary);
 
     /**
-     * Calculates gross salary with an additional bonus amount.
+     * Calculates gross salary including overtime pay for the given number of overtime hours.
      *
-     * @param salary custom base salary; must be &gt; 0
-     * @param bonus  non-negative bonus; probationary employees may ignore this parameter
-     * @return gross salary plus applicable bonus
+     * <p>Per the Method Dictionary (overload 2):</p>
+     * <ul>
+     *   <li>{@link RegularEmployee} — returns {@code salary + (overtimeHours * hourlyRate * 1.25)}</li>
+     *   <li>{@link ProbationaryEmployee} — returns {@code salary} (overtime parameter ignored;
+     *       probationary employees are not eligible for overtime)</li>
+     *   <li>Department subclasses — same as {@link RegularEmployee}</li>
+     * </ul>
+     *
+     * @param salary        custom base salary; must be &gt; 0
+     * @param overtimeHours hours worked beyond 8 in a day; must be &ge; 0
+     * @return gross salary including applicable overtime pay
      */
-    double calculateGrossSalary(double salary, double bonus);
+    double calculateGrossSalary(double salary, double overtimeHours);
 
     /**
      * Calculates total applicable government deductions.

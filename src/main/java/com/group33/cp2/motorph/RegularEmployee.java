@@ -86,23 +86,25 @@ public class RegularEmployee extends Employee implements PayrollCalculable {
     }
 
     /**
-     * Returns salary plus the bonus amount.
-     * Regular employees are eligible for bonuses.
+     * Calculates gross salary including overtime pay for the given overtime hours.
      *
-     * @param salary custom base salary; must be &gt; 0
-     * @param bonus  additional bonus; must be &ge; 0
-     * @return {@code salary + bonus}
-     * @throws IllegalArgumentException if {@code salary} &le; 0 or {@code bonus} &lt; 0
+     * <p>Implements overload 2 of {@link PayrollCalculable#calculateGrossSalary(double, double)}.
+     * Regular employees are eligible for overtime at 1.25× their hourly rate.</p>
+     *
+     * @param salary        custom base salary; must be &gt; 0
+     * @param overtimeHours hours worked beyond 8 in a day; must be &ge; 0
+     * @return {@code salary + (overtimeHours * hourlyRate * 1.25)}
+     * @throws IllegalArgumentException if {@code salary} &le; 0 or {@code overtimeHours} &lt; 0
      */
     @Override
-    public double calculateGrossSalary(double salary, double bonus) {
+    public double calculateGrossSalary(double salary, double overtimeHours) {
         if (salary <= 0) {
             throw new IllegalArgumentException("Salary must be > 0. Received: " + salary);
         }
-        if (bonus < 0) {
-            throw new IllegalArgumentException("Bonus must be >= 0. Received: " + bonus);
+        if (overtimeHours < 0) {
+            throw new IllegalArgumentException("Overtime hours must be >= 0. Received: " + overtimeHours);
         }
-        return salary + bonus;
+        return salary + (overtimeHours * getHourlyRate() * 1.25);
     }
 
     /**
