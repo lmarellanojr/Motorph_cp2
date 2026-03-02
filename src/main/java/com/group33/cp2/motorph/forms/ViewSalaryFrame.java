@@ -213,7 +213,6 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getPhoneAllowance()));
         txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getClothingAllowance()));
         txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()));
-        txtHourlyRate.setText(String.valueOf(selectedEmployee.getHourlyRate()));
     }
 
     /**

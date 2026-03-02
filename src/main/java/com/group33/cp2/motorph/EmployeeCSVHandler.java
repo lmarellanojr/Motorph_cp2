@@ -107,7 +107,9 @@ public class EmployeeCSVHandler {
                         GovernmentDetails governmentDetails = new GovernmentDetails(
                                 employeeID, sssNumber, philHealthNumber, tinNumber, pagibigNumber);
 
-                        // instantiate the concrete subclass based on employment status
+                        // Factory: instantiate the concrete subclass based on employment status.
+                        // Probationary employees use ProbationaryEmployee (no OT, no withholding tax).
+                        // All others default to RegularEmployee (full deductions, OT at 1.25x).
                         Employee employee;
                         if ("Probationary".equalsIgnoreCase(status)) {
                             employee = new ProbationaryEmployee(

@@ -161,7 +161,6 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         txtHourlyRate.setText(Utility.formatTwoDecimal(selectedEmployee.getHourlyRate()));
         txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()));
     }
-
     /**
      * Disables all text fields to prevent editing (read-only view).
      */

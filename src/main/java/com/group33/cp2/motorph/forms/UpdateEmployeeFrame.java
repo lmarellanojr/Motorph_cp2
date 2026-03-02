@@ -340,7 +340,8 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
                 return;
             }
 
-            // create the correct subclass based on the current employment status
+            // Factory: preserve the correct subclass when updating.
+            // Probationary -> ProbationaryEmployee; everything else -> RegularEmployee.
             Employee updatedEmployee;
             if ("Probationary".equalsIgnoreCase(status)) {
                 updatedEmployee = new ProbationaryEmployee(

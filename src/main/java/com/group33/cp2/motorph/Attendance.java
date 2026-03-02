@@ -1,7 +1,9 @@
 package com.group33.cp2.motorph;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
-import java.time.*;
 
 /**
  * Stores one day's attendance record for an employee, including login/logout times and hour calculations.
@@ -110,11 +112,13 @@ public class Attendance {
 
     // late = logged in after the 10-minute grace period past 8:00 AM
     public boolean isLate() {
-        if (!loginTime.isBefore(SHIFT_START)
-                && loginTime.isBefore(SHIFT_START.plusMinutes(GRACE_PERIOD_MINUTES))) {
+        LocalTime graceEnd = SHIFT_START.plusMinutes(GRACE_PERIOD_MINUTES);
+        // On time: logged in before or within the grace window (08:00 – 08:10)
+        if (!loginTime.isBefore(SHIFT_START) && loginTime.isBefore(graceEnd)) {
             return false;
         }
-        if (loginTime.isAfter(SHIFT_START.plusMinutes(GRACE_PERIOD_MINUTES))) {
+        // Late: logged in after the grace window ends (after 08:10)
+        if (loginTime.isAfter(graceEnd)) {
             return true;
         }
         return false;

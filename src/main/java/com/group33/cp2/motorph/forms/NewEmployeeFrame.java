@@ -121,6 +121,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         txtAddress = new JTextField(25);
         txtPhoneNumber = new JTextField(15);
 
+        // Status options must match Employee.VALID_STATUSES whitelist
         String[] statusOptions = {"Regular", "Probationary", "Active", "Inactive", "On Leave", "Terminated"};
         cmbStatus = new JComboBox<>(statusOptions);
         cmbStatus.setSelectedIndex(0);
@@ -548,24 +549,22 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
         Allowance allowance = new Allowance(employeeID, riceSubsidy, phoneAllowance, clothingAllowance);
 
-        // create the correct subclass based on the selected employment status
+        // Factory: instantiate the concrete subclass based on the selected status.
+        // Probationary -> ProbationaryEmployee; everything else -> RegularEmployee.
         if ("Probationary".equalsIgnoreCase(status)) {
             return new ProbationaryEmployee(
                     employeeID, lastName, firstName, birthday, address, phoneNumber,
                     basicSalary, hourlyRate, grossSemiMonthly, status, position,
                     immediateSupervisor, allowance, governmentDetails
             );
+        } else {
+            return new RegularEmployee(
+                    employeeID, lastName, firstName, birthday, address, phoneNumber,
+                    basicSalary, hourlyRate, grossSemiMonthly, status, position,
+                    immediateSupervisor, allowance, governmentDetails
+            );
         }
-        return new RegularEmployee(
-                employeeID, lastName, firstName, birthday, address, phoneNumber,
-                basicSalary, hourlyRate, grossSemiMonthly, status, position,
-                immediateSupervisor, allowance, governmentDetails
-        );
     }
-
-    /**
-     * Clears all editable form fields and resets defaults.
-     */
     private void clearAllFields() {
         txtLastName.setText("");
         txtFirstName.setText("");

@@ -73,7 +73,13 @@ public final class EmployeeService {
         return Collections.unmodifiableList(employeeList);
     }
 
-    // matches each attendance record to its employee and adds it
+    /**
+     * Links attendance records to their corresponding employees.
+     * Uses {@link Employee#addAttendance(Attendance)} to respect encapsulation
+     * (the attendance list is exposed as an unmodifiable view).
+     *
+     * @param attendanceList list of all attendance entries
+     */
     public void loadAndAssociateAttendances(List<Attendance> attendanceList) {
         for (Attendance attendance : attendanceList) {
             for (Employee employee : employeeList) {
