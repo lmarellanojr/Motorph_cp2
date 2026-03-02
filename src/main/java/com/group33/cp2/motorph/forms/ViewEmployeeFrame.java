@@ -154,9 +154,9 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
     }
 
     private void setCompensationDetails() {
-        txtRiceSubsidy.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getRiceAllowance()));
-        txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getPhoneAllowance()));
-        txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowance().getClothingAllowance()));
+        txtRiceSubsidy.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getRiceAllowance()));
+        txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getPhoneAllowance()));
+        txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getClothingAllowance()));
         txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()));
         txtHourlyRate.setText(Utility.formatTwoDecimal(selectedEmployee.getHourlyRate()));
         txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()));
