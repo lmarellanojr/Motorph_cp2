@@ -135,11 +135,23 @@ public class EmployeeCSVHandler {
                         GovernmentDetails governmentDetails = new GovernmentDetails(
                                 employeeID, sssNumber, philHealthNumber, tinNumber, pagibigNumber);
 
-                        Employee employee = new Employee(
-                                employeeID, lastName, firstName, birthday, address, phoneNumber,
-                                basicSalary, hourlyRate, grossSemiMonthly, status, position,
-                                immediateSupervisor, allowance, governmentDetails
-                        );
+                        // Factory: instantiate the concrete subclass based on employment status.
+                        // Probationary employees use ProbationaryEmployee (no OT, no withholding tax).
+                        // All others default to RegularEmployee (full deductions, OT at 1.25x).
+                        Employee employee;
+                        if ("Probationary".equalsIgnoreCase(status)) {
+                            employee = new ProbationaryEmployee(
+                                    employeeID, lastName, firstName, birthday, address, phoneNumber,
+                                    basicSalary, hourlyRate, grossSemiMonthly, status, position,
+                                    immediateSupervisor, allowance, governmentDetails
+                            );
+                        } else {
+                            employee = new RegularEmployee(
+                                    employeeID, lastName, firstName, birthday, address, phoneNumber,
+                                    basicSalary, hourlyRate, grossSemiMonthly, status, position,
+                                    immediateSupervisor, allowance, governmentDetails
+                            );
+                        }
 
                         employees.add(employee);
                     } catch (Exception e) {
@@ -251,9 +263,9 @@ public class EmployeeCSVHandler {
                 e.setHourlyRate(updatedEmployee.getHourlyRate());
                 e.setGrossSemiMonthlyRate(updatedEmployee.getGrossSemiMonthlyRate());
 
-                e.getAllowance().setRiceAllowance(updatedEmployee.getAllowance().getRiceAllowance());
-                e.getAllowance().setPhoneAllowance(updatedEmployee.getAllowance().getPhoneAllowance());
-                e.getAllowance().setClothingAllowance(updatedEmployee.getAllowance().getClothingAllowance());
+                e.getAllowanceDetails().setRiceAllowance(updatedEmployee.getAllowanceDetails().getRiceAllowance());
+                e.getAllowanceDetails().setPhoneAllowance(updatedEmployee.getAllowanceDetails().getPhoneAllowance());
+                e.getAllowanceDetails().setClothingAllowance(updatedEmployee.getAllowanceDetails().getClothingAllowance());
 
                 break;
             }
@@ -294,9 +306,9 @@ public class EmployeeCSVHandler {
                     e.getPosition(),
                     e.getImmediateSupervisor(),
                     String.valueOf(e.getBasicSalary()),
-                    String.valueOf(e.getAllowance().getRiceAllowance()),
-                    String.valueOf(e.getAllowance().getPhoneAllowance()),
-                    String.valueOf(e.getAllowance().getClothingAllowance()),
+                    String.valueOf(e.getAllowanceDetails().getRiceAllowance()),
+                    String.valueOf(e.getAllowanceDetails().getPhoneAllowance()),
+                    String.valueOf(e.getAllowanceDetails().getClothingAllowance()),
                     String.valueOf(e.getGrossSemiMonthlyRate()),
                     String.valueOf(e.getHourlyRate())
                 });

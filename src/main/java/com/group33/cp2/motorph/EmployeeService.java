@@ -124,11 +124,18 @@ public final class EmployeeService {
      *
      * @param attendanceList list of all attendance entries
      */
+    /**
+     * Links attendance records to their corresponding employees.
+     * Uses {@link Employee#addAttendance(Attendance)} to respect encapsulation
+     * (the attendance list is exposed as an unmodifiable view).
+     *
+     * @param attendanceList list of all attendance entries
+     */
     public void loadAndAssociateAttendances(List<Attendance> attendanceList) {
         for (Attendance attendance : attendanceList) {
             for (Employee employee : employeeList) {
                 if (employee.getEmployeeID().equals(attendance.getEmployeeID())) {
-                    employee.getAttendanceList().add(attendance);
+                    employee.addAttendance(attendance);
                     break;
                 }
             }

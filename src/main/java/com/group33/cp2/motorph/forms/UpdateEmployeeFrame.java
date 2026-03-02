@@ -5,6 +5,8 @@ import com.group33.cp2.motorph.Employee;
 import com.group33.cp2.motorph.EmployeeService;
 import com.group33.cp2.motorph.GovernmentDetails;
 import com.group33.cp2.motorph.NavigationManager;
+import com.group33.cp2.motorph.ProbationaryEmployee;
+import com.group33.cp2.motorph.RegularEmployee;
 import com.group33.cp2.motorph.Utility;
 
 import java.awt.Dimension;
@@ -135,9 +137,9 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
     private void setCompensationDetails() {
         if (selectedEmployee != null) {
             txtBasicSalary.setText(Utility.twoDecimalFormat.format(selectedEmployee.getBasicSalary()).replace(",", ""));
-            txtRiceSubsidy.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getRiceAllowance()).replace(",", ""));
-            txtPhoneAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getPhoneAllowance()).replace(",", ""));
-            txtClothingAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getClothingAllowance()).replace(",", ""));
+            txtRiceSubsidy.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getRiceAllowance()).replace(",", ""));
+            txtPhoneAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getPhoneAllowance()).replace(",", ""));
+            txtClothingAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getClothingAllowance()).replace(",", ""));
             txtGrossSemiMonthly.setText(Utility.twoDecimalFormat.format(selectedEmployee.getGrossSemiMonthlyRate()).replace(",", ""));
             txtHourlyRate.setText(Utility.twoDecimalFormat.format(selectedEmployee.getHourlyRate()).replace(",", ""));
         }
@@ -340,12 +342,24 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
                 return;
             }
 
-            Employee updatedEmployee = new Employee(
-                    employeeId, last, first, birthday, address, phone,
-                    basicSalary, hourlyRate, grossSemi, status, position, supervisor,
-                    new Allowance(employeeId, riceSub, phoneAllowance, clothAllowance),
-                    new GovernmentDetails(employeeId, sss, phil, tin, pagibig)
-            );
+            // Factory: preserve the correct subclass when updating.
+            // Probationary -> ProbationaryEmployee; everything else -> RegularEmployee.
+            Employee updatedEmployee;
+            if ("Probationary".equalsIgnoreCase(status)) {
+                updatedEmployee = new ProbationaryEmployee(
+                        employeeId, last, first, birthday, address, phone,
+                        basicSalary, hourlyRate, grossSemi, status, position, supervisor,
+                        new Allowance(employeeId, riceSub, phoneAllowance, clothAllowance),
+                        new GovernmentDetails(employeeId, sss, phil, tin, pagibig)
+                );
+            } else {
+                updatedEmployee = new RegularEmployee(
+                        employeeId, last, first, birthday, address, phone,
+                        basicSalary, hourlyRate, grossSemi, status, position, supervisor,
+                        new Allowance(employeeId, riceSub, phoneAllowance, clothAllowance),
+                        new GovernmentDetails(employeeId, sss, phil, tin, pagibig)
+                );
+            }
 
             employeeService.updateEmployee(updatedEmployee);
 

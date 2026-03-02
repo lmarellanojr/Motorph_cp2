@@ -211,9 +211,9 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtPosition.setText(selectedEmployee.getPosition());
         txtImmediateSupervisor.setText(selectedEmployee.getImmediateSupervisor());
         txtBasicSalary.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getBasicSalary())));
-        txtRiceAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getRiceAllowance())));
-        txtPhoneAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getPhoneAllowance())));
-        txtClothingAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowance().getClothingAllowance())));
+        txtRiceAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getRiceAllowance())));
+        txtPhoneAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getPhoneAllowance())));
+        txtClothingAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getClothingAllowance())));
         txtGrossSemiMonthly.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getGrossSemiMonthlyRate())));
         txtHourlyRate.setText(String.valueOf(selectedEmployee.getHourlyRate()));
     }

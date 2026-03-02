@@ -6,6 +6,8 @@ import com.group33.cp2.motorph.Employee;
 import com.group33.cp2.motorph.EmployeeService;
 import com.group33.cp2.motorph.GovernmentDetails;
 import com.group33.cp2.motorph.NavigationManager;
+import com.group33.cp2.motorph.ProbationaryEmployee;
+import com.group33.cp2.motorph.RegularEmployee;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -121,7 +123,8 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         txtAddress = new JTextField(25);
         txtPhoneNumber = new JTextField(15);
 
-        String[] statusOptions = {"Regular", "Probationary", "Contractual", "Resigned", "Terminated"};
+        // Status options must match Employee.VALID_STATUSES whitelist
+        String[] statusOptions = {"Regular", "Probationary", "Active", "Inactive", "On Leave", "Terminated"};
         cmbStatus = new JComboBox<>(statusOptions);
         cmbStatus.setSelectedIndex(0);
 
@@ -548,22 +551,21 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
         Allowance allowance = new Allowance(employeeID, riceSubsidy, phoneAllowance, clothingAllowance);
 
-        return new Employee(
-                employeeID,
-                lastName,
-                firstName,
-                birthday,
-                address,
-                phoneNumber,
-                basicSalary,
-                hourlyRate,
-                grossSemiMonthly,
-                status,
-                position,
-                immediateSupervisor,
-                allowance,
-                governmentDetails
-        );
+        // Factory: instantiate the concrete subclass based on the selected status.
+        // Probationary -> ProbationaryEmployee; everything else -> RegularEmployee.
+        if ("Probationary".equalsIgnoreCase(status)) {
+            return new ProbationaryEmployee(
+                    employeeID, lastName, firstName, birthday, address, phoneNumber,
+                    basicSalary, hourlyRate, grossSemiMonthly, status, position,
+                    immediateSupervisor, allowance, governmentDetails
+            );
+        } else {
+            return new RegularEmployee(
+                    employeeID, lastName, firstName, birthday, address, phoneNumber,
+                    basicSalary, hourlyRate, grossSemiMonthly, status, position,
+                    immediateSupervisor, allowance, governmentDetails
+            );
+        }
     }
 
     /**

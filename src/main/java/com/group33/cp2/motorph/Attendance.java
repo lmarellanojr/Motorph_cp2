@@ -18,9 +18,14 @@ public class Attendance {
     private LocalTime loginTime;
     private LocalTime logoutTime;
 
-    LocalTime shiftStart = LocalTime.of(8, 0);
-    LocalTime shiftEnd = LocalTime.of(17, 0);
-    int gracePeriodMinutes = 10;
+    /** Shift start time: 8:00 AM. */
+    private static final LocalTime SHIFT_START = LocalTime.of(8, 0);
+
+    /** Shift end time / late-employee logout cap: 5:00 PM. */
+    private static final LocalTime SHIFT_END = LocalTime.of(17, 0);
+
+    /** Grace period: employees logging in up to 10 minutes after 8:00 AM are on-time. */
+    private static final int GRACE_PERIOD_MINUTES = 10;
 
     /**
      * Constructs an Attendance object with the specified employee ID, date,
@@ -79,8 +84,8 @@ public class Attendance {
      */
     public LocalTime getLogoutTime() {
         if (isLate()) {
-            if (logoutTime.isAfter(shiftEnd)) {
-                logoutTime = shiftEnd;
+            if (logoutTime.isAfter(SHIFT_END)) {
+                logoutTime = SHIFT_END;
             }
         }
         return logoutTime;
@@ -155,10 +160,13 @@ public class Attendance {
      * @return true if late, false if on time or within grace period
      */
     public boolean isLate() {
-        if (!loginTime.isBefore(shiftStart) && loginTime.isBefore(shiftStart.plusMinutes(gracePeriodMinutes))) {
+        LocalTime graceEnd = SHIFT_START.plusMinutes(GRACE_PERIOD_MINUTES);
+        // On time: logged in before or within the grace window (08:00 – 08:10)
+        if (!loginTime.isBefore(SHIFT_START) && loginTime.isBefore(graceEnd)) {
             return false;
         }
-        if (loginTime.isAfter(shiftStart.plusMinutes(gracePeriodMinutes))) {
+        // Late: logged in after the grace window ends (after 08:10)
+        if (loginTime.isAfter(graceEnd)) {
             return true;
         }
         return false;

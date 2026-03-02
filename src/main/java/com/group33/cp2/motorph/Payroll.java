@@ -211,9 +211,9 @@ public class Payroll {
             } else if (periodType == PeriodType.BIWEEKLY) {
                 divisor = 2;
             }
-            double riceAllowance = this.employee.getAllowance().getRiceAllowance() / divisor;
-            double phoneAllowance = this.employee.getAllowance().getPhoneAllowance() / divisor;
-            double clothingAllowance = this.employee.getAllowance().getClothingAllowance() / divisor;
+            double riceAllowance = this.employee.getAllowanceDetails().getRiceAllowance() / divisor;
+            double phoneAllowance = this.employee.getAllowanceDetails().getPhoneAllowance() / divisor;
+            double clothingAllowance = this.employee.getAllowanceDetails().getClothingAllowance() / divisor;
             allowance = new Allowance(employeeID, riceAllowance, phoneAllowance, clothingAllowance);
         } else {
             allowance = new Allowance();
