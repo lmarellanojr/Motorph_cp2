@@ -36,8 +36,6 @@ import javax.swing.JTextField;
  * birthday field. That dependency is unavailable in Maven Central, so the birthday
  * selector has been replaced with a plain {@link JTextField} accepting MM/dd/yyyy input.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class NewEmployeeFrame extends javax.swing.JFrame {
 
@@ -567,10 +565,6 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
             );
         }
     }
-
-    /**
-     * Clears all editable form fields and resets defaults.
-     */
     private void clearAllFields() {
         txtLastName.setText("");
         txtFirstName.setText("");

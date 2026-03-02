@@ -1,33 +1,23 @@
 package com.group33.cp2.motorph;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Service class that provides access to employee attendance data.
- * Loads attendance records from a CSV file using AttendanceCSVHandler.
- *
- * @author Group13
- * @version 1.0
+ * Loads attendance records from CSV and provides read-only access to them.
  */
 public class AttendanceService {
 
     private final List<Attendance> attendanceList;
     private final AttendanceCSVHandler attendanceCSVHandler;
 
-    /**
-     * Constructs an AttendanceService and loads attendance data from the CSV file.
-     */
     public AttendanceService() {
         attendanceCSVHandler = new AttendanceCSVHandler();
         attendanceList = attendanceCSVHandler.loadAllAttendanceFromCsv();
     }
 
-    /**
-     * Returns the full list of attendance records.
-     *
-     * @return a list of Attendance objects
-     */
+    // read-only; attendance data doesn't change after loading
     public List<Attendance> getAllAttendance() {
-        return attendanceList;
+        return Collections.unmodifiableList(attendanceList);
     }
 }

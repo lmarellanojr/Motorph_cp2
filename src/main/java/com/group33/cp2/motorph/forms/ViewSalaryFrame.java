@@ -36,8 +36,6 @@ import javax.swing.border.TitledBorder;
  *
  * <p>It is part of the MotorPH Employee Payroll System.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class ViewSalaryFrame extends javax.swing.JFrame {
 
@@ -210,12 +208,11 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtStatus.setText(selectedEmployee.getStatus());
         txtPosition.setText(selectedEmployee.getPosition());
         txtImmediateSupervisor.setText(selectedEmployee.getImmediateSupervisor());
-        txtBasicSalary.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getBasicSalary())));
-        txtRiceAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getRiceAllowance())));
-        txtPhoneAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getPhoneAllowance())));
-        txtClothingAllowance.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getClothingAllowance())));
-        txtGrossSemiMonthly.setText(String.valueOf(Utility.twoDecimalFormat.format(selectedEmployee.getGrossSemiMonthlyRate())));
-        txtHourlyRate.setText(String.valueOf(selectedEmployee.getHourlyRate()));
+        txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()));
+        txtRiceAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getRiceAllowance()));
+        txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getPhoneAllowance()));
+        txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getClothingAllowance()));
+        txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()));
     }
 
     /**
@@ -500,28 +497,28 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         }
 
         // Format work hours
-        String regularHours = Utility.twoDecimalFormat.format(payroll.getTotalRegularHours());
-        String overtimeHours = Utility.twoDecimalFormat.format(payroll.getTotalOvertimeHours());
+        String regularHours = Utility.formatTwoDecimal(payroll.getTotalRegularHours());
+        String overtimeHours = Utility.formatTwoDecimal(payroll.getTotalOvertimeHours());
 
         CompensationDetails compensationDetails = payroll.getCompensationDetails();
 
         // Format pay components
-        String regularPay = Utility.twoDecimalFormat.format(compensationDetails.getRegularPay());
-        String overtimePay = Utility.twoDecimalFormat.format(compensationDetails.getOvertimePay());
-        String grossSalary = Utility.twoDecimalFormat.format(compensationDetails.getGrossSalary());
+        String regularPay = Utility.formatTwoDecimal(compensationDetails.getRegularPay());
+        String overtimePay = Utility.formatTwoDecimal(compensationDetails.getOvertimePay());
+        String grossSalary = Utility.formatTwoDecimal(compensationDetails.getGrossSalary());
 
         // Format deductions
-        String sss = Utility.twoDecimalFormat.format(compensationDetails.getDeductions().getSss());
-        String pagibig = Utility.twoDecimalFormat.format(compensationDetails.getDeductions().getPagIbig());
-        String philhealth = Utility.twoDecimalFormat.format(compensationDetails.getDeductions().getPhilHealth());
-        String tax = Utility.twoDecimalFormat.format(compensationDetails.getDeductions().getTax());
+        String sss = Utility.formatTwoDecimal(compensationDetails.getDeductions().getSss());
+        String pagibig = Utility.formatTwoDecimal(compensationDetails.getDeductions().getPagIbig());
+        String philhealth = Utility.formatTwoDecimal(compensationDetails.getDeductions().getPhilHealth());
+        String tax = Utility.formatTwoDecimal(compensationDetails.getDeductions().getTax());
 
         // Format allowances
-        String rice = Utility.twoDecimalFormat.format(compensationDetails.getAllowance().getRiceAllowance());
-        String phone = Utility.twoDecimalFormat.format(compensationDetails.getAllowance().getPhoneAllowance());
-        String clothing = Utility.twoDecimalFormat.format(compensationDetails.getAllowance().getClothingAllowance());
+        String rice = Utility.formatTwoDecimal(compensationDetails.getAllowance().getRiceAllowance());
+        String phone = Utility.formatTwoDecimal(compensationDetails.getAllowance().getPhoneAllowance());
+        String clothing = Utility.formatTwoDecimal(compensationDetails.getAllowance().getClothingAllowance());
 
-        String netPay = Utility.twoDecimalFormat.format(compensationDetails.getNetSalary());
+        String netPay = Utility.formatTwoDecimal(compensationDetails.getNetSalary());
 
         // Update UI labels with calculated values
         lblRegularHours.setText(regularHours);

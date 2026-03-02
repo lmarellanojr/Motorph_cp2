@@ -39,8 +39,6 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
  * {@code clearAllFields()} has been corrected to only reference fields that are
  * actually declared in this class.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class ViewEmployeeFrame extends javax.swing.JFrame {
 
@@ -156,14 +154,13 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
     }
 
     private void setCompensationDetails() {
-        txtRiceSubsidy.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getRiceAllowance()));
-        txtPhoneAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getPhoneAllowance()));
-        txtClothingAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getClothingAllowance()));
-        txtGrossSemiMonthly.setText(Utility.twoDecimalFormat.format(selectedEmployee.getGrossSemiMonthlyRate()));
-        txtHourlyRate.setText(Utility.twoDecimalFormat.format(selectedEmployee.getHourlyRate()));
-        txtBasicSalary.setText(Utility.twoDecimalFormat.format(selectedEmployee.getBasicSalary()));
+        txtRiceSubsidy.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getRiceAllowance()));
+        txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getPhoneAllowance()));
+        txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getClothingAllowance()));
+        txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()));
+        txtHourlyRate.setText(Utility.formatTwoDecimal(selectedEmployee.getHourlyRate()));
+        txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()));
     }
-
     /**
      * Disables all text fields to prevent editing (read-only view).
      */

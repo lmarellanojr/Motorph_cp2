@@ -1,27 +1,16 @@
 package com.group33.cp2.motorph;
 
 /**
- * Represents the login credentials and role of an employee in the MotorPH system.
- * Provides a constructor to initialise login data, as well as getters and setters.
- *
- * @author Group13
- * @version 1.0
+ * Holds login credentials and role for one user. Password is never exposed directly.
  */
 public class Login {
 
     private String employeeID;
     private String username;
+    // no getter for password; use verifyPassword() instead
     private String password;
     private Role role;
 
-    /**
-     * Constructs a Login with the specified credentials and role.
-     *
-     * @param employeeID unique employee identifier
-     * @param username   login username
-     * @param password   login password
-     * @param role       the user's role (ADMIN, EMPLOYEE, or PAYROLL_STAFF)
-     */
     public Login(String employeeID, String username, String password, Role role) {
         this.employeeID = employeeID;
         this.username = username;
@@ -45,12 +34,15 @@ public class Login {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
+    // getPassword() not provided
+
+    // returns true if the candidate matches the stored password
+    public boolean verifyPassword(String candidatePassword) {
+        return this.password != null && this.password.equals(candidatePassword);
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPassword(String newPassword) {
+        this.password = newPassword;
     }
 
     public Role getRole() {

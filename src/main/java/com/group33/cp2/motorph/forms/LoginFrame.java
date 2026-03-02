@@ -19,8 +19,6 @@ import javax.swing.KeyStroke;
  * Validates username and password against the bundled {@code MotorPHUsers.csv}
  * resource using AES-encrypted password comparison.
  *
- * @author Group13
- * @version 1.0
  */
 public class LoginFrame extends javax.swing.JFrame {
 

@@ -4,16 +4,12 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /**
- * Represents a payslip record for an employee covering a specific payroll period.
- * Includes working hours, compensation details, and deductions.
- * The payslip ID is auto-generated as a UUID on construction.
- *
- * @author Group13
- * @version 1.0
+ * Holds payslip data for one employee and period. The payslipID is auto-generated and read-only.
  */
 public class Payslip {
 
-    private String payslipID;
+    // auto-generated at construction, no setter
+    private final String payslipID;
     private String employeeID;
     private String payrollID;
     private String birthday;
@@ -25,17 +21,7 @@ public class Payslip {
     private LocalDate issueDate;
 
     /**
-     * Constructs a Payslip with all required fields. The payslipID is auto-generated.
-     *
-     * @param employeeID          the employee's unique identifier
-     * @param payrollID           the payroll period identifier
-     * @param birthday            the employee's birthday as a string
-     * @param periodStartDate     the start date of the payroll period
-     * @param periodEndDate       the end date of the payroll period
-     * @param totalRegularHours   total regular hours worked in the period
-     * @param totalOvertimeHours  total overtime hours worked in the period
-     * @param issueDate           the date this payslip was issued
-     * @param compensationDetails the compensation breakdown (pay, deductions, allowances)
+     * Creates a Payslip. The payslipID is auto-generated.
      */
     public Payslip(String employeeID, String payrollID, String birthday,
                    LocalDate periodStartDate, LocalDate periodEndDate,
@@ -53,19 +39,12 @@ public class Payslip {
         this.issueDate = issueDate;
     }
 
-    /**
-     * Default no-arg constructor.
-     */
-    public Payslip() {
-    }
-
+    // no-arg constructor not available; payslipID must be assigned on construction
     public String getPayslipID() {
         return payslipID;
     }
 
-    public void setPayslipID(String payslipID) {
-        this.payslipID = payslipID;
-    }
+    // setPayslipID() intentionally not provided
 
     public String getEmployeeID() {
         return employeeID;

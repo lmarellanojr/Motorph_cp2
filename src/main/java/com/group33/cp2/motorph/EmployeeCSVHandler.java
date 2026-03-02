@@ -17,47 +17,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles reading, writing, updating, and deleting employee records from a CSV file.
- * Supports loading employee data into objects and saving changes back to storage.
- *
- * <p>Read operations use classpath resource loading so the application works
- * from any working directory. Write operations use a writable external file
- * resolved via the system property {@code motorph.data.dir} (defaults to the
- * user's home directory when not set).</p>
- *
- * @author Group13
- * @version 1.0
+ * Reads and writes employee records from CSV. On first run, copies the bundled CSV to the user's home dir.
  */
 public class EmployeeCSVHandler {
 
-    /** Classpath resource path for the bundled employee data CSV. */
     private static final String RESOURCE_PATH = "/MotorPHEmployeeData.csv";
 
-    /**
-     * Returns the path to the writable employee data file.
-     * The file is stored in the directory specified by the system property
-     * {@code motorph.data.dir}, falling back to the user's home directory.
-     *
-     * @return absolute path to the writable CSV file
-     */
+    // uses motorph.data.dir system property, defaults to user home
     private String getWritableFilePath() {
         String dataDir = System.getProperty("motorph.data.dir",
                 System.getProperty("user.home"));
         return dataDir + File.separator + "MotorPHEmployeeData.csv";
     }
 
-    /**
-     * Constructs an {@code EmployeeCSVHandler} and ensures the writable CSV
-     * file exists. If it does not yet exist, the bundled resource is copied
-     * to the writable location so the application can start from a clean state.
-     */
     public EmployeeCSVHandler() {
         initWritableFile();
     }
 
-    /**
-     * Copies the bundled CSV resource to the writable location if not already present.
-     */
+    // copies the bundled CSV to disk on first run
     private void initWritableFile() {
         File writable = new File(getWritableFilePath());
         if (writable.exists()) {
@@ -80,11 +57,6 @@ public class EmployeeCSVHandler {
         }
     }
 
-    /**
-     * Reads all employees from the CSV file.
-     *
-     * @return list of Employee objects parsed from the CSV
-     */
     public List<Employee> readEmployees() {
         List<Employee> employees = new ArrayList<>();
         File writable = new File(getWritableFilePath());
@@ -146,6 +118,7 @@ public class EmployeeCSVHandler {
                                     immediateSupervisor, allowance, governmentDetails
                             );
                         } else {
+                            // default to RegularEmployee for "Regular" and any unknown status
                             employee = new RegularEmployee(
                                     employeeID, lastName, firstName, birthday, address, phoneNumber,
                                     basicSalary, hourlyRate, grossSemiMonthly, status, position,
@@ -166,33 +139,17 @@ public class EmployeeCSVHandler {
         return employees;
     }
 
-    /**
-     * Removes surrounding quotes and embedded commas from a CSV field value.
-     *
-     * @param value the raw field string
-     * @return cleaned string without quotes or commas
-     */
+    // strips quotes and commas from fields like "90,000"
     private String removeQuotesAndCommas(String value) {
         return value.replace("\"", "").replace(",", "");
     }
 
-    /**
-     * Adds a new employee to the CSV file.
-     *
-     * @param e the Employee object to add
-     */
     public void addEmployee(Employee e) {
         List<Employee> list = readEmployees();
         list.add(e);
         writeEmployees(list);
     }
 
-    /**
-     * Deletes an employee by ID from the CSV file.
-     *
-     * @param employeeId the ID of the employee to delete
-     * @return {@code true} if deletion was successful; {@code false} if not found
-     */
     public boolean deleteEmployee(String employeeId) {
         try {
             File writable = new File(getWritableFilePath());
@@ -234,11 +191,6 @@ public class EmployeeCSVHandler {
         }
     }
 
-    /**
-     * Updates an existing employee's details in the CSV file.
-     *
-     * @param updatedEmployee the modified Employee object
-     */
     public void updateEmployee(Employee updatedEmployee) {
         List<Employee> list = readEmployees();
 
@@ -274,11 +226,6 @@ public class EmployeeCSVHandler {
         writeEmployees(list);
     }
 
-    /**
-     * Writes the entire list of employees back to the writable CSV file.
-     *
-     * @param employees the list of Employee objects to persist
-     */
     public void writeEmployees(List<Employee> employees) {
         File writable = new File(getWritableFilePath());
         try (CSVWriter writer = new CSVWriter(new FileWriter(writable))) {

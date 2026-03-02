@@ -4,18 +4,12 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /**
- * Represents a payroll record for a single employee covering a specific period.
- * Handles work-hour accumulation, gross salary computation, deduction and
- * allowance calculation, net salary derivation, and payslip generation.
- *
- * @author Group13
- * @version 1.0
+ * Holds payroll data for one employee over a date range. Calculates hours, pay, deductions, and net salary.
  */
 public class Payroll {
 
     private final String payrollID;
     private String employeeID;
-    /** Start and end dates strictly define the payroll period (biweekly by design). */
     private LocalDate periodStartDate;
     private LocalDate periodEndDate;
     private double totalRegularHours;
@@ -25,12 +19,7 @@ public class Payroll {
     private final Employee employee;
 
     /**
-     * Constructs a Payroll record with a UUID-generated ID and PENDING status.
-     *
-     * @param employeeID  the employee's unique identifier
-     * @param employee    the Employee object for this payroll record
-     * @param periodStart the inclusive start date of the payroll period
-     * @param periodEnd   the inclusive end date of the payroll period
+     * Creates a payroll record. Status starts as PENDING.
      */
     public Payroll(String employeeID, Employee employee, LocalDate periodStart, LocalDate periodEnd) {
         this.payrollID = UUID.randomUUID().toString();
@@ -42,7 +31,7 @@ public class Payroll {
         this.compensationDetails = new CompensationDetails(employeeID, this.payrollID);
     }
 
-    // ----- Getters and Setters -----
+    // getters and setters
 
     public String getPayrollID() {
         return payrollID;
@@ -88,19 +77,12 @@ public class Payroll {
         this.compensationDetails = compensationDetails;
     }
 
-    // ----- Business Logic -----
-
-    /**
-     * Returns {@code true} if the given date falls within the payroll period, inclusive.
-     */
+    // checks if a date falls within the payroll period
     private boolean isWithinPeriod(LocalDate date) {
         return !date.isBefore(this.periodStartDate) && !date.isAfter(this.periodEndDate);
     }
 
-    /**
-     * Scans the employee's attendance list and accumulates regular and overtime hours
-     * for dates that fall within the payroll period.
-     */
+    // adds up regular and overtime hours from attendance records within the period
     protected void calculateWorkHours() {
         double regularHours = 0;
         double overtimeHours = 0;
@@ -116,11 +98,7 @@ public class Payroll {
         totalOvertimeHours = overtimeHours;
     }
 
-    /**
-     * Returns the total regular hours, triggering a calculation if not yet computed.
-     *
-     * @return regular hours rounded to two decimal places
-     */
+    // triggers calculation if not yet done
     public double getTotalRegularHours() {
         if (this.totalRegularHours == 0) {
             calculateWorkHours();
@@ -128,15 +106,12 @@ public class Payroll {
         return (Math.round(this.totalRegularHours * 100.0) / 100.0);
     }
 
-    public void setTotalRegularHours(double totalRegularHours) {
+    // private: only calculateWorkHours() should set this
+    private void setTotalRegularHours(double totalRegularHours) {
         this.totalRegularHours = totalRegularHours;
     }
 
-    /**
-     * Returns the total overtime hours, triggering a calculation if not yet computed.
-     *
-     * @return overtime hours rounded to two decimal places
-     */
+    // triggers calculation if not yet done
     public double getTotalOvertimeHours() {
         if (this.totalOvertimeHours == 0) {
             calculateWorkHours();
@@ -144,30 +119,21 @@ public class Payroll {
         return (Math.round(this.totalOvertimeHours * 100.0) / 100.0);
     }
 
-    public void setTotalOvertimeHours(double totalOvertimeHours) {
+    // private: only calculateWorkHours() should set this
+    private void setTotalOvertimeHours(double totalOvertimeHours) {
         this.totalOvertimeHours = totalOvertimeHours;
     }
 
-    /**
-     * Computes the employee's regular pay (regular hours x hourly rate) and stores it.
-     */
     public void calculateRegularPay() {
         double totalRegularPay = getTotalRegularHours() * this.employee.getHourlyRate();
         compensationDetails.setRegularPay(totalRegularPay);
     }
 
-    /**
-     * Computes the employee's overtime pay (overtime hours x hourly rate x 1.25) and stores it.
-     */
     public void calculateOvertimePay() {
         double totalOvertimePay = this.getTotalOvertimeHours() * this.employee.getHourlyRate() * 1.25;
         compensationDetails.setOvertimePay(totalOvertimePay);
     }
 
-    /**
-     * Computes gross salary = regular pay + overtime pay.
-     * Also triggers work-hour calculation internally.
-     */
     public void calculateGrossSalary() {
         calculateWorkHours();
         calculateRegularPay();
@@ -176,12 +142,7 @@ public class Payroll {
         compensationDetails.setGrossSalary(grossSalary);
     }
 
-    /**
-     * Calculates government-mandated deductions based on the employee's basic salary and period type.
-     * Returns zero deductions if no regular hours were worked.
-     *
-     * @param periodType the payroll period type (MONTHLY or BIWEEKLY)
-     */
+    // zero deductions if no hours were worked
     public void calculateDeductions(PeriodType periodType) {
         Deductions deductions;
         if (getTotalRegularHours() > 0) {
@@ -196,12 +157,7 @@ public class Payroll {
         compensationDetails.setDeductions(deductions);
     }
 
-    /**
-     * Calculates prorated allowances based on the period type and whether the employee worked.
-     * Divisors: WEEKLY = 4, BIWEEKLY = 2, MONTHLY = 1.
-     *
-     * @param periodType the payroll period type
-     */
+    // pro-rates allowances: WEEKLY /4, BIWEEKLY /2, MONTHLY /1
     public void calculateAllowances(PeriodType periodType) {
         Allowance allowance;
         if (getTotalRegularHours() != 0) {
@@ -221,11 +177,7 @@ public class Payroll {
         compensationDetails.setAllowance(allowance);
     }
 
-    /**
-     * Computes the net salary using monthly deductions and allowances, then marks the
-     * payroll as PROCESSED.
-     * Net salary = gross salary - total deductions + total allowances.
-     */
+    // net = gross - deductions + allowances; marks as PROCESSED
     public void calculateNetSalary() {
         this.calculateGrossSalary();
         this.calculateDeductions(PeriodType.MONTHLY);
@@ -237,25 +189,14 @@ public class Payroll {
         setStatus(PayrollStatus.PROCESSED);
     }
 
-    /**
-     * Marks this payroll record as PROCESSED.
-     */
     public void process() {
         status = PayrollStatus.PROCESSED;
     }
 
-    /**
-     * Reverts this payroll record's status back to PENDING.
-     */
     public void revertToPending() {
         status = PayrollStatus.PENDING;
     }
 
-    /**
-     * Generates and returns a {@link Payslip} summarising this payroll record.
-     *
-     * @return a new Payslip for the current period
-     */
     public Payslip generatePayslip() {
         return new Payslip(
                 this.employeeID,

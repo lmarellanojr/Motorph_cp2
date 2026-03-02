@@ -1,15 +1,11 @@
 package com.group33.cp2.motorph;
 
+import java.util.Collections;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
 /**
- * Provides a static SSS contribution bracket table for employee deduction lookups.
- * The table maps minimum salary thresholds to their corresponding SSS employee
- * contribution amounts using a floor-entry lookup strategy.
- *
- * @author Group13
- * @version 1.0
+ * SSS contribution bracket table. Use floorEntry(salary) to look up the contribution amount.
  */
 public class SSSDeductionsBracket {
 
@@ -63,13 +59,8 @@ public class SSSDeductionsBracket {
         sssDeductions.put(24750.0, 1125.00);
     }
 
-    /**
-     * Returns the SSS deductions bracket table as a {@link NavigableMap}.
-     * Use {@code floorEntry(salary)} to find the applicable contribution for a given salary.
-     *
-     * @return unmodifiable view of the SSS bracket table
-     */
+    // returns a read-only view of the bracket table
     public static NavigableMap<Double, Double> getDeductions() {
-        return sssDeductions;
+        return Collections.unmodifiableNavigableMap(sssDeductions);
     }
 }

@@ -35,8 +35,6 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
  * validation (date format, government ID patterns, numeric fields), and persists
  * changes to the CSV via {@link EmployeeService#updateEmployee(Employee)}.</p>
  *
- * @author Group13
- * @version 1.0
  */
 public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
@@ -136,12 +134,12 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private void setCompensationDetails() {
         if (selectedEmployee != null) {
-            txtBasicSalary.setText(Utility.twoDecimalFormat.format(selectedEmployee.getBasicSalary()).replace(",", ""));
-            txtRiceSubsidy.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getRiceAllowance()).replace(",", ""));
-            txtPhoneAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getPhoneAllowance()).replace(",", ""));
-            txtClothingAllowance.setText(Utility.twoDecimalFormat.format(selectedEmployee.getAllowanceDetails().getClothingAllowance()).replace(",", ""));
-            txtGrossSemiMonthly.setText(Utility.twoDecimalFormat.format(selectedEmployee.getGrossSemiMonthlyRate()).replace(",", ""));
-            txtHourlyRate.setText(Utility.twoDecimalFormat.format(selectedEmployee.getHourlyRate()).replace(",", ""));
+            txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()).replace(",", ""));
+            txtRiceSubsidy.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getRiceAllowance()).replace(",", ""));
+            txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getPhoneAllowance()).replace(",", ""));
+            txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getClothingAllowance()).replace(",", ""));
+            txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()).replace(",", ""));
+            txtHourlyRate.setText(Utility.formatTwoDecimal(selectedEmployee.getHourlyRate()).replace(",", ""));
         }
     }
 

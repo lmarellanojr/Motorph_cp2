@@ -1,40 +1,28 @@
 package com.group33.cp2.motorph;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
-import java.time.*;
 
 /**
- * Represents an attendance record for an employee, including login/logout
- * times, shift handling, and hour calculations.
- *
- * @author Group13
- * @version 1.0
+ * Stores one day's attendance record for an employee, including login/logout times and hour calculations.
  */
 public class Attendance {
 
-    private String attendanceID;
+    private static final LocalTime SHIFT_START = LocalTime.of(8, 0);
+    private static final LocalTime SHIFT_END = LocalTime.of(17, 0);
+    private static final int GRACE_PERIOD_MINUTES = 10;
+
+    // auto-generated at construction, no setter
+    private final String attendanceID;
     private String employeeID;
     private LocalDate date;
     private LocalTime loginTime;
     private LocalTime logoutTime;
 
-    /** Shift start time: 8:00 AM. */
-    private static final LocalTime SHIFT_START = LocalTime.of(8, 0);
-
-    /** Shift end time / late-employee logout cap: 5:00 PM. */
-    private static final LocalTime SHIFT_END = LocalTime.of(17, 0);
-
-    /** Grace period: employees logging in up to 10 minutes after 8:00 AM are on-time. */
-    private static final int GRACE_PERIOD_MINUTES = 10;
-
     /**
-     * Constructs an Attendance object with the specified employee ID, date,
-     * login time, and logout time. A unique attendance ID is automatically generated.
-     *
-     * @param employeeID the ID of the employee
-     * @param date       the date of the attendance record
-     * @param loginTime  the time the employee logged in
-     * @param logoutTime the time the employee logged out
+     * Creates an attendance record. A unique ID is auto-generated.
      */
     public Attendance(String employeeID, LocalDate date, LocalTime loginTime, LocalTime logoutTime) {
         this.attendanceID = UUID.randomUUID().toString();
@@ -48,9 +36,7 @@ public class Attendance {
         return attendanceID;
     }
 
-    public void setAttendanceID(String attendanceID) {
-        this.attendanceID = attendanceID;
-    }
+    // setAttendanceID() intentionally not provided
 
     public String getEmployeeID() {
         return employeeID;
@@ -76,12 +62,7 @@ public class Attendance {
         this.loginTime = loginTime;
     }
 
-    /**
-     * Returns logout time. If employee is late, caps the logout time at 5:00 PM
-     * (no overtime).
-     *
-     * @return the logout time, possibly capped at shift end
-     */
+    // caps logout at 5 PM if employee was late (no overtime)
     public LocalTime getLogoutTime() {
         if (isLate()) {
             if (logoutTime.isAfter(SHIFT_END)) {
@@ -95,12 +76,7 @@ public class Attendance {
         this.logoutTime = logoutTime;
     }
 
-    /**
-     * Calculates the total number of hours worked in a day.
-     * Deducts 1 hour for lunch if the total exceeds 5 hours.
-     *
-     * @return Total hours worked, as a double
-     */
+    // deducts 1 hour for lunch if total worked > 5 hours
     public double getTotalHours() {
         Duration workedDuration = Duration.between(getLoginTime(), getLogoutTime());
         double totalHours = workedDuration.toMinutes() / 60.0;
@@ -111,21 +87,12 @@ public class Attendance {
         return totalHours;
     }
 
-    /**
-     * Calculates the number of regular hours worked. Capped at 8 hours max per day.
-     *
-     * @return regular hours worked (max 8.0)
-     */
+    // regular hours capped at 8 per day
     public double getRegularHours() {
         return Math.min(getTotalHours(), 8.0);
     }
 
-    /**
-     * Calculates overtime hours only if the employee was not late.
-     * Overtime = Total hours - 8, if applicable.
-     *
-     * @return overtime hours, or 0 if employee was late
-     */
+    // overtime only counts if not late; returns 0 otherwise
     public double getOvertimeHours() {
         if (!isLate()) {
             return Math.max(0, getTotalHours() - 8.0);
@@ -133,32 +100,17 @@ public class Attendance {
         return 0.0;
     }
 
-    /**
-     * Returns regular hours rounded to 2 decimal places.
-     *
-     * @return rounded regular hours
-     */
     public double getRoundedRegularHours() {
         double regularHours = Math.min(getTotalHours(), 8.0);
         return Math.round(regularHours * 100.0) / 100.0;
     }
 
-    /**
-     * Returns overtime hours rounded to 2 decimal places.
-     *
-     * @return rounded overtime hours
-     */
     public double getRoundedOvertimeHours() {
         double overtimeHours = Math.max(0, getTotalHours() - 8.0);
         return Math.round(overtimeHours * 100.0) / 100.0;
     }
 
-    /**
-     * Determines if the employee is considered late.
-     * A grace period of 10 minutes is allowed past 8:00 AM.
-     *
-     * @return true if late, false if on time or within grace period
-     */
+    // late = logged in after the 10-minute grace period past 8:00 AM
     public boolean isLate() {
         LocalTime graceEnd = SHIFT_START.plusMinutes(GRACE_PERIOD_MINUTES);
         // On time: logged in before or within the grace window (08:00 – 08:10)

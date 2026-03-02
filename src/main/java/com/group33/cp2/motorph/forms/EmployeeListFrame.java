@@ -16,8 +16,6 @@ import javax.swing.table.DefaultTableModel;
  * Displays a list of all employees in a table with options to view, add, update,
  * or delete records. Serves as the main employee management interface.
  *
- * @author Group13
- * @version 1.0
  */
 public class EmployeeListFrame extends javax.swing.JFrame {
 
