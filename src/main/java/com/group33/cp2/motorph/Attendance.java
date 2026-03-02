@@ -105,7 +105,17 @@ public class Attendance {
         return Math.round(regularHours * 100.0) / 100.0;
     }
 
+    /**
+     * Returns overtime hours (beyond 8.0) rounded to two decimal places.
+     * Late employees are not eligible for overtime — returns 0.0 if the employee was late.
+     * This mirrors the logic in {@link #getOvertimeHours()}.
+     *
+     * @return rounded overtime hours, or 0.0 if the employee was late
+     */
     public double getRoundedOvertimeHours() {
+        if (isLate()) {
+            return 0.0;
+        }
         double overtimeHours = Math.max(0, getTotalHours() - 8.0);
         return Math.round(overtimeHours * 100.0) / 100.0;
     }

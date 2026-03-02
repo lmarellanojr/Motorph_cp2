@@ -6,6 +6,8 @@ import com.group33.cp2.motorph.Employee;
 import com.group33.cp2.motorph.EmployeeService;
 import com.group33.cp2.motorph.NavigationManager;
 import com.group33.cp2.motorph.Payroll;
+import com.group33.cp2.motorph.PayrollDAO;
+import com.group33.cp2.motorph.PayrollService;
 import com.group33.cp2.motorph.PayrollStatus;
 import com.group33.cp2.motorph.Utility;
 import java.awt.Color;
@@ -36,11 +38,25 @@ import javax.swing.border.TitledBorder;
  *
  * <p>It is part of the MotorPH Employee Payroll System.</p>
  *
+ * <p><strong>OOP Pillar — Interface Polymorphism:</strong> {@code payrollDAO} is declared
+ * as the {@link PayrollDAO} interface type and assigned a {@link PayrollService} instance.
+ * Any future persistence implementation (CSV, database) can be substituted here without
+ * changing this frame's code, as long as it implements {@link PayrollDAO}.</p>
+ *
  */
 public class ViewSalaryFrame extends javax.swing.JFrame {
 
     /** Handles employee data retrieval. */
     EmployeeService employeeService = new EmployeeService();
+
+    /**
+     * Payroll record store declared as the {@link PayrollDAO} interface type.
+     * At runtime the assigned object is a {@link PayrollService} (in-memory store).
+     * Demonstrates interface polymorphism: this frame depends on the contract, not
+     * the concrete implementation.
+     */
+    private final PayrollDAO payrollDAO = new PayrollService();
+
     /** Currently selected employee. */
     Employee selectedEmployee;
 
@@ -477,6 +493,12 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
     /**
      * Computes and displays the employee's payroll for the given date range.
      *
+     * <p>After a successful computation, the processed {@link Payroll} record is stored
+     * via {@link #payrollDAO} — an interface-typed reference. This is a live demonstration
+     * of interface polymorphism: the call {@code payrollDAO.create(payroll)} resolves at
+     * runtime to {@link PayrollService#create(Payroll)}, but this method only knows about
+     * the {@link PayrollDAO} contract.</p>
+     *
      * @param selectedStartDate first day of the payroll period
      * @param selectedEndDate   last day of the payroll period
      */
@@ -495,6 +517,10 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
             );
             return;
         }
+
+        // Store the processed payroll record via the PayrollDAO interface — interface polymorphism:
+        // the declared type is PayrollDAO; the runtime object is PayrollService.
+        payrollDAO.create(payroll);
 
         // Format work hours
         String regularHours = Utility.formatTwoDecimal(payroll.getTotalRegularHours());

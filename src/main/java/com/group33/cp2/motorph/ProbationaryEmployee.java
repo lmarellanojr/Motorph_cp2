@@ -88,20 +88,23 @@ public class ProbationaryEmployee extends Employee implements PayrollCalculable 
     }
 
     /**
-     * Returns the base salary only — the bonus parameter is ignored because
-     * probationary employees do not receive bonuses.
+     * Calculates gross salary — the overtime hours parameter is ignored because
+     * probationary employees are not eligible for overtime pay.
      *
-     * @param salary custom base salary; must be &gt; 0
-     * @param bonus  ignored for probationary employees
-     * @return {@code salary} (bonus not applied)
+     * <p>Implements overload 2 of {@link PayrollCalculable#calculateGrossSalary(double, double)}.
+     * Returns the base salary only regardless of overtime hours.</p>
+     *
+     * @param salary        custom base salary; must be &gt; 0
+     * @param overtimeHours ignored for probationary employees
+     * @return {@code salary} (overtime not applied)
      * @throws IllegalArgumentException if {@code salary} &le; 0
      */
     @Override
-    public double calculateGrossSalary(double salary, double bonus) {
+    public double calculateGrossSalary(double salary, double overtimeHours) {
         if (salary <= 0) {
             throw new IllegalArgumentException("Salary must be > 0. Received: " + salary);
         }
-        return salary; // bonus is intentionally not applied
+        return salary; // overtimeHours intentionally not applied — probationary employees have no OT
     }
 
     /**

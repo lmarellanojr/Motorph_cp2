@@ -69,16 +69,39 @@ public class IT extends Employee implements PayrollCalculable, ITOperations {
         return getBasicSalary() + getAllowance();
     }
 
-    /** @return {@code salary} unchanged */
+    /**
+     * Returns the supplied salary amount unchanged.
+     *
+     * @param salary custom base salary; must be &gt; 0
+     * @return {@code salary}
+     * @throws IllegalArgumentException if {@code salary} is not positive
+     */
     @Override
     public double calculateGrossSalary(double salary) {
+        if (salary <= 0) {
+            throw new IllegalArgumentException("Salary must be > 0. Received: " + salary);
+        }
         return salary;
     }
 
-    /** @return {@code salary + bonus} */
+    /**
+     * Calculates gross salary including overtime pay for the given overtime hours.
+     * IT employees are eligible for overtime at 1.25× their hourly rate.
+     *
+     * @param salary        custom base salary; must be &gt; 0
+     * @param overtimeHours hours worked beyond 8 in a day; must be &ge; 0
+     * @return {@code salary + (overtimeHours * hourlyRate * 1.25)}
+     * @throws IllegalArgumentException if {@code salary} &le; 0 or {@code overtimeHours} &lt; 0
+     */
     @Override
-    public double calculateGrossSalary(double salary, double bonus) {
-        return salary + bonus;
+    public double calculateGrossSalary(double salary, double overtimeHours) {
+        if (salary <= 0) {
+            throw new IllegalArgumentException("Salary must be > 0. Received: " + salary);
+        }
+        if (overtimeHours < 0) {
+            throw new IllegalArgumentException("Overtime hours must be >= 0. Received: " + overtimeHours);
+        }
+        return salary + (overtimeHours * getHourlyRate() * 1.25);
     }
 
     /**

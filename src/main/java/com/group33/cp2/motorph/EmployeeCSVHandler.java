@@ -17,9 +17,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reads and writes employee records from CSV. On first run, copies the bundled CSV to the user's home dir.
+ * CSV-backed implementation of {@link EmployeeDAO} for employee CRUD operations.
+ *
+ * <p>On first run, copies the bundled classpath resource
+ * ({@code /MotorPHEmployeeData.csv}) to the user's home directory (or the directory
+ * specified by the {@code motorph.data.dir} system property). Subsequent runs
+ * read from and write to that writable copy.</p>
+ *
+ * <p><strong>OOP Pillar demonstrated:</strong> Abstraction — callers depend on the
+ * {@link EmployeeDAO} interface, not on this CSV-specific implementation. The
+ * persistence strategy (CSV today, database tomorrow) can be swapped without
+ * modifying any business logic that holds an {@link EmployeeDAO} reference.</p>
+ *
+ * @author Group13
+ * @version 2.0
  */
-public class EmployeeCSVHandler {
+public class EmployeeCSVHandler implements EmployeeDAO {
 
     private static final String RESOURCE_PATH = "/MotorPHEmployeeData.csv";
 
@@ -265,5 +278,84 @@ public class EmployeeCSVHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    // =========================================================================
+    //  EmployeeDAO interface implementation
+    //  These bridge methods map the DAO contract to the existing CSV operations,
+    //  allowing callers to depend on EmployeeDAO rather than this concrete class.
+    // =========================================================================
+
+    /**
+     * Persists a new employee record to the CSV file.
+     *
+     * @param employee the {@link Employee} to create; must not be null
+     * @return {@code true} if the employee was written successfully; {@code false} on error
+     */
+    @Override
+    public boolean create(Employee employee) {
+        if (employee == null) {
+            return false;
+        }
+        try {
+            addEmployee(employee);
+            return true;
+        } catch (Exception e) {
+            System.err.println("EmployeeDAO.create() failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves an employee record by unique ID from the CSV file.
+     *
+     * @param employeeID the unique identifier to search for
+     * @return the matching {@link Employee}, or {@code null} if not found
+     */
+    @Override
+    public Employee read(String employeeID) {
+        if (employeeID == null || employeeID.isBlank()) {
+            return null;
+        }
+        for (Employee employee : readEmployees()) {
+            if (employee.getEmployeeID().equals(employeeID)) {
+                return employee;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Updates an existing employee record in the CSV file.
+     *
+     * @param employee the {@link Employee} with updated fields; must not be null
+     * @return {@code true} if the update was successful; {@code false} on error
+     */
+    @Override
+    public boolean update(Employee employee) {
+        if (employee == null) {
+            return false;
+        }
+        try {
+            updateEmployee(employee);
+            return true;
+        } catch (Exception e) {
+            System.err.println("EmployeeDAO.update() failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Deletes an employee record by unique ID from the CSV file.
+     *
+     * @param employeeID the unique identifier of the employee to delete
+     * @return {@code true} if deleted; {@code false} if not found or on error
+     */
+    @Override
+    public boolean delete(String employeeID) {
+        if (employeeID == null || employeeID.isBlank()) {
+            return false;
+        }
+        return deleteEmployee(employeeID);
     }
 }
