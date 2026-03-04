@@ -32,7 +32,7 @@ import java.util.List;
  * @author Group13
  * @version 2.0
  */
-public class EmployeeCSVHandler implements EmployeeDAO {
+public class EmployeeCSVHandler_OLD implements EmployeeDAO {
 
     private static final String RESOURCE_PATH = "/MotorPHEmployeeData.csv";
 
@@ -43,7 +43,7 @@ public class EmployeeCSVHandler implements EmployeeDAO {
         return dataDir + File.separator + "MotorPHEmployeeData.csv";
     }
 
-    public EmployeeCSVHandler() {
+    public EmployeeCSVHandler_OLD() {
         initWritableFile();
     }
 
