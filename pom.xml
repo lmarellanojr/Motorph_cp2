@@ -26,6 +26,13 @@
             <version>5.9</version>
         </dependency>
 
+        <!-- BCrypt password hashing — only AuthService imports this -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
+
         <!--
             NOTE: jcalendar (com.toedter:jcalendar:1.4) and AbsoluteLayout
             (org.netbeans.external:AbsoluteLayout:RELEASE240) are NOT included
