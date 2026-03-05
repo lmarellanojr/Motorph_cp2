@@ -10,26 +10,27 @@ package com.group33.cp2.motorph;
  * this interface, decoupling the HR workflow from the concrete {@link HR} implementation.</p>
  *
  * @author Group13
- * @version 2.0
+ * @version 2.1
  */
 public interface HROperations {
 
     /**
      * Approves a pending leave request.
      *
-     * @param leaveId the unique identifier of the leave request
+     * @param leaveId the unique string identifier of the leave request
+     * @param remark  optional approval remark; may be empty but not null
      * @return {@code true} if the leave was successfully approved; {@code false} otherwise
      */
-    boolean approveLeave(int leaveId);
+    boolean approveLeave(String leaveId, String remark);
 
     /**
      * Rejects a pending leave request with a stated reason.
      *
-     * @param leaveId the unique identifier of the leave request
-     * @param reason  the reason for rejection; must not be null or blank
+     * @param leaveId the unique string identifier of the leave request
+     * @param remark  the reason for rejection; must not be null or blank
      * @return {@code true} if the leave was successfully rejected; {@code false} otherwise
      */
-    boolean rejectLeave(int leaveId, String reason);
+    boolean rejectLeave(String leaveId, String remark);
 
     /**
      * Retrieves an employee's personal and employment record by ID.

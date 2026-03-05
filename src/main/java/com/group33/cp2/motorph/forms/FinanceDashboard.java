@@ -1,0 +1,332 @@
+package com.group33.cp2.motorph.forms;
+
+import com.group33.cp2.motorph.Employee;
+import com.group33.cp2.motorph.EmployeeService;
+import com.group33.cp2.motorph.Finance;
+import com.group33.cp2.motorph.NavigationManager;
+import com.group33.cp2.motorph.PayrollCalculator;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableModel;
+
+/**
+ * Finance Dashboard — the primary screen for Finance department employees.
+ *
+ * <p>Provides two tabs:</p>
+ * <ol>
+ *   <li><strong>Payroll Overview</strong> — summarised payroll table for all employees
+ *       (basic salary, gross, deductions, net).</li>
+ *   <li><strong>Detailed Report</strong> — expanded breakdown with individual deduction
+ *       columns (SSS, PhilHealth, Pag-IBIG, Withholding Tax) and a "Generate Report"
+ *       button that renders a formatted text summary in a non-editable text area.</li>
+ * </ol>
+ *
+ * <p><strong>OOP Pillar — Polymorphism:</strong> All payroll figures are obtained by
+ * calling {@code employee.calculateGrossSalary()}, {@code calculateDeductions()}, and
+ * {@code calculateNetSalary()} through the abstract {@link Employee} reference.
+ * At runtime, the JVM dispatches to whichever concrete implementation is stored
+ * (e.g., {@link com.group33.cp2.motorph.RegularEmployee} includes withholding tax;
+ * {@link com.group33.cp2.motorph.ProbationaryEmployee} does not).</p>
+ *
+ * @author Group13
+ * @version 2.0
+ */
+public class FinanceDashboard extends JFrame {
+
+    private final Finance         financeUser;
+    private final EmployeeService employeeService;
+
+    // Tab 1 — Payroll Overview
+    private JTable payrollTable;
+    private DefaultTableModel payrollModel;
+
+    // Tab 2 — Detailed Report
+    private JTable detailTable;
+    private DefaultTableModel detailModel;
+    private JTextArea reportTextArea;
+
+    /**
+     * Constructs the FinanceDashboard.
+     *
+     * @param financeUser     the logged-in Finance employee; must not be null
+     * @param employeeService the employee data service; must not be null
+     */
+    public FinanceDashboard(Finance financeUser, EmployeeService employeeService) {
+        this.financeUser     = financeUser;
+        this.employeeService = employeeService;
+
+        setTitle("Finance Dashboard — " + financeUser.getFullName());
+        setSize(1000, 650);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int choice = JOptionPane.showConfirmDialog(
+                        FinanceDashboard.this,
+                        "Are you sure you want to exit?",
+                        "Confirm Exit",
+                        JOptionPane.YES_NO_OPTION
+                );
+                if (choice == JOptionPane.YES_OPTION) {
+                    dispose();
+                }
+            }
+        });
+
+        buildUI();
+        loadPayrollTable();
+        loadDetailTable();
+    }
+
+    // =========================================================================
+    //  UI construction
+    // =========================================================================
+
+    private void buildUI() {
+        JPanel header = buildHeaderPanel();
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("Payroll Overview", buildOverviewTab());
+        tabs.addTab("Detailed Report",  buildDetailedReportTab());
+
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(header, BorderLayout.NORTH);
+        getContentPane().add(tabs,   BorderLayout.CENTER);
+        getContentPane().add(buildFooterPanel(), BorderLayout.SOUTH);
+    }
+
+    private JPanel buildHeaderPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 5, 15));
+        JLabel title = new JLabel("Finance Dashboard", SwingConstants.LEFT);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        JLabel welcome = new JLabel("Welcome, " + financeUser.getFullName(), SwingConstants.RIGHT);
+        welcome.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        panel.add(title, BorderLayout.WEST);
+        panel.add(welcome, BorderLayout.EAST);
+        return panel;
+    }
+
+    private JPanel buildFooterPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnLogout = new JButton("Logout");
+        btnLogout.addActionListener(e -> {
+            int choice = JOptionPane.showConfirmDialog(
+                    this, "Log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
+            if (choice == JOptionPane.YES_OPTION) {
+                NavigationManager.openLoginFrame(this);
+            }
+        });
+        panel.add(btnLogout);
+        return panel;
+    }
+
+    // =========================================================================
+    //  Tab 1: Payroll Overview
+    // =========================================================================
+
+    private JPanel buildOverviewTab() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        payrollModel = new DefaultTableModel(
+                new String[]{
+                    "Employee ID", "Full Name", "Position",
+                    "Basic Salary", "Gross Salary", "Total Deductions", "Net Salary"
+                }, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        payrollTable = new JTable(payrollModel);
+        payrollTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        payrollTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+        JButton btnRefresh = new JButton("Refresh");
+        btnRefresh.addActionListener(e -> loadPayrollTable());
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonBar.add(btnRefresh);
+
+        panel.add(new JScrollPane(payrollTable), BorderLayout.CENTER);
+        panel.add(buttonBar, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private void loadPayrollTable() {
+        payrollModel.setRowCount(0);
+        List<Employee> employees = employeeService.getAllEmployees();
+        for (Employee emp : employees) {
+            payrollModel.addRow(new Object[]{
+                emp.getEmployeeID(),
+                emp.getFullName(),
+                emp.getPosition(),
+                String.format("%.2f", emp.getBasicSalary()),
+                String.format("%.2f", emp.calculateGrossSalary()),
+                String.format("%.2f", emp.calculateDeductions()),
+                String.format("%.2f", emp.calculateNetSalary())
+            });
+        }
+    }
+
+    // =========================================================================
+    //  Tab 2: Detailed Report
+    // =========================================================================
+
+    private JPanel buildDetailedReportTab() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Detailed breakdown table
+        detailModel = new DefaultTableModel(
+                new String[]{
+                    "Emp ID", "Full Name",
+                    "Basic Salary", "Allowances",
+                    "SSS", "PhilHealth", "Pag-IBIG", "Withholding Tax",
+                    "Total Deductions", "Net Salary"
+                }, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        detailTable = new JTable(detailModel);
+        detailTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        detailTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        JScrollPane tableScroll = new JScrollPane(detailTable);
+        tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        // Text summary area (shown below the table after clicking Generate)
+        reportTextArea = new JTextArea(8, 80);
+        reportTextArea.setEditable(false);
+        reportTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        reportTextArea.setText("Click 'Generate Report' to produce a payroll summary.");
+        JScrollPane textScroll = new JScrollPane(reportTextArea);
+        textScroll.setBorder(BorderFactory.createTitledBorder("Payroll Summary Report"));
+
+        // Button bar
+        JButton btnRefresh  = new JButton("Refresh Table");
+        JButton btnGenerate = new JButton("Generate Report");
+        btnRefresh.addActionListener(e  -> loadDetailTable());
+        btnGenerate.addActionListener(e -> generateDetailedReport());
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonBar.add(btnRefresh);
+        buttonBar.add(btnGenerate);
+
+        // Layout: table in CENTER, text below in a split
+        JPanel topSection = new JPanel(new BorderLayout(0, 5));
+        topSection.add(tableScroll, BorderLayout.CENTER);
+        topSection.add(buttonBar, BorderLayout.SOUTH);
+
+        panel.add(topSection, BorderLayout.CENTER);
+        panel.add(textScroll, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private void loadDetailTable() {
+        detailModel.setRowCount(0);
+        List<Employee> employees = employeeService.getAllEmployees();
+        for (Employee emp : employees) {
+            double basic       = emp.getBasicSalary();
+            double allowances  = emp.getAllowance();
+            double sss         = PayrollCalculator.computeSSSDeduction(basic);
+            double philHealth  = PayrollCalculator.computePhilhealthDeduction(basic);
+            double pagIbig     = PayrollCalculator.computePagibigDeduction(basic);
+            double tax         = PayrollCalculator.computeWithholdingTax(basic);
+            double totalDeduct = emp.calculateDeductions();
+            double net         = emp.calculateNetSalary();
+
+            detailModel.addRow(new Object[]{
+                emp.getEmployeeID(),
+                emp.getFullName(),
+                String.format("%.2f", basic),
+                String.format("%.2f", allowances),
+                String.format("%.2f", sss),
+                String.format("%.2f", philHealth),
+                String.format("%.2f", pagIbig),
+                String.format("%.2f", tax),
+                String.format("%.2f", totalDeduct),
+                String.format("%.2f", net)
+            });
+        }
+    }
+
+    /**
+     * Generates a formatted payroll summary and displays it in the report text area.
+     * Also shows the aggregate totals (employees count, total gross, deductions, net).
+     */
+    private void generateDetailedReport() {
+        List<Employee> employees = employeeService.getAllEmployees();
+
+        double totalBasic    = 0;
+        double totalAllow    = 0;
+        double totalSss      = 0;
+        double totalPh       = 0;
+        double totalPib      = 0;
+        double totalTax      = 0;
+        double totalDeduct   = 0;
+        double totalNet      = 0;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("MotorPH Payroll Detailed Report\n");
+        sb.append("=".repeat(80)).append("\n");
+        sb.append(String.format("%-10s %-22s %10s %10s %8s %10s %9s %12s %12s %12s%n",
+                "Emp ID", "Full Name", "Basic", "Allowance",
+                "SSS", "PhilHealth", "PagIbig", "Tax", "Deductions", "Net Pay"));
+        sb.append("-".repeat(120)).append("\n");
+
+        for (Employee emp : employees) {
+            double basic      = emp.getBasicSalary();
+            double allowances = emp.getAllowance();
+            double sss        = PayrollCalculator.computeSSSDeduction(basic);
+            double ph         = PayrollCalculator.computePhilhealthDeduction(basic);
+            double pib        = PayrollCalculator.computePagibigDeduction(basic);
+            double tax        = PayrollCalculator.computeWithholdingTax(basic);
+            double deduct     = emp.calculateDeductions();
+            double net        = emp.calculateNetSalary();
+
+            totalBasic  += basic;
+            totalAllow  += allowances;
+            totalSss    += sss;
+            totalPh     += ph;
+            totalPib    += pib;
+            totalTax    += tax;
+            totalDeduct += deduct;
+            totalNet    += net;
+
+            String name = emp.getFullName();
+            if (name.length() > 22) name = name.substring(0, 19) + "...";
+
+            sb.append(String.format("%-10s %-22s %10.2f %10.2f %8.2f %10.2f %9.2f %12.2f %12.2f %12.2f%n",
+                    emp.getEmployeeID(), name,
+                    basic, allowances, sss, ph, pib, tax, deduct, net));
+        }
+
+        sb.append("=".repeat(120)).append("\n");
+        sb.append(String.format("%-10s %-22s %10.2f %10.2f %8.2f %10.2f %9.2f %12.2f %12.2f %12.2f%n",
+                "", "TOTALS",
+                totalBasic, totalAllow, totalSss, totalPh, totalPib, totalTax, totalDeduct, totalNet));
+        sb.append(String.format("%nTotal Employees: %d%n", employees.size()));
+
+        reportTextArea.setText(sb.toString());
+        reportTextArea.setCaretPosition(0);
+    }
+}

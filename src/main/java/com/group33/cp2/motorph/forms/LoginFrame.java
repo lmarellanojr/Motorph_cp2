@@ -1,26 +1,54 @@
 package com.group33.cp2.motorph.forms;
 
+import com.group33.cp2.motorph.Admin;
 import com.group33.cp2.motorph.Constants;
-import com.group33.cp2.motorph.CryptoUtil;
+import com.group33.cp2.motorph.Employee;
+import com.group33.cp2.motorph.EmployeeService;
+import com.group33.cp2.motorph.Finance;
+import com.group33.cp2.motorph.HR;
+import com.group33.cp2.motorph.IT;
 import com.group33.cp2.motorph.NavigationManager;
-import com.opencsv.CSVReader;
+import com.group33.cp2.motorph.data.EmployeeDetailsReader;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 import javax.swing.KeyStroke;
 
 /**
  * Login screen for the MotorPH Payroll System.
- * Validates username and password against the bundled {@code MotorPHUsers.csv}
- * resource using AES-encrypted password comparison.
  *
+ * <p>Authenticates username and password using BCrypt against the
+ * {@code src/main/resources/data/Login.csv} file. On success, dispatches
+ * to the role-appropriate dashboard:</p>
+ * <ul>
+ *   <li>HR → {@link HRDashboard}</li>
+ *   <li>IT → {@link ITDashboard}</li>
+ *   <li>FINANCE → {@link FinanceDashboard}</li>
+ *   <li>ADMIN → {@link AdminDashboard}</li>
+ *   <li>EMPLOYEE (default) → {@link EmployeeDashboard}</li>
+ * </ul>
+ *
+ * <p>If the login row has {@code changePassword=YES}, the user is prompted to set
+ * a new password before proceeding.</p>
+ *
+ * <p><strong>OOP Pillar — Polymorphism:</strong> The after-login dispatch creates the
+ * correct dashboard type based on the role string, demonstrating runtime dispatch
+ * through concrete frame types.</p>
+ *
+ * @author Group13
+ * @version 2.1
  */
 public class LoginFrame extends javax.swing.JFrame {
+
+    private final EmployeeDetailsReader loginReader = new EmployeeDetailsReader();
+    private final EmployeeService       employeeService = new EmployeeService();
 
     /**
      * Creates the LoginFrame, configures size, close behaviour, and keyboard shortcuts.
@@ -64,40 +92,6 @@ public class LoginFrame extends javax.swing.JFrame {
         });
 
         setLocationRelativeTo(null);
-    }
-
-    /**
-     * Validates the supplied username and password against the encrypted entries
-     * in the {@code MotorPHUsers.csv} classpath resource.
-     *
-     * @param username the plain-text username to check
-     * @param password the plain-text password to check
-     * @return {@code true} if a matching, decryptable record is found
-     */
-    private boolean validateCredentials(String username, String password) {
-        try (
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("MotorPHUsers.csv");
-            InputStreamReader isr = new InputStreamReader(inputStream);
-            CSVReader reader = new CSVReader(isr)
-        ) {
-            String[] nextLine;
-            reader.readNext(); // Skip header line
-
-            while ((nextLine = reader.readNext()) != null) {
-                String fileUsername = nextLine[0].trim().replace("\"", "");
-                String encryptedPassword = nextLine[1].trim().replace("\"", "");
-                String decryptedPassword = CryptoUtil.decrypt(encryptedPassword);
-
-                if (fileUsername.equals(username)
-                        && decryptedPassword != null
-                        && decryptedPassword.equals(password)) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     /**
@@ -197,7 +191,8 @@ public class LoginFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     /**
-     * Reads inputs, validates them, and either opens the menu or shows an error.
+     * Reads inputs, authenticates via BCrypt against Login.csv, and dispatches
+     * to the appropriate role dashboard.
      */
     private void login() {
         String username = txtUsername.getText().trim();
@@ -217,12 +212,148 @@ public class LoginFrame extends javax.swing.JFrame {
             return;
         }
 
-        if (validateCredentials(username, password)) {
-            JOptionPane.showMessageDialog(this, "Login Successful!");
-            NavigationManager.openMenuFrame(this);
-        } else {
+        // Look up Login.csv row: [0]=empNum, [1]=username, [2]=roleName, [3]=password, [4]=changePassword
+        String[] loginRow = loginReader.getLoginDataByUsername(username);
+
+        if (loginRow == null) {
             JOptionPane.showMessageDialog(this, "Invalid username or password.",
                     "Login Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String storedHash = loginRow.length > 3 ? loginRow[3].trim() : "";
+        if (!BCrypt.checkpw(password, storedHash)) {
+            JOptionPane.showMessageDialog(this, "Invalid username or password.",
+                    "Login Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Check if password change is required
+        String changePw = loginRow.length > 4 ? loginRow[4].trim() : "NO";
+        if ("YES".equalsIgnoreCase(changePw)) {
+            handleForcePasswordChange(loginRow[0].trim());
+            return;
+        }
+
+        // Successful login — dispatch by role
+        String empNum = loginRow[0].trim();
+        String role   = loginRow.length > 2 ? loginRow[2].trim().toUpperCase() : "EMPLOYEE";
+
+        JOptionPane.showMessageDialog(this, "Login Successful! Welcome, " + username + ".");
+        openDashboardForRole(role, empNum);
+    }
+
+    /**
+     * Prompts the user to set a new password and writes the BCrypt hash to Login.csv.
+     * Only proceeds to the dashboard after a successful password change.
+     *
+     * @param empNum the employee number whose password must be changed
+     */
+    private void handleForcePasswordChange(String empNum) {
+        JPasswordField newPwField     = new JPasswordField();
+        JPasswordField confirmPwField = new JPasswordField();
+        Object[] message = {
+            "Your password must be changed before you can continue.",
+            "New Password:", newPwField,
+            "Confirm Password:", confirmPwField
+        };
+
+        int option = JOptionPane.showConfirmDialog(
+                this, message, "Change Password Required", JOptionPane.OK_CANCEL_OPTION);
+
+        if (option != JOptionPane.OK_OPTION) {
+            return; // User cancelled — stay on login screen
+        }
+
+        String newPw      = new String(newPwField.getPassword()).trim();
+        String confirmPw  = new String(confirmPwField.getPassword()).trim();
+
+        if (newPw.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "New password cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (!newPw.equals(confirmPw)) {
+            JOptionPane.showMessageDialog(this, "Passwords do not match.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String hashed = BCrypt.hashpw(newPw, BCrypt.gensalt());
+        try {
+            boolean updated = loginReader.changeUserPassword(empNum, hashed);
+            if (!updated) {
+                JOptionPane.showMessageDialog(this, "Password change failed: employee not found.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Password change failed: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Password changed successfully. Please log in again.",
+                "Password Changed", JOptionPane.INFORMATION_MESSAGE);
+        // Don't dispatch yet — require the user to log in again with the new password
+    }
+
+    /**
+     * Opens the appropriate dashboard for the given role.
+     *
+     * @param role   the role string from Login.csv (e.g., "HR", "IT", "FINANCE", "EMPLOYEE")
+     * @param empNum the employee number
+     */
+    private void openDashboardForRole(String role, String empNum) {
+        Employee emp = employeeService.getEmployeeById(empNum);
+
+        switch (role) {
+            case "HR" -> {
+                if (emp instanceof HR hrEmp) {
+                    dispose();
+                    HRDashboard dash = new HRDashboard(hrEmp, employeeService);
+                    dash.setVisible(true);
+                } else {
+                    // Employee record exists but type is not HR — open fallback
+                    NavigationManager.openMenuFrame(this);
+                }
+            }
+            case "IT" -> {
+                if (emp instanceof IT itEmp) {
+                    dispose();
+                    ITDashboard dash = new ITDashboard(itEmp);
+                    dash.setVisible(true);
+                } else {
+                    NavigationManager.openMenuFrame(this);
+                }
+            }
+            case "FINANCE" -> {
+                if (emp instanceof Finance finEmp) {
+                    dispose();
+                    FinanceDashboard dash = new FinanceDashboard(finEmp, employeeService);
+                    dash.setVisible(true);
+                } else {
+                    NavigationManager.openMenuFrame(this);
+                }
+            }
+            case "ADMIN" -> {
+                if (emp instanceof Admin adminEmp) {
+                    dispose();
+                    AdminDashboard dash = new AdminDashboard(adminEmp, employeeService);
+                    dash.setVisible(true);
+                } else {
+                    NavigationManager.openMenuFrame(this);
+                }
+            }
+            default -> {
+                // EMPLOYEE and any unrecognised roles
+                if (emp != null) {
+                    dispose();
+                    EmployeeDashboard dash = new EmployeeDashboard(emp);
+                    dash.setVisible(true);
+                } else {
+                    // emp not found in Employee.csv — fall back to legacy menu
+                    NavigationManager.openMenuFrame(this);
+                }
+            }
         }
     }
 
