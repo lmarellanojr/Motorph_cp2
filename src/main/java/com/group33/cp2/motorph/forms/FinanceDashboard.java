@@ -5,10 +5,13 @@ import com.group33.cp2.motorph.EmployeeService;
 import com.group33.cp2.motorph.Finance;
 import com.group33.cp2.motorph.NavigationManager;
 import com.group33.cp2.motorph.PayrollCalculator;
+import com.group33.cp2.motorph.PayrollCalculatorService;
+import com.group33.cp2.motorph.SalaryDetails;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
@@ -20,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -62,6 +66,17 @@ public class FinanceDashboard extends JFrame {
     private JTable detailTable;
     private DefaultTableModel detailModel;
     private JTextArea reportTextArea;
+
+    // Tab 2 — per-employee payslip detail (populated by row-selection SwingWorker)
+    private JLabel lblDetailEmpName;
+    private JLabel lblDetailBasic;
+    private JLabel lblDetailGross;
+    private JLabel lblDetailSSS;
+    private JLabel lblDetailPhilHealth;
+    private JLabel lblDetailPagibig;
+    private JLabel lblDetailTax;
+    private JLabel lblDetailTotalDed;
+    private JLabel lblDetailNet;
 
     /**
      * Constructs the FinanceDashboard.
@@ -231,14 +246,126 @@ public class FinanceDashboard extends JFrame {
         buttonBar.add(btnRefresh);
         buttonBar.add(btnGenerate);
 
-        // Layout: table in CENTER, text below in a split
+        // Layout: table + button bar in the top area
         JPanel topSection = new JPanel(new BorderLayout(0, 5));
         topSection.add(tableScroll, BorderLayout.CENTER);
         topSection.add(buttonBar, BorderLayout.SOUTH);
 
-        panel.add(topSection, BorderLayout.CENTER);
-        panel.add(textScroll, BorderLayout.SOUTH);
+        // Per-employee payslip detail panel (SOUTH of the split pane)
+        lblDetailEmpName  = new JLabel("—", SwingConstants.CENTER);
+        lblDetailEmpName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
+        lblDetailBasic    = new JLabel("—");
+        lblDetailGross    = new JLabel("—");
+        lblDetailSSS      = new JLabel("—");
+        lblDetailPhilHealth = new JLabel("—");
+        lblDetailPagibig  = new JLabel("—");
+        lblDetailTax      = new JLabel("—");
+        lblDetailTotalDed = new JLabel("—");
+        lblDetailNet      = new JLabel("—");
+
+        JPanel detailGrid = new JPanel(new GridLayout(0, 4, 15, 6));
+        addPayslipDetailRow(detailGrid, "Basic Salary:",   lblDetailBasic,    "Gross Salary:",     lblDetailGross);
+        addPayslipDetailRow(detailGrid, "SSS:",            lblDetailSSS,      "PhilHealth:",       lblDetailPhilHealth);
+        addPayslipDetailRow(detailGrid, "Pag-IBIG:",       lblDetailPagibig,  "Withholding Tax:",  lblDetailTax);
+        addPayslipDetailRow(detailGrid, "Total Deductions:", lblDetailTotalDed, "Net Salary:",     lblDetailNet);
+
+        JPanel detailPanel = new JPanel(new BorderLayout(0, 5));
+        detailPanel.setBorder(BorderFactory.createTitledBorder("Selected Employee Payslip"));
+        detailPanel.add(lblDetailEmpName, BorderLayout.NORTH);
+        detailPanel.add(detailGrid, BorderLayout.CENTER);
+
+        // Wire row-selection listener BEFORE assembling the split pane
+        detailTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int row = detailTable.getSelectedRow();
+                if (row >= 0) {
+                    String empId = (String) detailModel.getValueAt(row, 0);
+                    loadEmployeePayslipDetail(empId);
+                }
+            }
+        });
+
+        // JSplitPane: Generate Report text area on top, payslip detail on bottom
+        JSplitPane southSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, textScroll, detailPanel);
+        southSplit.setDividerLocation(160);
+        southSplit.setResizeWeight(0.5);
+
+        panel.add(topSection,  BorderLayout.CENTER);
+        panel.add(southSplit,  BorderLayout.SOUTH);
         return panel;
+    }
+
+    /**
+     * Adds a pair of (field-name label, value label) to a 4-column grid row.
+     * Two pairs per row: left field + left value + right field + right value.
+     */
+    private void addPayslipDetailRow(JPanel grid,
+                                     String leftName,  JLabel leftValue,
+                                     String rightName, JLabel rightValue) {
+        JLabel lName = new JLabel(leftName);
+        lName.setFont(lName.getFont().deriveFont(Font.BOLD));
+        JLabel rName = new JLabel(rightName);
+        rName.setFont(rName.getFont().deriveFont(Font.BOLD));
+        grid.add(lName);
+        grid.add(leftValue);
+        grid.add(rName);
+        grid.add(rightValue);
+    }
+
+    /**
+     * Fires a SwingWorker to load the payslip detail for the given employee ID
+     * and update the detail labels on the EDT when done.
+     *
+     * <p><strong>OOP Pillar — Abstraction:</strong> this method has no knowledge of
+     * deduction formulas or CSV file paths; it delegates entirely to
+     * {@link PayrollCalculatorService}.</p>
+     *
+     * @param empId the employee ID whose payslip detail to display
+     */
+    private void loadEmployeePayslipDetail(String empId) {
+        new javax.swing.SwingWorker<SalaryDetails, Void>() {
+            @Override
+            protected SalaryDetails doInBackground() throws Exception {
+                return new PayrollCalculatorService().getSalaryDetails(empId);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    SalaryDetails d = get();
+                    if (d == null) {
+                        clearPayslipDetail();
+                        return;
+                    }
+                    double basicSalary = d.grossSalary() - d.totalAllowances();
+                    lblDetailBasic.setText(String.format("%.2f", basicSalary));
+                    lblDetailGross.setText(String.format("%.2f", d.grossSalary()));
+                    lblDetailSSS.setText(String.format("%.2f", d.sssDeduction()));
+                    lblDetailPhilHealth.setText(String.format("%.2f", d.philHealthDeduction()));
+                    lblDetailPagibig.setText(String.format("%.2f", d.pagibigDeduction()));
+                    lblDetailTax.setText(String.format("%.2f", d.withholdingTax()));
+                    lblDetailTotalDed.setText(String.format("%.2f", d.totalDeductions()));
+                    lblDetailNet.setText(String.format("%.2f", d.netSalary()));
+                    lblDetailEmpName.setText("Employee #" + empId);
+                } catch (InterruptedException | java.util.concurrent.ExecutionException ex) {
+                    clearPayslipDetail();
+                }
+            }
+        }.execute();
+    }
+
+    /** Resets all payslip detail labels to the placeholder dash. */
+    private void clearPayslipDetail() {
+        lblDetailEmpName.setText("—");
+        lblDetailBasic.setText("—");
+        lblDetailGross.setText("—");
+        lblDetailSSS.setText("—");
+        lblDetailPhilHealth.setText("—");
+        lblDetailPagibig.setText("—");
+        lblDetailTax.setText("—");
+        lblDetailTotalDed.setText("—");
+        lblDetailNet.setText("—");
     }
 
     private void loadDetailTable() {
