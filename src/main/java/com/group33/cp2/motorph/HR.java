@@ -1,10 +1,13 @@
 package com.group33.cp2.motorph;
 
+import java.io.IOException;
+import java.time.temporal.ChronoUnit;
+
 /**
  * Represents an HR department employee in the MotorPH Payroll System.
  *
  * <p>HR employees receive full regular-employee payroll treatment
- * (all four deductions, overtime at 1.25×) and additionally implement
+ * (all four deductions, overtime at 1.25x) and additionally implement
  * the leave-management operations defined by {@link HROperations}.</p>
  *
  * <p><strong>OOP Pillars demonstrated:</strong></p>
@@ -12,11 +15,12 @@ package com.group33.cp2.motorph;
  *   <li><em>Inheritance</em> — extends {@link Employee}; inherits all personal/salary state.</li>
  *   <li><em>Polymorphism</em> — overrides abstract payroll methods with department-appropriate rules.</li>
  *   <li><em>Abstraction</em> — implements {@link PayrollCalculable} and {@link HROperations}
- *       interfaces; leave-management methods are stubs for the Polymorphism milestone.</li>
+ *       interfaces; leave operations delegate to {@link LeaveRequestReader} and
+ *       {@link EmployeeLeaveTracker}.</li>
  * </ul>
  *
  * @author Group13
- * @version 2.0
+ * @version 2.1
  */
 public class HR extends Employee implements PayrollCalculable, HROperations {
 
@@ -86,7 +90,7 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
 
     /**
      * Calculates gross salary including overtime pay for the given overtime hours.
-     * HR employees are eligible for overtime at 1.25× their hourly rate.
+     * HR employees are eligible for overtime at 1.25x their hourly rate.
      *
      * @param salary        custom base salary; must be &gt; 0
      * @param overtimeHours hours worked beyond 8 in a day; must be &ge; 0
@@ -105,7 +109,7 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
     }
 
     /**
-     * Overtime pay at 1.25× the hourly rate for HR employees.
+     * Overtime pay at 1.25x the hourly rate for HR employees.
      *
      * @param overtimeHours hours worked beyond 8 in a day
      * @return overtime pay amount
@@ -135,44 +139,77 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
     }
 
     // =========================================================================
-    //  HROperations implementation (stubs — deferred to Polymorphism milestone)
+    //  HROperations implementation
     // =========================================================================
 
     /**
-     * Approves a leave request.
-     * <em>Stub — full implementation deferred to the Polymorphism milestone.</em>
+     * Approves a pending leave request identified by {@code leaveId}.
+     * Updates the status in {@code LeaveRequests.csv} and deducts the leave days
+     * from {@code LeaveBalances.csv}.
      *
-     * @param leaveId the leave request ID
-     * @return {@code false} (stub)
+     * @param leaveId the unique string identifier of the leave request
+     * @param remark  optional approval remark
+     * @return {@code true} if the request was found and approved; {@code false} otherwise
      */
     @Override
-    public boolean approveLeave(int leaveId) {
-        return false; // stub
+    public boolean approveLeave(String leaveId, String remark) {
+        try {
+            LeaveRequest request = LeaveRequestReader.getLeaveById(leaveId);
+            if (request == null || !"Pending".equalsIgnoreCase(request.getStatus())) {
+                return false;
+            }
+            request.approve(getFullName());
+            if (remark != null && !remark.isBlank()) {
+                request.setRemark(remark);
+            }
+            LeaveRequestReader.updateLeaveRequest(request);
+
+            // Deduct days from leave balance
+            long daysRequested = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1;
+            EmployeeLeaveTracker.updateLeaveBalance(
+                    request.getEmployeeID(), request.getLeaveType(), (int) daysRequested);
+            return true;
+
+        } catch (IOException e) {
+            System.err.println("HR.approveLeave failed for leaveId=" + leaveId + ": " + e.getMessage());
+            return false;
+        }
     }
 
     /**
-     * Rejects a leave request.
-     * <em>Stub — full implementation deferred to the Polymorphism milestone.</em>
+     * Rejects a pending leave request identified by {@code leaveId}.
+     * Updates the status in {@code LeaveRequests.csv}. Leave balance is NOT deducted.
      *
-     * @param leaveId the leave request ID
-     * @param reason  rejection reason
-     * @return {@code false} (stub)
+     * @param leaveId the unique string identifier of the leave request
+     * @param remark  the reason for rejection
+     * @return {@code true} if the request was found and rejected; {@code false} otherwise
      */
     @Override
-    public boolean rejectLeave(int leaveId, String reason) {
-        return false; // stub
+    public boolean rejectLeave(String leaveId, String remark) {
+        try {
+            LeaveRequest request = LeaveRequestReader.getLeaveById(leaveId);
+            if (request == null || !"Pending".equalsIgnoreCase(request.getStatus())) {
+                return false;
+            }
+            request.reject(getFullName(), remark);
+            LeaveRequestReader.updateLeaveRequest(request);
+            return true;
+
+        } catch (IOException e) {
+            System.err.println("HR.rejectLeave failed for leaveId=" + leaveId + ": " + e.getMessage());
+            return false;
+        }
     }
 
     /**
-     * Retrieves an employee record by ID.
-     * <em>Stub — full implementation deferred to the Polymorphism milestone.</em>
+     * Retrieves an employee record by ID, delegating to {@link EmployeeService}.
      *
-     * @param employeeId the employee ID to look up
-     * @return {@code null} (stub)
+     * @param employeeId the unique identifier of the employee to look up
+     * @return the matching {@link Employee}, or {@code null} if not found
      */
     @Override
     public Employee viewEmployeeRecords(String employeeId) {
-        return null; // stub
+        return new EmployeeService().getEmployeeById(employeeId);
     }
 
     @Override
