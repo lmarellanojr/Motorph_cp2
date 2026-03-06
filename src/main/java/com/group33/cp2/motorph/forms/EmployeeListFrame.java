@@ -1,10 +1,9 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Constants;
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeService;
-import com.group33.cp2.motorph.GovernmentDetails;
-import com.group33.cp2.motorph.NavigationManager;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.GovernmentDetails;
+import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.util.Constants;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;

@@ -1,11 +1,10 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.IT;
-import com.group33.cp2.motorph.NavigationManager;
-import com.group33.cp2.motorph.PasswordResetRequest;
-import com.group33.cp2.motorph.PasswordResetReader;
-import com.group33.cp2.motorph.PasswordResetService;
-import com.group33.cp2.motorph.ResetPasswordProcessor;
+import com.group33.cp2.motorph.model.IT;
+import com.group33.cp2.motorph.model.PasswordResetRequest;
+import com.group33.cp2.motorph.dao.PasswordResetReader;
+import com.group33.cp2.motorph.service.PasswordResetService;
+import com.group33.cp2.motorph.service.ResetPasswordProcessor;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -33,7 +32,7 @@ import javax.swing.table.DefaultTableModel;
  * approve them (which generates a temporary password and updates Login.csv).</p>
  *
  * <p><strong>OOP Pillar — Abstraction:</strong> The approval action delegates to
- * {@link ResetPasswordProcessor}, which depends on {@link com.group33.cp2.motorph.PasswordResetCallback}
+ * {@link ResetPasswordProcessor}, which depends on {@link com.group33.cp2.motorph.service.PasswordResetCallback}
  * rather than importing this class. The callback is passed as a lambda
  * ({@code this::loadPasswordResetRequests}), demonstrating the decoupling seam.</p>
  *

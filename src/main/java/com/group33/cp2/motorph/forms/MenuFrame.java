@@ -1,7 +1,6 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Constants;
-import com.group33.cp2.motorph.NavigationManager;
+import com.group33.cp2.motorph.util.Constants;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;

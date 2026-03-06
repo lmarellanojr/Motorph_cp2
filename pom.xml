@@ -33,6 +33,14 @@
             <version>0.4</version>
         </dependency>
 
+        <!-- JUnit 5 for unit tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+
         <!--
             NOTE: jcalendar (com.toedter:jcalendar:1.4) and AbsoluteLayout
             (org.netbeans.external:AbsoluteLayout:RELEASE240) are NOT included
@@ -63,6 +71,13 @@
                 <configuration>
                     <release>17</release>
                 </configuration>
+            </plugin>
+
+            <!-- Maven Surefire Plugin — JUnit 5 requires version >= 2.22.0 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
             </plugin>
 
             <!-- Exec Maven Plugin to run the application -->

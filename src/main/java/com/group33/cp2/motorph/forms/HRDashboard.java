@@ -1,11 +1,10 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeService;
-import com.group33.cp2.motorph.HR;
-import com.group33.cp2.motorph.LeaveRequest;
-import com.group33.cp2.motorph.LeaveRequestReader;
-import com.group33.cp2.motorph.NavigationManager;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.HR;
+import com.group33.cp2.motorph.model.LeaveRequest;
+import com.group33.cp2.motorph.dao.LeaveRequestReader;
+import com.group33.cp2.motorph.service.EmployeeService;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
