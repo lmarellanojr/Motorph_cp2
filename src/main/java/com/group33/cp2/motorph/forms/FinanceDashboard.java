@@ -1,12 +1,11 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeService;
-import com.group33.cp2.motorph.Finance;
-import com.group33.cp2.motorph.NavigationManager;
-import com.group33.cp2.motorph.PayrollCalculator;
-import com.group33.cp2.motorph.PayrollCalculatorService;
-import com.group33.cp2.motorph.SalaryDetails;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.Finance;
+import com.group33.cp2.motorph.model.SalaryDetails;
+import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.service.PayrollCalculator;
+import com.group33.cp2.motorph.service.PayrollCalculatorService;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -47,8 +46,8 @@ import javax.swing.table.DefaultTableModel;
  * calling {@code employee.calculateGrossSalary()}, {@code calculateDeductions()}, and
  * {@code calculateNetSalary()} through the abstract {@link Employee} reference.
  * At runtime, the JVM dispatches to whichever concrete implementation is stored
- * (e.g., {@link com.group33.cp2.motorph.RegularEmployee} includes withholding tax;
- * {@link com.group33.cp2.motorph.ProbationaryEmployee} does not).</p>
+ * (e.g., {@link com.group33.cp2.motorph.model.RegularEmployee} includes withholding tax;
+ * {@link com.group33.cp2.motorph.model.ProbationaryEmployee} does not).</p>
  *
  * @author Group13
  * @version 2.0

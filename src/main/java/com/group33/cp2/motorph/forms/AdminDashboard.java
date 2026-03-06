@@ -1,10 +1,9 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Admin;
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeService;
-import com.group33.cp2.motorph.NavigationManager;
-import com.group33.cp2.motorph.Report;
+import com.group33.cp2.motorph.model.Admin;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.Report;
+import com.group33.cp2.motorph.service.EmployeeService;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;

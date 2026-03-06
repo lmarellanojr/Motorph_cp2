@@ -1,16 +1,15 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Allowance;
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeLeaveTracker;
-import com.group33.cp2.motorph.GovernmentDetails;
-import com.group33.cp2.motorph.LeaveProcessor;
-import com.group33.cp2.motorph.LeaveRequest;
-import com.group33.cp2.motorph.LeaveRequestReader;
-import com.group33.cp2.motorph.NavigationManager;
-import com.group33.cp2.motorph.PayrollCalculatorService;
-import com.group33.cp2.motorph.SalaryDetails;
-import com.group33.cp2.motorph.TimeTrackerReader;
+import com.group33.cp2.motorph.model.Allowance;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.GovernmentDetails;
+import com.group33.cp2.motorph.model.LeaveRequest;
+import com.group33.cp2.motorph.model.SalaryDetails;
+import com.group33.cp2.motorph.dao.EmployeeLeaveTracker;
+import com.group33.cp2.motorph.dao.LeaveRequestReader;
+import com.group33.cp2.motorph.dao.TimeTrackerReader;
+import com.group33.cp2.motorph.service.LeaveProcessor;
+import com.group33.cp2.motorph.service.PayrollCalculatorService;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -51,13 +50,13 @@ import javax.swing.table.DefaultTableModel;
  *
  * <p><strong>OOP Pillar — Polymorphism:</strong> Constructor accepts any {@link Employee}
  * subtype; all tabs operate via the abstract {@code Employee} interface, dispatching to
- * the correct concrete implementation ({@link com.group33.cp2.motorph.RegularEmployee}
- * vs. {@link com.group33.cp2.motorph.ProbationaryEmployee}) at runtime.</p>
+ * the correct concrete implementation ({@link com.group33.cp2.motorph.model.RegularEmployee}
+ * vs. {@link com.group33.cp2.motorph.model.ProbationaryEmployee}) at runtime.</p>
  *
  * <p><strong>OOP Pillar — Abstraction:</strong> The payslip tab delegates all computation
- * to {@link com.group33.cp2.motorph.PayrollCalculatorService} via a
+ * to {@link com.group33.cp2.motorph.service.PayrollCalculatorService} via a
  * {@link javax.swing.SwingWorker}. The dashboard has no knowledge of CSV layouts or
- * deduction formulas — it only observes the resulting {@link com.group33.cp2.motorph.SalaryDetails}
+ * deduction formulas — it only observes the resulting {@link com.group33.cp2.motorph.model.SalaryDetails}
  * record.</p>
  *
  * @author Group13

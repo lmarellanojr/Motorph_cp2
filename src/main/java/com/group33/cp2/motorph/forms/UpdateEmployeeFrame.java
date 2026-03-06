@@ -1,13 +1,12 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Allowance;
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeService;
-import com.group33.cp2.motorph.GovernmentDetails;
-import com.group33.cp2.motorph.NavigationManager;
-import com.group33.cp2.motorph.ProbationaryEmployee;
-import com.group33.cp2.motorph.RegularEmployee;
-import com.group33.cp2.motorph.Utility;
+import com.group33.cp2.motorph.model.Allowance;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.GovernmentDetails;
+import com.group33.cp2.motorph.model.ProbationaryEmployee;
+import com.group33.cp2.motorph.model.RegularEmployee;
+import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.util.Utility;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -39,7 +38,7 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private final EmployeeService employeeService = new EmployeeService();
-    private com.group33.cp2.motorph.Employee selectedEmployee;
+    private Employee selectedEmployee;
 
     // Personal fields
     private JTextField txtEmployeeNumber;

@@ -1,13 +1,12 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Allowance;
-import com.group33.cp2.motorph.Constants;
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeService;
-import com.group33.cp2.motorph.GovernmentDetails;
-import com.group33.cp2.motorph.NavigationManager;
-import com.group33.cp2.motorph.ProbationaryEmployee;
-import com.group33.cp2.motorph.RegularEmployee;
+import com.group33.cp2.motorph.model.Allowance;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.GovernmentDetails;
+import com.group33.cp2.motorph.model.ProbationaryEmployee;
+import com.group33.cp2.motorph.model.RegularEmployee;
+import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.util.Constants;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;

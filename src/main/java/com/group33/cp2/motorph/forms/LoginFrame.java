@@ -1,14 +1,13 @@
 package com.group33.cp2.motorph.forms;
 
-import com.group33.cp2.motorph.Admin;
-import com.group33.cp2.motorph.Constants;
-import com.group33.cp2.motorph.Employee;
-import com.group33.cp2.motorph.EmployeeService;
-import com.group33.cp2.motorph.Finance;
-import com.group33.cp2.motorph.HR;
-import com.group33.cp2.motorph.IT;
-import com.group33.cp2.motorph.NavigationManager;
-import com.group33.cp2.motorph.data.EmployeeDetailsReader;
+import com.group33.cp2.motorph.model.Admin;
+import com.group33.cp2.motorph.model.Employee;
+import com.group33.cp2.motorph.model.Finance;
+import com.group33.cp2.motorph.model.HR;
+import com.group33.cp2.motorph.model.IT;
+import com.group33.cp2.motorph.dao.EmployeeDetailsReader;
+import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.util.Constants;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.awt.event.ActionEvent;
