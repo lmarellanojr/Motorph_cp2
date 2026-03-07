@@ -25,7 +25,7 @@ public class RegularEmployee extends Employee implements PayrollCalculable {
 
     @Override
     public double calculateGrossSalary() {
-        return getBasicSalary();
+        return getBasicSalary() + getAllowance();
     }
 
     @Override
