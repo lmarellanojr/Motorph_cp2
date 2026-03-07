@@ -24,7 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 /**
  * GUI form for updating an existing employee's personal, government, and
@@ -72,7 +72,7 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
      */
     public UpdateEmployeeFrame(String employeeId) {
         setTitle("Update Employee \u2013 MotorPH Employee Management System");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(true);
         setSize(900, 600);
         setLocationRelativeTo(null);
