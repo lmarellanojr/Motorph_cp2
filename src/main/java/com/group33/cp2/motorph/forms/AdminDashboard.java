@@ -3,6 +3,7 @@ package com.group33.cp2.motorph.forms;
 import com.group33.cp2.motorph.model.Admin;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.Report;
+import com.group33.cp2.motorph.model.UserManagementCallback;
 import com.group33.cp2.motorph.service.EmployeeService;
 
 import java.awt.BorderLayout;
@@ -168,7 +169,16 @@ public class AdminDashboard extends JFrame {
         JButton btnRefresh    = new JButton("Refresh");
 
         btnAdd.addActionListener(e -> {
-            adminUser.manageUsers(0, "create");
+            adminUser.manageUsers(0, "create", new UserManagementCallback() {
+                @Override
+                public void onCreateUser() {
+                    NewEmployeeFrame frame = new NewEmployeeFrame();
+                    frame.setLocationRelativeTo(AdminDashboard.this);
+                    frame.setVisible(true);
+                }
+                @Override
+                public void onUpdateUser(String employeeId) { /* not used for create */ }
+            });
         });
 
         btnEdit.addActionListener(e -> {
@@ -187,7 +197,16 @@ public class AdminDashboard extends JFrame {
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            adminUser.manageUsers(userId, "update");
+            adminUser.manageUsers(userId, "update", new UserManagementCallback() {
+                @Override
+                public void onCreateUser() { /* not used for update */ }
+                @Override
+                public void onUpdateUser(String employeeId) {
+                    UpdateEmployeeFrame frame = new UpdateEmployeeFrame(employeeId);
+                    frame.setLocationRelativeTo(AdminDashboard.this);
+                    frame.setVisible(true);
+                }
+            });
         });
 
         btnDeactivate.addActionListener(e -> {

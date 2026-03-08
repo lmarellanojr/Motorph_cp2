@@ -1,14 +1,11 @@
 package com.group33.cp2.motorph.model;
 
 import com.group33.cp2.motorph.dao.TimeTrackerReader;
-import com.group33.cp2.motorph.forms.NewEmployeeFrame;
-import com.group33.cp2.motorph.forms.UpdateEmployeeFrame;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.PayrollCalculator;
 
 import java.io.IOException;
 import java.util.List;
-import javax.swing.SwingUtilities;
 
 /**
  * Represents an Admin department employee in the MotorPH Payroll System.
@@ -22,6 +19,25 @@ import javax.swing.SwingUtilities;
  * @version 2.1
  */
 public class Admin extends Employee implements PayrollCalculable, AdminOperations {
+
+    /**
+     * Lazily initialized to avoid infinite recursion: {@code EmployeeService.reloadEmployees()}
+     * instantiates {@code Admin}, so constructing an {@code EmployeeService} inside the
+     * {@code Admin} constructor would create a circular call chain.
+     * Always access via {@link #getEmployeeService()}.
+     */
+    private EmployeeService employeeService;
+
+    /**
+     * Returns the shared {@link EmployeeService}, creating it on first access.
+     * Safe because this method is never called from the {@code Admin} constructor.
+     */
+    private EmployeeService getEmployeeService() {
+        if (employeeService == null) {
+            employeeService = new EmployeeService();
+        }
+        return employeeService;
+    }
 
     public Admin(String employeeID, String lastName, String firstName, String birthday,
                  String address, String phoneNumber, double basicSalary, double hourlyRate,
@@ -77,33 +93,60 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
         return calculateGrossSalary() - calculateDeductions();
     }
 
+    /**
+     * Manages a user record using the given action, with no UI callback.
+     *
+     * <p>This overload preserves the {@link AdminOperations} interface contract.
+     * For "create" and "update" actions, no frame will be opened — callers that
+     * need UI feedback should use
+     * {@link #manageUsers(int, String, UserManagementCallback)} instead.</p>
+     *
+     * @param userId the numeric employee ID (0 for "create")
+     * @param action "create", "update", or "deactivate"
+     * @return {@code true} if the action was handled successfully
+     */
     @Override
     public boolean manageUsers(int userId, String action) {
+        return manageUsers(userId, action, null);
+    }
+
+    /**
+     * Manages a user record using the given action and notifies the supplied
+     * callback so that the presentation layer can open the appropriate form.
+     *
+     * <p>No {@code javax.swing} types are referenced here — all UI interactions
+     * are delegated to the {@link UserManagementCallback} implementation provided
+     * by the caller (typically {@code AdminDashboard}).</p>
+     *
+     * <p><strong>OOP Pillar — Abstraction:</strong> The domain model signals
+     * intent through an interface; the concrete UI response is determined solely
+     * by the callback implementation.</p>
+     *
+     * @param userId   the numeric employee ID (0 for "create")
+     * @param action   "create", "update", or "deactivate"
+     * @param callback optional UI callback; may be {@code null}
+     * @return {@code true} if the action was handled successfully
+     */
+    public boolean manageUsers(int userId, String action, UserManagementCallback callback) {
         if (action == null) return false;
         String empId = String.valueOf(userId);
 
         return switch (action.toLowerCase()) {
             case "create" -> {
-                SwingUtilities.invokeLater(() -> {
-                    NewEmployeeFrame frame = new NewEmployeeFrame();
-                    frame.setVisible(true);
-                });
+                if (callback != null) callback.onCreateUser();
                 yield true;
             }
             case "update" -> {
-                Employee target = new EmployeeService().getEmployeeById(empId);
+                Employee target = getEmployeeService().getEmployeeById(empId);
                 if (target == null) yield false;
-                SwingUtilities.invokeLater(() -> {
-                    UpdateEmployeeFrame frame = new UpdateEmployeeFrame(empId);
-                    frame.setVisible(true);
-                });
+                if (callback != null) callback.onUpdateUser(empId);
                 yield true;
             }
             case "deactivate" -> {
-                Employee target = new EmployeeService().getEmployeeById(empId);
+                Employee target = getEmployeeService().getEmployeeById(empId);
                 if (target == null) yield false;
                 target.setStatus("Inactive");
-                new EmployeeService().updateEmployee(target);
+                getEmployeeService().updateEmployee(target);
                 yield true;
             }
             default -> false;
