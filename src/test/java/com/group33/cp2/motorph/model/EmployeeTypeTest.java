@@ -45,13 +45,15 @@ class EmployeeTypeTest {
     // =========================================================================
 
     @Test
-    void calculateGrossSalary_regular_returnsBasicSalary() {
-        assertEquals(TEST_SALARY, regular.calculateGrossSalary(), DELTA);
+    void calculateGrossSalary_regular_returnsBasicSalaryPlusAllowance() {
+        // Allowance: rice 1500 + phone 800 + clothing 500 = 2800
+        assertEquals(TEST_SALARY + 2800.0, regular.calculateGrossSalary(), DELTA);
     }
 
     @Test
-    void calculateGrossSalary_probationary_returnsBasicSalary() {
-        assertEquals(TEST_SALARY, probationary.calculateGrossSalary(), DELTA);
+    void calculateGrossSalary_probationary_returnsBasicSalaryPlusAllowance() {
+        // Allowance: rice 1500 + phone 800 + clothing 500 = 2800
+        assertEquals(TEST_SALARY + 2800.0, probationary.calculateGrossSalary(), DELTA);
     }
 
     // =========================================================================
