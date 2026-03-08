@@ -338,6 +338,20 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
                         "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            if (basicSalary <= 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Basic Salary must be greater than zero.",
+                        "Invalid Salary", JOptionPane.WARNING_MESSAGE);
+                txtBasicSalary.requestFocus();
+                return;
+            }
+            if (hourlyRate <= 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Hourly Rate must be greater than zero.",
+                        "Invalid Rate", JOptionPane.WARNING_MESSAGE);
+                txtHourlyRate.requestFocus();
+                return;
+            }
 
             // Factory: preserve the correct subclass when updating.
             // Probationary -> ProbationaryEmployee; everything else -> RegularEmployee.
