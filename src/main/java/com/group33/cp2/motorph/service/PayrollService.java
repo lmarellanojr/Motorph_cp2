@@ -29,10 +29,6 @@ public class PayrollService implements PayrollDAO {
     /** In-memory store of all payroll records for the current session. */
     private final List<Payroll> payrollRecords = new ArrayList<>();
 
-    // =========================================================================
-    //  PayrollDAO interface implementation
-    // =========================================================================
-
     /**
      * Adds a new payroll record to the in-memory store.
      *
@@ -101,10 +97,6 @@ public class PayrollService implements PayrollDAO {
         }
         return payrollRecords.removeIf(p -> p.getPayrollID().equals(payrollID));
     }
-
-    // =========================================================================
-    //  Additional query methods
-    // =========================================================================
 
     /**
      * Returns a read-only view of all payroll records in the current session.

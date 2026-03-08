@@ -9,7 +9,7 @@ package com.group33.cp2.motorph.model;
  * <p><strong>OOP Pillar demonstrated:</strong> Abstraction — callers interact through
  * this interface, decoupling the HR workflow from the concrete {@link HR} implementation.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public interface HROperations {

@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
  * (all four deductions, overtime at 1.25x) and additionally implement
  * the leave-management operations defined by {@link HROperations}.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public class HR extends Employee implements PayrollCalculable, HROperations {

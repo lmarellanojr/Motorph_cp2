@@ -48,7 +48,6 @@ public class AttendanceCSVHandler {
                 try {
                     String employeeID = data[0].trim();
 
-                    // date: MM/DD/YYYY
                     String[] dateParts = data[3].trim().split("/");
                     LocalDate date = LocalDate.of(
                             Integer.parseInt(dateParts[2]),
@@ -56,14 +55,12 @@ public class AttendanceCSVHandler {
                             Integer.parseInt(dateParts[1])
                     );
 
-                    // login: HH:mm
                     String[] logInParts = data[4].trim().split(":");
                     LocalTime logIn = LocalTime.of(
                             Integer.parseInt(logInParts[0]),
                             Integer.parseInt(logInParts[1])
                     );
 
-                    // logout: HH:mm
                     String[] logOutParts = data[5].trim().split(":");
                     LocalTime logOut = LocalTime.of(
                             Integer.parseInt(logOutParts[0]),

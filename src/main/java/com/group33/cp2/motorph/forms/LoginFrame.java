@@ -41,7 +41,7 @@ import javax.swing.KeyStroke;
  * correct dashboard type based on the role string, demonstrating runtime dispatch
  * through concrete frame types.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public class LoginFrame extends javax.swing.JFrame {

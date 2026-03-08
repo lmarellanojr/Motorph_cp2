@@ -8,7 +8,7 @@ import com.group33.cp2.motorph.service.PayrollCalculator;
  * <p>Regular employees are eligible for overtime at 1.25x and subject to full deductions:
  * SSS, PhilHealth, Pag-IBIG, and withholding tax.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.0
  */
 public class RegularEmployee extends Employee implements PayrollCalculable {

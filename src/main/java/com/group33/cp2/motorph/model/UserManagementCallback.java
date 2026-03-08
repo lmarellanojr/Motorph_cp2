@@ -13,7 +13,7 @@ package com.group33.cp2.motorph.model;
  * as an interface so that any UI toolkit (Swing, JavaFX, headless test) can
  * provide its own implementation without changing the domain class.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public interface UserManagementCallback {

@@ -14,7 +14,7 @@ import java.util.List;
  *   <li><em>Abstraction</em> — payroll methods are declared abstract, hiding implementation details.</li>
  * </ul>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.0
  */
 public abstract class Employee {

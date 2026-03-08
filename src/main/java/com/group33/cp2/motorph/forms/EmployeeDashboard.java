@@ -61,7 +61,7 @@ import javax.swing.table.DefaultTableModel;
  * deduction formulas — it only observes the resulting {@link com.group33.cp2.motorph.model.SalaryDetails}
  * record.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class EmployeeDashboard extends JFrame {

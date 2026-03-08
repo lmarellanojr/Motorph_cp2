@@ -42,7 +42,7 @@ import javax.swing.table.DefaultTableModel;
  * and {@code hrUser.rejectLeave()}, which dispatch polymorphically through the
  * {@link com.group33.cp2.motorph.HROperations} interface.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class HRDashboard extends JFrame {

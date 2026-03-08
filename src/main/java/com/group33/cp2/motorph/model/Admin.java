@@ -15,7 +15,7 @@ import java.util.List;
  * the user-management and report-generation operations defined by
  * {@link AdminOperations}.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public class Admin extends Employee implements PayrollCalculable, AdminOperations {

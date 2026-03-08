@@ -36,7 +36,7 @@ import javax.swing.table.DefaultTableModel;
  * rather than importing this class. The callback is passed as a lambda
  * ({@code this::loadPasswordResetRequests}), demonstrating the decoupling seam.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class ITDashboard extends JFrame {

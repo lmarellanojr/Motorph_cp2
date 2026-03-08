@@ -46,7 +46,7 @@ import javax.swing.table.DefaultTableModel;
  * interface methods on the {@code adminUser} object. The dashboard does not
  * duplicate any business logic — it purely delegates to the domain layer.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class AdminDashboard extends JFrame {
