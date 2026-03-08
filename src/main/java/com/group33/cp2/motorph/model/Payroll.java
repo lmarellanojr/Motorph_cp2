@@ -124,7 +124,7 @@ public class Payroll {
         Deductions deductions;
         if (getTotalRegularHours() > 0) {
             if (periodType.equals(PeriodType.MONTHLY)) {
-                deductions = PayrollCalculator.getDeductionsMonthly(employeeID, employee.getBasicSalary(), periodStartDate);
+                deductions = PayrollCalculator.getDeductionsMonthly(employeeID, employee.getBasicSalary());
             } else {
                 deductions = PayrollCalculator.getDeductionsBiWeekly(employeeID, employee.getBasicSalary(), periodStartDate);
             }

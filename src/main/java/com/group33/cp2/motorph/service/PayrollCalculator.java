@@ -65,7 +65,7 @@ public class PayrollCalculator {
         return new Deductions();
     }
 
-    public static Deductions getDeductionsMonthly(String employeeID, double basicSalary, LocalDate periodStart) {
+    public static Deductions getDeductionsMonthly(String employeeID, double basicSalary) {
         int divisor = getDivisor(PeriodType.MONTHLY);
         double sss = computeSSSDeduction(basicSalary) / divisor;
         double philhealth = computePhilhealthDeduction(basicSalary) / divisor;
