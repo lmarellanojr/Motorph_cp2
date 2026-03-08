@@ -16,6 +16,7 @@ public class Payroll {
     private LocalDate periodEndDate;
     private double totalRegularHours;
     private double totalOvertimeHours;
+    private boolean workHoursCalculated = false;
     private CompensationDetails compensationDetails;
     private PayrollStatus status;
     private final Employee employee;
@@ -71,11 +72,12 @@ public class Payroll {
 
         totalRegularHours = regularHours;
         totalOvertimeHours = overtimeHours;
+        workHoursCalculated = true;
     }
 
     // triggers calculation if not yet done
     public double getTotalRegularHours() {
-        if (this.totalRegularHours == 0) {
+        if (!workHoursCalculated) {
             calculateWorkHours();
         }
         return (Math.round(this.totalRegularHours * 100.0) / 100.0);
@@ -88,7 +90,7 @@ public class Payroll {
 
     // triggers calculation if not yet done
     public double getTotalOvertimeHours() {
-        if (this.totalOvertimeHours == 0) {
+        if (!workHoursCalculated) {
             calculateWorkHours();
         }
         return (Math.round(this.totalOvertimeHours * 100.0) / 100.0);
