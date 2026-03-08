@@ -20,6 +20,22 @@ import java.time.temporal.ChronoUnit;
  */
 public class HR extends Employee implements PayrollCalculable, HROperations {
 
+    /** Lazily-initialized service; never created in the constructor to avoid circular instantiation. */
+    private EmployeeService employeeService;
+
+    /**
+     * Returns the shared {@link EmployeeService} instance, creating it on first access.
+     * Using a lazy accessor prevents the infinite-recursion that would occur if
+     * {@code EmployeeService.reloadEmployees()} constructed an HR object that eagerly
+     * created another {@code EmployeeService}.
+     */
+    private EmployeeService getEmployeeService() {
+        if (employeeService == null) {
+            employeeService = new EmployeeService();
+        }
+        return employeeService;
+    }
+
     public HR(String employeeID, String lastName, String firstName, String birthday,
               String address, String phoneNumber, double basicSalary, double hourlyRate,
               double grossSemiMonthlyRate, String status, String position,
@@ -117,7 +133,7 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
 
     @Override
     public Employee viewEmployeeRecords(String employeeId) {
-        return new EmployeeService().getEmployeeById(employeeId);
+        return getEmployeeService().getEmployeeById(employeeId);
     }
 
     @Override
