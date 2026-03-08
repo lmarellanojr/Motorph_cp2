@@ -1,6 +1,7 @@
 package com.group33.cp2.motorph.model;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Represents a single leave request submitted by an employee.
@@ -16,6 +17,9 @@ import java.time.LocalDate;
  * @version 1.0
  */
 public class LeaveRequest {
+
+    private static final List<String> VALID_STATUSES =
+        List.of("Pending", "Approved", "Rejected");
 
     private String leaveID;
     private String employeeID;
@@ -55,8 +59,14 @@ public class LeaveRequest {
 
     /**
      * Marks this leave request as Approved, recording the approver name and today's date.
+     *
+     * @throws IllegalStateException if the current status is not "Pending"
      */
     public void approve(String approverName) {
+        if (!"Pending".equalsIgnoreCase(this.status)) {
+            throw new IllegalStateException(
+                "Cannot approve leave request '" + leaveID + "': current status is '" + status + "'");
+        }
         this.status = "Approved";
         this.approver = approverName;
         this.dateResponded = LocalDate.now();
@@ -65,8 +75,14 @@ public class LeaveRequest {
     /**
      * Marks this leave request as Rejected, recording the approver name, today's date,
      * and the rejection remark.
+     *
+     * @throws IllegalStateException if the current status is not "Pending"
      */
     public void reject(String approverName, String rejectionRemark) {
+        if (!"Pending".equalsIgnoreCase(this.status)) {
+            throw new IllegalStateException(
+                "Cannot reject leave request '" + leaveID + "': current status is '" + status + "'");
+        }
         this.status = "Rejected";
         this.approver = approverName;
         this.dateResponded = LocalDate.now();
@@ -99,7 +115,20 @@ public class LeaveRequest {
     public void setReason(String reason) { this.reason = reason; }
 
     public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+
+    /**
+     * Sets the status of this leave request.
+     *
+     * @param status must be one of "Pending", "Approved", or "Rejected"
+     * @throws IllegalArgumentException if status is null or not in the whitelist
+     */
+    public void setStatus(String status) {
+        if (status == null || !VALID_STATUSES.contains(status)) {
+            throw new IllegalArgumentException(
+                "Status must be one of " + VALID_STATUSES + ". Received: '" + status + "'");
+        }
+        this.status = status;
+    }
 
     public String getApprover() { return approver; }
     public void setApprover(String approver) { this.approver = approver; }
