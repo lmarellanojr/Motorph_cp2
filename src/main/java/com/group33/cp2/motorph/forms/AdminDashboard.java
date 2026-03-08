@@ -168,7 +168,6 @@ public class AdminDashboard extends JFrame {
         JButton btnRefresh    = new JButton("Refresh");
 
         btnAdd.addActionListener(e -> {
-            // Delegates to Admin.manageUsers("create") — opens NewEmployeeFrame
             adminUser.manageUsers(0, "create");
         });
 
@@ -188,7 +187,6 @@ public class AdminDashboard extends JFrame {
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            // Delegates to Admin.manageUsers("update") — opens UpdateEmployeeFrame
             adminUser.manageUsers(userId, "update");
         });
 

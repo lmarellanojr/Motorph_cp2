@@ -1,11 +1,14 @@
 package com.group33.cp2.motorph.model;
 
 import com.group33.cp2.motorph.dao.TimeTrackerReader;
+import com.group33.cp2.motorph.forms.NewEmployeeFrame;
+import com.group33.cp2.motorph.forms.UpdateEmployeeFrame;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.PayrollCalculator;
 
 import java.io.IOException;
 import java.util.List;
+import javax.swing.SwingUtilities;
 
 /**
  * Represents an Admin department employee in the MotorPH Payroll System.
@@ -20,14 +23,6 @@ import java.util.List;
  */
 public class Admin extends Employee implements PayrollCalculable, AdminOperations {
 
-    /**
-     * Lazily-initialized EmployeeService — NOT set in the constructor to avoid infinite
-     * recursion: EmployeeService.reloadEmployees() creates Admin objects, and an eager
-     * new EmployeeService() call inside the Admin constructor would cycle back into
-     * reloadEmployees().  The service is created on first use instead.
-     */
-    private EmployeeService employeeService;
-
     public Admin(String employeeID, String lastName, String firstName, String birthday,
                  String address, String phoneNumber, double basicSalary, double hourlyRate,
                  double grossSemiMonthlyRate, String status, String position,
@@ -36,15 +31,6 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
         super(employeeID, lastName, firstName, birthday, address, phoneNumber,
               basicSalary, hourlyRate, grossSemiMonthlyRate, status, position,
               immediateSupervisor, allowance, governmentDetails);
-        // employeeService is intentionally NOT initialized here — see field Javadoc
-    }
-
-    /** Returns the lazily-initialized EmployeeService, creating it on the first call. */
-    private EmployeeService getEmployeeService() {
-        if (employeeService == null) {
-            employeeService = new EmployeeService();
-        }
-        return employeeService;
     }
 
     public String getDepartment() { return "Administration"; }
@@ -98,30 +84,26 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
 
         return switch (action.toLowerCase()) {
             case "create" -> {
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    com.group33.cp2.motorph.forms.NewEmployeeFrame frame =
-                            new com.group33.cp2.motorph.forms.NewEmployeeFrame();
-                    frame.setLocationRelativeTo(null);
+                SwingUtilities.invokeLater(() -> {
+                    NewEmployeeFrame frame = new NewEmployeeFrame();
                     frame.setVisible(true);
                 });
                 yield true;
             }
             case "update" -> {
-                Employee target = getEmployeeService().getEmployeeById(empId);
+                Employee target = new EmployeeService().getEmployeeById(empId);
                 if (target == null) yield false;
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    com.group33.cp2.motorph.forms.UpdateEmployeeFrame frame =
-                            new com.group33.cp2.motorph.forms.UpdateEmployeeFrame(empId);
-                    frame.setLocationRelativeTo(null);
+                SwingUtilities.invokeLater(() -> {
+                    UpdateEmployeeFrame frame = new UpdateEmployeeFrame(empId);
                     frame.setVisible(true);
                 });
                 yield true;
             }
             case "deactivate" -> {
-                Employee target = getEmployeeService().getEmployeeById(empId);
+                Employee target = new EmployeeService().getEmployeeById(empId);
                 if (target == null) yield false;
                 target.setStatus("Inactive");
-                getEmployeeService().updateEmployee(target);
+                new EmployeeService().updateEmployee(target);
                 yield true;
             }
             default -> false;
@@ -140,7 +122,7 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
     }
 
     private Report generatePayrollReport() {
-        List<Employee> employees = getEmployeeService().getAllEmployees();
+        List<Employee> employees = new EmployeeService().getAllEmployees();
         StringBuilder sb = new StringBuilder();
         sb.append("=== MotorPH Payroll Report ===\n");
         sb.append(String.format("%-10s %-25s %12s %12s %12s%n",
@@ -174,7 +156,7 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
     }
 
     private Report generateAttendanceReport() {
-        List<Employee> employees = getEmployeeService().getAllEmployees();
+        List<Employee> employees = new EmployeeService().getAllEmployees();
         StringBuilder sb = new StringBuilder();
         sb.append("=== MotorPH Attendance Report ===\n");
         sb.append(String.format("%-10s %-25s %10s %10s%n",
