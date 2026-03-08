@@ -387,9 +387,9 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         txtRiceSubsidy.setText("1500.00");
         txtPhoneAllowance.setText("1000.00");
         txtClothingAllowance.setText("1000.00");
-        txtBasicSalary.setText("0.00");
-        txtHourlyRate.setText("0.00");
-        txtGrossSemiMonthly.setText("0.00");
+        txtBasicSalary.setText("");
+        txtHourlyRate.setText("");
+        txtGrossSemiMonthly.setText("");
 
         txtLastName.setText("");
         txtFirstName.setText("");
@@ -472,14 +472,19 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
             showValidationError("Pag-IBIG Number is required.", txtPagIBIGNumber);
             return false;
         }
+        if (txtPhoneNumber.getText().trim().isEmpty()) {
+            showValidationError("Phone Number is required.", txtPhoneNumber);
+            return false;
+        }
         return true;
     }
 
     private boolean validateNumericFields() {
+        double basicSalary, hourlyRate, grossSemi;
         try {
-            Double.parseDouble(txtBasicSalary.getText().trim().replace(",", ""));
-            Double.parseDouble(txtHourlyRate.getText().trim().replace(",", ""));
-            Double.parseDouble(txtGrossSemiMonthly.getText().trim().replace(",", ""));
+            basicSalary = Double.parseDouble(txtBasicSalary.getText().trim().replace(",", ""));
+            hourlyRate  = Double.parseDouble(txtHourlyRate.getText().trim().replace(",", ""));
+            grossSemi   = Double.parseDouble(txtGrossSemiMonthly.getText().trim().replace(",", ""));
             Double.parseDouble(txtRiceSubsidy.getText().trim().replace(",", ""));
             Double.parseDouble(txtPhoneAllowance.getText().trim().replace(",", ""));
             Double.parseDouble(txtClothingAllowance.getText().trim().replace(",", ""));
@@ -487,6 +492,20 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this,
                     "Please enter valid numeric values for all salary and allowance fields. Do not include currency symbols.",
                     "Invalid Numeric Input", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        if (basicSalary <= 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Basic Salary must be greater than zero.",
+                    "Invalid Salary", JOptionPane.WARNING_MESSAGE);
+            txtBasicSalary.requestFocus();
+            return false;
+        }
+        if (hourlyRate <= 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Hourly Rate must be greater than zero.",
+                    "Invalid Rate", JOptionPane.WARNING_MESSAGE);
+            txtHourlyRate.requestFocus();
             return false;
         }
         return true;
