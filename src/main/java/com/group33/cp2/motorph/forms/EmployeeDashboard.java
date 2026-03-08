@@ -4,6 +4,8 @@ import com.group33.cp2.motorph.model.Allowance;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.GovernmentDetails;
 import com.group33.cp2.motorph.model.LeaveRequest;
+import com.group33.cp2.motorph.model.Payroll;
+import com.group33.cp2.motorph.model.Payslip;
 import com.group33.cp2.motorph.model.SalaryDetails;
 import com.group33.cp2.motorph.dao.EmployeeLeaveTracker;
 import com.group33.cp2.motorph.dao.LeaveRequestReader;
@@ -312,6 +314,25 @@ public class EmployeeDashboard extends JFrame {
                     lblPayTax.setText(String.format("%.2f", d.withholdingTax()));
                     lblPayTotalDed.setText(String.format("%.2f", d.totalDeductions()));
                     lblPayNet.setText(String.format("%.2f", d.netSalary()));
+
+                    // Wire the Payroll/Payslip domain pipeline so employee.getPayslips()
+                    // is populated during the session. The SalaryDetails labels above are
+                    // the authoritative display source; this block exercises the domain model.
+                    try {
+                        LocalDate now         = LocalDate.now();
+                        LocalDate periodStart = now.withDayOfMonth(1);
+                        LocalDate periodEnd   = now.withDayOfMonth(now.lengthOfMonth());
+                        Payroll payroll = new Payroll(
+                                employee.getEmployeeID(), employee, periodStart, periodEnd);
+                        payroll.calculateNetSalary();
+                        Payslip payslip = payroll.generatePayslip();
+                        employee.addPayslip(payslip);
+                    } catch (NullPointerException npe) {
+                        // Allowance data missing for this employee — payslip domain object
+                        // not added, but the label display above is unaffected.
+                        System.err.println("EmployeeDashboard.calculatePayslip: "
+                                + "could not create Payslip domain object — " + npe.getMessage());
+                    }
                 } catch (InterruptedException | java.util.concurrent.ExecutionException ex) {
                     JOptionPane.showMessageDialog(EmployeeDashboard.this,
                             "Failed to calculate payslip: " + ex.getMessage(),

@@ -242,11 +242,47 @@ public class AdminDashboard extends JFrame {
             loadEmployeeTable();
         });
 
+        // Change A — Delete Employee button declaration
+        JButton btnDelete = new JButton("Delete Employee");
+
+        // Change B — Delete Employee action listener
+        btnDelete.addActionListener(e -> {
+            int row = employeeTable.getSelectedRow();
+            if (row < 0) {
+                JOptionPane.showMessageDialog(this, "Please select an employee to delete.",
+                        "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            String empId = employeeModel.getValueAt(row, COL_EMP_ID).toString();
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Permanently delete employee " + empId + "? This cannot be undone.",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+            if (confirm != JOptionPane.YES_OPTION) return;
+
+            boolean ok = employeeService.deleteEmployee(empId);
+            if (ok) {
+                JOptionPane.showMessageDialog(this,
+                        "Employee " + empId + " has been permanently deleted.",
+                        "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                loadEmployeeTable();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Could not delete employee " + empId + ".",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         buttonBar.add(btnAdd);
         buttonBar.add(btnEdit);
         buttonBar.add(btnDeactivate);
         buttonBar.add(btnRefresh);
+        // Change C — add Delete button to the button bar
+        buttonBar.add(btnDelete);
 
         panel.add(new JScrollPane(employeeTable), BorderLayout.CENTER);
         panel.add(buttonBar, BorderLayout.SOUTH);
