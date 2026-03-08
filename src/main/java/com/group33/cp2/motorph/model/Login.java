@@ -7,7 +7,7 @@ public class Login {
 
     private String employeeID;
     private String username;
-    // no getter for password; use verifyPassword() instead
+    // password field is write-only; BCrypt authentication is performed in LoginFrame
     private String password;
     private Role role;
 
@@ -34,12 +34,7 @@ public class Login {
         this.username = username;
     }
 
-    // getPassword() not provided
-
-    // returns true if the candidate matches the stored password
-    public boolean verifyPassword(String candidatePassword) {
-        return this.password != null && this.password.equals(candidatePassword);
-    }
+    // getPassword() not provided — BCrypt authentication is performed in LoginFrame
 
     public void setPassword(String newPassword) {
         this.password = newPassword;
