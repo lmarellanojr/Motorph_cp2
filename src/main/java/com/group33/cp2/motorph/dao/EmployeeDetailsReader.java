@@ -10,16 +10,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Owns read/write access to {@code Employee.csv} and read/write access to
- * {@code Login.csv}.
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> This class is the single point of
- * truth for the Employee and Login files. No other class opens these files directly.</p>
- *
- * <p>File paths are relative to the project root (working directory must be
- * {@code MO-IT110-OOP/Motorph_cp2/} when the app is run).</p>
- */
+// Owns read/write access to Employee.csv and Login.csv.
+// No other class opens these files directly.
+// File paths are relative; working directory must be MO-IT110-OOP/Motorph_cp2/.
 public class EmployeeDetailsReader {
 
     private static final String EMP_CSV   = "src/main/resources/data/Employee.csv";
@@ -65,6 +58,18 @@ public class EmployeeDetailsReader {
             }
         }
         return null;
+    }
+
+    // Returns true if the employee number exists in Employee.csv AND the stored
+    // firstName + " " + lastName matches empName (case-insensitive, "First Last" order).
+    public boolean isEmployeeValid(String empNum, String empName) {
+        String[] row = getEmployeeDetails(empNum);
+        if (row == null || row.length < 3) {
+            return false;
+        }
+        // Employee.csv: col[1]=lastName, col[2]=firstName
+        String csvFullName = row[2].trim() + " " + row[1].trim();
+        return csvFullName.equalsIgnoreCase(empName == null ? "" : empName.trim());
     }
 
     public void addEmployee(String[] employeeRow) throws IOException {
@@ -128,15 +133,8 @@ public class EmployeeDetailsReader {
         return null;
     }
 
-    /**
-     * Updates the BCrypt password hash and the {@code changePassword} flag for the given employee.
-     *
-     * @param empId              the employee number to update
-     * @param newHashedPassword  the new BCrypt-hashed password
-     * @param changePassword     {@code "YES"} if the employee must change their password on next login;
-     *                           {@code "NO"} if the password change requirement is cleared
-     * @return {@code true} if the row was found and updated
-     */
+    // Updates the BCrypt hash and changePassword flag for the given employee.
+    // changePassword: "YES" forces a change on next login; "NO" clears the requirement.
     public boolean changeUserPassword(String empId, String newHashedPassword, String changePassword)
             throws IOException {
         List<String[]> all = readAll(LOGIN_CSV);
@@ -154,14 +152,8 @@ public class EmployeeDetailsReader {
         return found;
     }
 
-    /**
-     * Convenience overload that clears the {@code changePassword} flag (sets it to {@code "NO"}).
-     * Used when an employee sets their own password through the forced-change flow.
-     *
-     * @param empId             the employee number to update
-     * @param newHashedPassword the new BCrypt-hashed password
-     * @return {@code true} if the row was found and updated
-     */
+    // Convenience overload: sets changePassword="NO". Used by the forced-change flow
+    // when the employee sets their own password.
     public boolean changeUserPassword(String empId, String newHashedPassword) throws IOException {
         return changeUserPassword(empId, newHashedPassword, "NO");
     }

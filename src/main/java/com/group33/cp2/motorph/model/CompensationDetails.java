@@ -1,8 +1,7 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Holds pay breakdown for one payroll record: regular pay, overtime, gross/net salary, allowances, deductions.
- */
+// Holds pay breakdown for one payroll record: regular pay, overtime, gross/net salary,
+// allowances, and deductions.
 public class CompensationDetails {
 
     private String employeeID;
@@ -14,9 +13,7 @@ public class CompensationDetails {
     private Allowance allowance;
     private Deductions deductions;
 
-    /**
-     * Creates a CompensationDetails with IDs only. Allowance and deductions default to zero.
-     */
+    // Creates a CompensationDetails with IDs only; allowance and deductions default to zero.
     public CompensationDetails(String employeeID, String payrollID) {
         this.employeeID = employeeID;
         this.payrollID = payrollID;

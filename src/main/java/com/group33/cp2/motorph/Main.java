@@ -4,9 +4,7 @@ import com.group33.cp2.motorph.forms.LoginFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
-/**
- * App entry point. Sets up the Nimbus theme and opens the login screen.
- */
+// App entry point. Sets up the Nimbus theme and opens the login screen.
 public class Main extends javax.swing.JFrame {
 
     public static void main(String[] args) {

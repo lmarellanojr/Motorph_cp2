@@ -14,13 +14,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Owns read/write access to {@code Salary.csv}.
- * Lazy-loads into an in-memory map on first access; invalidates cache after writes.
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> Only this class reads or writes
- * Salary.csv. Callers receive {@link Salary} objects and never see raw CSV rows.</p>
- */
+// Owns read/write access to Salary.csv.
+// Lazy-loads into an in-memory map on first access; invalidates cache after writes.
+// Callers receive Salary objects and never see raw CSV rows.
 public class SalaryDetailsReader {
 
     private static final String SALARY_CSV = "src/main/resources/data/Salary.csv";

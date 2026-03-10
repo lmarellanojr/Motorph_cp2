@@ -1,8 +1,6 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Holds SSS, PhilHealth, Pag-IBIG, and withholding tax amounts for one payroll period.
- */
+// Holds SSS, PhilHealth, Pag-IBIG, and withholding tax amounts for one payroll period.
 public class Deductions {
 
     private String employeeID;

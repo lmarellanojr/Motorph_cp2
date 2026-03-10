@@ -6,13 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests demonstrating polymorphic behaviour between RegularEmployee and ProbationaryEmployee.
- *
- * Key differences:
- *   - RegularEmployee: overtime eligible (1.25x); all 4 deductions (SSS+PH+PI+tax)
- *   - ProbationaryEmployee: no overtime; only 3 deductions (SSS+PH+PI, no withholding tax)
- */
+// Tests polymorphic differences: Regular (OT + 4 deductions) vs Probationary (no OT, 3 deductions).
 class EmployeeTypeTest {
 
     private static final double DELTA = 0.01;

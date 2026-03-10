@@ -1,10 +1,10 @@
 employeeNum,username,roleName,password,changePassword
-10001,mgarcia3,Admin,$2a$10$YaHb26gc2f4g3UPAOBdqw.FtE/FvMC0BLOFPG7M1a.2T8x08n8Yf.,NO
-10002,alim,Admin,$2a$10$2sAmVXKjS9RUiMcsZO38w.ZeJEvV6TzUFfn3L68HcMzgacma7I7SC,NO
-10003,baquino,Finance,$2a$10$YmjIwkEJ2KCa1GL/Wgqe/eN7b0OyFzI2RhYHcQWaBkH53rUJfhrD6,NO
+10001,mgarcia3,HR,$2a$10$YaHb26gc2f4g3UPAOBdqw.FtE/FvMC0BLOFPG7M1a.2T8x08n8Yf.,NO
+10002,alim,Finance,$2a$10$2sAmVXKjS9RUiMcsZO38w.ZeJEvV6TzUFfn3L68HcMzgacma7I7SC,NO
+10003,baquino,IT,$2a$10$YmjIwkEJ2KCa1GL/Wgqe/eN7b0OyFzI2RhYHcQWaBkH53rUJfhrD6,NO
 10004,ireyes,Employee,$2a$10$YKnQY6Ek.fkIKOmocKDPouSvg7ZHP8tdcw6t3LgdQ3Ju7LP243uHC,NO
-10005,ehernandez,IT,$2a$10$Z042Fogb9CqEVgUuD2Q3nO.DxMfBLhM0wDMPeToyTc3OZ4.xmOFde,NO
-10006,avillanueva,HR,$2a$10$Ke1XhZjdUkvRqy8T2CJjpeMHvenlcJl17jTgdhOnXITl7.NEBGFPm,NO
+10005,ehernandez,Employee,$2a$10$Z042Fogb9CqEVgUuD2Q3nO.DxMfBLhM0wDMPeToyTc3OZ4.xmOFde,NO
+10006,avillanueva,Employee,$2a$10$Ke1XhZjdUkvRqy8T2CJjpeMHvenlcJl17jTgdhOnXITl7.NEBGFPm,NO
 10007,bsanjose,Employee,$2a$10$vmXozZfj3T4YC6rsUpDLc.3Cni4gcK5On0fkTUd5U6q0xs3kuP45u,NO
 10008,aromualdez,Employee,$2a$10$chnTlurBfAVAKb/.5I62/uVXaV70WUmdm1qE32zENYkXMaIk6t3UW,NO
 10009,ratienza,Employee,$2a$10$xYsidXf89RIniK29pdZ6Yeyy42Kl1VygG18NXYoWt5iLADifRm.I.,NO

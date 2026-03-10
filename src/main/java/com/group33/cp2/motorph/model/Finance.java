@@ -2,15 +2,7 @@ package com.group33.cp2.motorph.model;
 
 import com.group33.cp2.motorph.service.PayrollCalculator;
 
-/**
- * Represents a Finance department employee in the MotorPH Payroll System.
- *
- * <p>Finance employees receive full regular-employee payroll treatment
- * (all four deductions, overtime at 1.25x).</p>
- *
- * @author Group 33
- * @version 2.0
- */
+// Finance department employee: full payroll treatment (all four deductions, overtime at 1.25x).
 public class Finance extends Employee implements PayrollCalculable {
 
     public Finance(String employeeID, String lastName, String firstName, String birthday,

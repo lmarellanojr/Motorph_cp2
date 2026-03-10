@@ -13,18 +13,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Provides clock-in/clock-out and time-log operations against {@code TimeTracker.csv}.
- *
- * <p>CSV columns: [0]=empNum, [1]=date (MM/dd/yyyy), [2]=timeIn (HH:mm),
- * [3]=timeOut (HH:mm, empty if not yet clocked out), [4]=hoursWorked (H:mm)</p>
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> All file I/O is hidden behind
- * static methods. Callers never access the CSV file directly.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Provides clock-in/clock-out and time-log operations against TimeTracker.csv.
+// CSV columns: [0]=empNum [1]=date(MM/dd/yyyy) [2]=timeIn(HH:mm) [3]=timeOut [4]=hoursWorked(H:mm)
+// All file I/O is hidden behind static methods.
 public class TimeTrackerReader {
 
     private static final String FILE_PATH = "src/main/resources/data/TimeTracker.csv";

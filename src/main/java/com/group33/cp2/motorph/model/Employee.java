@@ -4,19 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Abstract base class for all employee types in the MotorPH Payroll System.
- *
- * <p><strong>OOP Pillars demonstrated:</strong></p>
- * <ul>
- *   <li><em>Encapsulation</em> — all fields are {@code private}; validated setters guard against illegal values.</li>
- *   <li><em>Inheritance</em> — this class is the root of the employee hierarchy.</li>
- *   <li><em>Abstraction</em> — payroll methods are declared abstract, hiding implementation details.</li>
- * </ul>
- *
- * @author Group 33
- * @version 2.0
- */
+// Abstract base class for all employee types.
+// All fields are private with validated setters. Payroll methods are abstract.
 public abstract class Employee {
 
     private static final double MAX_BASIC_SALARY = 500_000.0;

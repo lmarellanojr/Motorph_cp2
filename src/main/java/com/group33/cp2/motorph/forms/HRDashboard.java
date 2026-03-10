@@ -29,24 +29,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
-/**
- * HR Dashboard — the primary screen for HR department employees.
- *
- * <p>Provides two tabs:</p>
- * <ol>
- *   <li><strong>Employee Management</strong> — view all employees; add, edit, or delete records.</li>
- *   <li><strong>Leave Management</strong> — view pending/all leave requests; approve or reject
- *       with a remark.</li>
- * </ol>
- *
- * <p><strong>OOP Pillar — Polymorphism:</strong> Constructor accepts the logged-in HR employee
- * as an {@link HR} object. Leave approval/rejection delegates to {@code hrUser.approveLeave()}
- * and {@code hrUser.rejectLeave()}, which dispatch polymorphically through the
- * {@link com.group33.cp2.motorph.HROperations} interface.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// HR Dashboard — employee management and leave approval/rejection for HR roles.
 public class HRDashboard extends JFrame {
 
     // Domain objects
@@ -77,12 +60,6 @@ public class HRDashboard extends JFrame {
     private static final int EMP_COL_POSITION   = 2;
     private static final int EMP_COL_STATUS     = 3;
 
-    /**
-     * Constructs the HRDashboard for the given HR user.
-     *
-     * @param hrUser          the logged-in HR employee; must not be null
-     * @param employeeService the employee data service; must not be null
-     */
     public HRDashboard(HR hrUser, EmployeeService employeeService) {
         this.hrUser          = hrUser;
         this.employeeService = employeeService;
@@ -277,7 +254,7 @@ public class HRDashboard extends JFrame {
     //  Data loaders
     // =========================================================================
 
-    /** Reloads the employee table from EmployeeService. Always re-reads CSVs first. */
+    // Reloads the employee table from EmployeeService. Always re-reads CSVs first.
     private void loadEmployeeTable() {
         employeeService.reloadEmployees();
         employeeTableModel.setRowCount(0);
@@ -292,11 +269,7 @@ public class HRDashboard extends JFrame {
         }
     }
 
-    /**
-     * Reloads the leave requests table from LeaveRequests.csv off the EDT via a
-     * SwingWorker. The CSV read runs in {@code doInBackground()}; the table model
-     * update runs in {@code done()} on the EDT.
-     */
+    // Loads leave requests off the EDT via SwingWorker; updates the table model in done().
     private void loadLeaveTable() {
         new SwingWorker<List<LeaveRequest>, Void>() {
             @Override
@@ -332,11 +305,7 @@ public class HRDashboard extends JFrame {
     //  Action helpers
     // =========================================================================
 
-    /**
-     * Approves or rejects the selected leave request.
-     *
-     * @param approve {@code true} to approve; {@code false} to reject
-     */
+    // Approves (true) or rejects (false) the selected leave request.
     private void handleLeaveAction(boolean approve) {
         int row = leaveTable.getSelectedRow();
         if (row < 0) {

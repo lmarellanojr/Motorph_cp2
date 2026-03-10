@@ -2,15 +2,8 @@ package com.group33.cp2.motorph.model;
 
 import com.group33.cp2.motorph.service.PayrollCalculator;
 
-/**
- * Represents a regular (permanent) employee in the MotorPH Payroll System.
- *
- * <p>Regular employees are eligible for overtime at 1.25x and subject to full deductions:
- * SSS, PhilHealth, Pag-IBIG, and withholding tax.</p>
- *
- * @author Group 33
- * @version 2.0
- */
+// Regular (permanent) employee: eligible for overtime at 1.25x,
+// subject to full deductions: SSS, PhilHealth, Pag-IBIG, and withholding tax.
 public class RegularEmployee extends Employee implements PayrollCalculable {
 
     public RegularEmployee(String employeeID, String lastName, String firstName, String birthday,

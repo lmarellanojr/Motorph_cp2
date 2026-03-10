@@ -3,19 +3,8 @@ package com.group33.cp2.motorph.model;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Represents a single leave request submitted by an employee.
- *
- * <p>Encapsulates all state for one leave request: who submitted it, what type
- * of leave, when, the approval status, and the HR responder details.</p>
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> All fields are private.
- * Business-state transitions (approve/reject) are done through dedicated methods
- * rather than raw setters, ensuring the object always stays consistent.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Represents a single leave request. All fields are private; state transitions
+// (approve/reject) use dedicated methods to keep the object consistent.
 public class LeaveRequest {
 
     private static final List<String> VALID_STATUSES =
@@ -33,9 +22,7 @@ public class LeaveRequest {
     private LocalDate dateResponded;
     private String remark;
 
-    /**
-     * Constructs a {@code LeaveRequest} with all fields populated (used when reading from CSV).
-     */
+    // Full constructor used when reading existing records from the CSV.
     public LeaveRequest(String leaveID, String employeeID, String leaveType,
                         LocalDate dateRequest, LocalDate startDate, LocalDate endDate,
                         String reason, String status, String approver,
@@ -57,11 +44,7 @@ public class LeaveRequest {
     //  Business-state transition methods
     // =========================================================================
 
-    /**
-     * Marks this leave request as Approved, recording the approver name and today's date.
-     *
-     * @throws IllegalStateException if the current status is not "Pending"
-     */
+    // Marks this leave request as Approved; throws IllegalStateException if not currently Pending.
     public void approve(String approverName) {
         if (!"Pending".equalsIgnoreCase(this.status)) {
             throw new IllegalStateException(
@@ -72,12 +55,7 @@ public class LeaveRequest {
         this.dateResponded = LocalDate.now();
     }
 
-    /**
-     * Marks this leave request as Rejected, recording the approver name, today's date,
-     * and the rejection remark.
-     *
-     * @throws IllegalStateException if the current status is not "Pending"
-     */
+    // Marks this leave request as Rejected; throws IllegalStateException if not currently Pending.
     public void reject(String approverName, String rejectionRemark) {
         if (!"Pending".equalsIgnoreCase(this.status)) {
             throw new IllegalStateException(
@@ -116,12 +94,7 @@ public class LeaveRequest {
 
     public String getStatus() { return status; }
 
-    /**
-     * Sets the status of this leave request.
-     *
-     * @param status must be one of "Pending", "Approved", or "Rejected"
-     * @throws IllegalArgumentException if status is null or not in the whitelist
-     */
+    // Sets the status; must be one of "Pending", "Approved", or "Rejected".
     public void setStatus(String status) {
         if (status == null || !VALID_STATUSES.contains(status)) {
             throw new IllegalArgumentException(

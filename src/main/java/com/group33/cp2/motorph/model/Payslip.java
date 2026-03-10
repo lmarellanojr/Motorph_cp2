@@ -3,9 +3,7 @@ package com.group33.cp2.motorph.model;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/**
- * Holds payslip data for one employee and period. The payslipID is auto-generated and read-only.
- */
+// Holds payslip data for one employee and period. payslipID is auto-generated and read-only.
 public class Payslip {
 
     // auto-generated at construction, no setter
@@ -20,9 +18,7 @@ public class Payslip {
     private CompensationDetails compensationDetails;
     private LocalDate issueDate;
 
-    /**
-     * Creates a Payslip. The payslipID is auto-generated.
-     */
+    // Creates a Payslip; payslipID is auto-generated via UUID.
     public Payslip(String employeeID, String payrollID, String birthday,
                    LocalDate periodStartDate, LocalDate periodEndDate,
                    double totalRegularHours, double totalOvertimeHours,

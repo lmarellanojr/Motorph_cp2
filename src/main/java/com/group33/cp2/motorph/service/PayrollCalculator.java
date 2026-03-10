@@ -8,9 +8,8 @@ import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.Locale;
 
-/**
- * Computes government deductions, withholding tax, and bi-weekly period logic.
- */
+// Computes government deductions (SSS, PhilHealth, Pag-IBIG, withholding tax)
+// and bi-weekly period logic.
 public class PayrollCalculator {
 
     public static int getWeekOfMonth(LocalDate date) {

@@ -29,27 +29,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
-/**
- * Admin Dashboard — the primary screen for Admin department employees.
- *
- * <p>Provides two tabs:</p>
- * <ol>
- *   <li><strong>Employee Management</strong> — view all employees in a table;
- *       add, edit, or deactivate records by delegating to
- *       {@link Admin#manageUsers(int, String)}.</li>
- *   <li><strong>System Reports</strong> — choose a report type (Payroll or Attendance),
- *       click Generate, and view the formatted output via
- *       {@link Admin#generateSystemReport(String)}.</li>
- * </ol>
- *
- * <p><strong>OOP Pillar — Polymorphism:</strong> Employee management and report
- * generation are invoked through the {@link com.group33.cp2.motorph.AdminOperations}
- * interface methods on the {@code adminUser} object. The dashboard does not
- * duplicate any business logic — it purely delegates to the domain layer.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Admin Dashboard — employee management and system reports for Admin roles.
 public class AdminDashboard extends JFrame {
 
     private final Admin           adminUser;
@@ -71,12 +51,6 @@ public class AdminDashboard extends JFrame {
 
     private static final String[] REPORT_TYPES = {"payroll", "attendance"};
 
-    /**
-     * Constructs the AdminDashboard.
-     *
-     * @param adminUser       the logged-in Admin employee; must not be null
-     * @param employeeService the employee data service; must not be null
-     */
     public AdminDashboard(Admin adminUser, EmployeeService employeeService) {
         this.adminUser       = adminUser;
         this.employeeService = employeeService;
@@ -299,7 +273,7 @@ public class AdminDashboard extends JFrame {
         return panel;
     }
 
-    /** Reloads the employee table from EmployeeService. Always re-reads CSVs first. */
+    // Reloads the employee table from EmployeeService. Always re-reads CSVs first.
     private void loadEmployeeTable() {
         employeeService.reloadEmployees();
         employeeModel.setRowCount(0);
@@ -347,10 +321,7 @@ public class AdminDashboard extends JFrame {
         return panel;
     }
 
-    /**
-     * Generates the selected report type by calling
-     * {@link Admin#generateSystemReport(String)} and displays the result.
-     */
+    // Generates the selected report via Admin.generateSystemReport() and displays it.
     private void handleGenerateReport() {
         int selectedIndex = cmbReportType.getSelectedIndex();
         // Map combo index to report type key

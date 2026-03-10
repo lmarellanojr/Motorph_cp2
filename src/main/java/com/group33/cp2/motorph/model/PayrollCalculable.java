@@ -1,18 +1,7 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Contract for payroll calculation behaviour in the MotorPH Payroll System.
- *
- * <p>Implemented by every concrete employee type ({@link RegularEmployee},
- * {@link ProbationaryEmployee}, and the department subclasses). Each implementation
- * applies the rules appropriate for that employee type.</p>
- *
- * <p><strong>OOP Pillar demonstrated:</strong> Abstraction — callers depend on this
- * interface, not on concrete implementations, enabling polymorphic dispatch.</p>
- *
- * @author Group 33
- * @version 2.0
- */
+// Interface for payroll calculation: implemented by all concrete employee types.
+// Each subtype applies the payroll rules appropriate for that employment category.
 public interface PayrollCalculable {
 
     double calculateGrossSalary();

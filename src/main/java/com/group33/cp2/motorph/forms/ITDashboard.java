@@ -26,20 +26,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
-/**
- * IT Dashboard — the primary screen for IT department employees.
- *
- * <p>Displays pending password reset requests and allows the IT employee to
- * approve them (which generates a temporary password and updates Login.csv).</p>
- *
- * <p><strong>OOP Pillar — Abstraction:</strong> The approval action delegates to
- * {@link ResetPasswordProcessor}, which depends on {@link com.group33.cp2.motorph.service.PasswordResetCallback}
- * rather than importing this class. The callback is passed as a lambda
- * ({@code this::loadPasswordResetRequests}), demonstrating the decoupling seam.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// IT Dashboard — password reset request table; approval generates a temp password and updates Login.csv.
 public class ITDashboard extends JFrame {
 
     private final IT itUser;
@@ -54,11 +41,6 @@ public class ITDashboard extends JFrame {
     private static final int COL_DATE_REQ = 2;
     private static final int COL_STATUS   = 3;
 
-    /**
-     * Constructs the ITDashboard for the given IT employee.
-     *
-     * @param itUser the logged-in IT employee; must not be null
-     */
     public ITDashboard(IT itUser) {
         this.itUser               = itUser;
         this.passwordResetService = new PasswordResetService();
@@ -150,17 +132,8 @@ public class ITDashboard extends JFrame {
     //  Data and actions
     // =========================================================================
 
-    /**
-     * Reloads the password reset requests table from the CSV off the EDT via a
-     * SwingWorker. The CSV read runs in {@code doInBackground()}; the table model
-     * update runs in {@code done()} on the EDT.
-     *
-     * <p>This method is passed as {@code this::loadPasswordResetRequests} to
-     * {@link com.group33.cp2.motorph.service.ResetPasswordProcessor} as a
-     * {@link com.group33.cp2.motorph.service.PasswordResetCallback} lambda. The
-     * SwingWorker pattern is transparent to that contract because this method still
-     * returns {@code void} immediately and schedules work asynchronously.</p>
-     */
+    // Loads password reset requests off the EDT via SwingWorker; updates the table in done().
+    // Passed as this::loadPasswordResetRequests to ResetPasswordProcessor as a PasswordResetCallback lambda.
     public void loadPasswordResetRequests() {
         new SwingWorker<List<PasswordResetRequest>, Void>() {
             @Override
@@ -190,7 +163,7 @@ public class ITDashboard extends JFrame {
         }.execute();
     }
 
-    /** Handles the "Reset Password" button action on the selected row. */
+    // Handles the Reset Password button: validates selection and calls processor.
     private void handleResetPassword() {
         int row = requestTable.getSelectedRow();
         if (row < 0) {

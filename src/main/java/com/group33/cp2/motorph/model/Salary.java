@@ -1,9 +1,6 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Immutable salary data read from Salary.csv.
- * Holds the three numeric salary columns for one employee row.
- */
+// Immutable salary data read from Salary.csv: basicSalary, hourlyRate, grossSMRate.
 public class Salary {
 
     private final double basicSalary;

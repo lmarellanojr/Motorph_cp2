@@ -1,8 +1,6 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Holds login credentials and role for one user. Password is never exposed directly.
- */
+// Holds login credentials and role for one user. Password is write-only — no getter provided.
 public class Login {
 
     private String employeeID;

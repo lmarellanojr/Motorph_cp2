@@ -7,31 +7,17 @@ import com.group33.cp2.motorph.service.PayrollCalculator;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Represents an Admin department employee in the MotorPH Payroll System.
- *
- * <p>Admin employees receive full regular-employee payroll treatment
- * (all four deductions, overtime at 1.25x) and additionally implement
- * the user-management and report-generation operations defined by
- * {@link AdminOperations}.</p>
- *
- * @author Group 33
- * @version 2.1
- */
+// Admin department employee: full payroll treatment plus user management and system reports.
+// Overtime at 1.25x; all four deductions apply.
 public class Admin extends Employee implements PayrollCalculable, AdminOperations {
 
-    /**
-     * Lazily initialized to avoid infinite recursion: {@code EmployeeService.reloadEmployees()}
-     * instantiates {@code Admin}, so constructing an {@code EmployeeService} inside the
-     * {@code Admin} constructor would create a circular call chain.
-     * Always access via {@link #getEmployeeService()}.
-     */
+    // Lazily initialized to break the circular chain:
+    // EmployeeService.reloadEmployees() creates Admin, so new EmployeeService() inside the
+    // Admin constructor would recurse infinitely. Always access via getEmployeeService().
     private EmployeeService employeeService;
 
-    /**
-     * Returns the shared {@link EmployeeService}, creating it on first access.
-     * Safe because this method is never called from the {@code Admin} constructor.
-     */
+    // Returns the shared EmployeeService, creating it on first access.
+    // Safe because this method is never called from the Admin constructor.
     private EmployeeService getEmployeeService() {
         if (employeeService == null) {
             employeeService = new EmployeeService();
@@ -93,40 +79,15 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
         return calculateGrossSalary() - calculateDeductions();
     }
 
-    /**
-     * Manages a user record using the given action, with no UI callback.
-     *
-     * <p>This overload preserves the {@link AdminOperations} interface contract.
-     * For "create" and "update" actions, no frame will be opened — callers that
-     * need UI feedback should use
-     * {@link #manageUsers(int, String, UserManagementCallback)} instead.</p>
-     *
-     * @param userId the numeric employee ID (0 for "create")
-     * @param action "create", "update", or "deactivate"
-     * @return {@code true} if the action was handled successfully
-     */
+    // Interface-contract overload with no UI callback.
+    // For "create"/"update" actions that need to open a form, use manageUsers(int, String, UserManagementCallback).
     @Override
     public boolean manageUsers(int userId, String action) {
         return manageUsers(userId, action, null);
     }
 
-    /**
-     * Manages a user record using the given action and notifies the supplied
-     * callback so that the presentation layer can open the appropriate form.
-     *
-     * <p>No {@code javax.swing} types are referenced here — all UI interactions
-     * are delegated to the {@link UserManagementCallback} implementation provided
-     * by the caller (typically {@code AdminDashboard}).</p>
-     *
-     * <p><strong>OOP Pillar — Abstraction:</strong> The domain model signals
-     * intent through an interface; the concrete UI response is determined solely
-     * by the callback implementation.</p>
-     *
-     * @param userId   the numeric employee ID (0 for "create")
-     * @param action   "create", "update", or "deactivate"
-     * @param callback optional UI callback; may be {@code null}
-     * @return {@code true} if the action was handled successfully
-     */
+    // Full overload: signals action intent through a callback so the domain model
+    // has no javax.swing imports. AdminDashboard supplies the callback lambda.
     public boolean manageUsers(int userId, String action, UserManagementCallback callback) {
         if (action == null) return false;
         String empId = String.valueOf(userId);
@@ -153,16 +114,7 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
         };
     }
 
-    /**
-     * Deletes the employee with the given ID by delegating to
-     * {@link com.group33.cp2.motorph.service.EmployeeService#deleteEmployee(String)}.
-     *
-     * <p>Uses the lazy {@link #getEmployeeService()} accessor to avoid
-     * the circular-construction problem documented on that field.</p>
-     *
-     * @param empId the ID of the employee to delete
-     * @return {@code true} if the employee was found and deleted
-     */
+    // Delegates delete to EmployeeService via the lazy accessor to avoid circular construction.
     @Override
     public boolean deleteEmployee(String empId) {
         return getEmployeeService().deleteEmployee(empId);

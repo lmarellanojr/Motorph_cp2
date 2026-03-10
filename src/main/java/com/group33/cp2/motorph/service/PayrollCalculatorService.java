@@ -8,36 +8,20 @@ import com.group33.cp2.motorph.model.SalaryDetails;
 
 import java.io.IOException;
 
-/**
- * Service that assembles a complete {@link SalaryDetails} record for a single employee.
- *
- * <p>Reads salary and allowance data from their respective CSVs, delegates all
- * deduction formulas to {@link PayrollCalculator}, and returns a single immutable
- * result object. Callers have zero knowledge of CSV layouts or deduction math.</p>
- *
- * <p><strong>OOP Pillar — Abstraction:</strong> The entire payroll pipeline
- * (CSV reads, gross computation, four deduction formulas, net calculation) is hidden
- * behind one method call: {@link #getSalaryDetails(String)}.</p>
- */
+// Service that assembles a complete SalaryDetails record for a single employee.
+// Reads CSVs, delegates deduction math to PayrollCalculator, returns one immutable result.
+// Callers have no knowledge of CSV layouts or deduction formulas.
 public class PayrollCalculatorService {
 
     private final SalaryDetailsReader salaryReader;
     private final AllowanceDetailsReader allowanceReader;
 
-    /** Creates a service backed by fresh reader instances. */
     public PayrollCalculatorService() {
         this.salaryReader   = new SalaryDetailsReader();
         this.allowanceReader = new AllowanceDetailsReader();
     }
 
-    /**
-     * Computes and returns a full payroll breakdown for the given employee.
-     *
-     * @param employeeId the employee ID to look up (e.g. "10001")
-     * @return a {@link SalaryDetails} record, or {@code null} if salary or allowance
-     *         data is not found for the employee
-     * @throws IOException if the underlying CSV files cannot be read
-     */
+    // Returns a full payroll breakdown for the employee, or null if salary/allowance not found.
     public SalaryDetails getSalaryDetails(String employeeId) throws IOException {
         Salary salary      = salaryReader.getSalary(employeeId);
         Allowance allowance = allowanceReader.getAllowance(employeeId);
@@ -69,5 +53,19 @@ public class PayrollCalculatorService {
             riceSubsidy, phoneAllow, clothingAllow, totalAllowances,
             pagibig, philHealth, sss, tax, totalDeductions
         );
+    }
+
+    // Same deduction math as getSalaryDetails(empId); month and year are metadata for logging only.
+    // Validates that month is 1–12 and year is a positive 4-digit value.
+    // Returns null if salary or allowance data is not found.
+    public SalaryDetails getSalaryDetailsForPeriod(String employeeId, int month, int year) throws IOException {
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("month must be 1–12, got: " + month);
+        }
+        if (year < 1000 || year > 9999) {
+            throw new IllegalArgumentException("year must be a 4-digit value, got: " + year);
+        }
+        // Deduction math is identical to getSalaryDetails; period metadata is carried by the caller.
+        return getSalaryDetails(employeeId);
     }
 }

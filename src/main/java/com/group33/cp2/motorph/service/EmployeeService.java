@@ -20,15 +20,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Manages employee data: load from the three split CSVs, add, update, delete,
- * and link attendance records.
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> Each reader class owns exactly one CSV
- * file. {@code EmployeeService} joins data from all three to produce {@link Employee}
- * objects, and fans out writes to all three on mutations. No caller ever touches a CSV
- * file directly.</p>
- */
+// Manages employee data: loads from three split CSVs (Employee, Salary, Allowance),
+// fans out add/update/delete to all three, and links attendance records.
+// No caller ever touches a CSV file directly.
 public final class EmployeeService {
 
     private List<Employee> employeeList;
@@ -50,34 +44,9 @@ public final class EmployeeService {
     //  Employee subtype factory
     // -------------------------------------------------------------------------
 
-    /**
-     * Creates a concrete {@link Employee} subtype based on the given employment status.
-     *
-     * <p>This factory keeps the {@code RegularEmployee} / {@code ProbationaryEmployee}
-     * instantiation decision inside the service layer, so that form classes never
-     * need to import concrete model subtypes just to branch on a status string.</p>
-     *
-     * <p><strong>OOP Pillar — Abstraction:</strong> Callers receive an {@link Employee}
-     * reference; the concrete subtype is an implementation detail of the service.</p>
-     *
-     * @param employeeID            employee ID
-     * @param lastName              last name
-     * @param firstName             first name
-     * @param birthday              birthday string (MM/dd/yyyy)
-     * @param address               address
-     * @param phoneNumber           phone number
-     * @param basicSalary           basic monthly salary
-     * @param hourlyRate            hourly rate
-     * @param grossSemiMonthlyRate  gross semi-monthly rate
-     * @param status                employment status — {@code "Probationary"} yields
-     *                              {@link ProbationaryEmployee}; any other value yields
-     *                              {@link RegularEmployee}
-     * @param position              job position/title
-     * @param immediateSupervisor   supervisor name
-     * @param allowance             allowance details; may be {@code null} (replaced with zeros)
-     * @param governmentDetails     government ID details
-     * @return the correctly-typed {@link Employee} instance, not yet persisted to CSV
-     */
+    // Factory method: creates the correct Employee subtype based on status.
+    // "Probationary" status yields ProbationaryEmployee; all other values yield RegularEmployee.
+    // Callers receive an Employee reference — the concrete subtype is hidden here.
     public Employee createEmployee(
             String employeeID, String lastName, String firstName, String birthday,
             String address, String phoneNumber,
@@ -102,11 +71,7 @@ public final class EmployeeService {
     //  CRUD — fan out to all three CSVs
     // -------------------------------------------------------------------------
 
-    /**
-     * Persists a new employee to Employee.csv, Salary.csv, and Allowance.csv.
-     *
-     * @param employee the employee to add
-     */
+    // Persists a new employee to Employee.csv, Salary.csv, and Allowance.csv.
     public void addEmployee(Employee employee) {
         try {
             employeeReader.addEmployee(toEmployeeRow(employee));
@@ -123,11 +88,7 @@ public final class EmployeeService {
         reloadEmployees();
     }
 
-    /**
-     * Updates an employee's record across all three CSVs.
-     *
-     * @param employee the employee with updated fields
-     */
+    // Updates an employee's record across all three CSVs.
     public void updateEmployee(Employee employee) {
         try {
             employeeReader.updateEmployee(toEmployeeRow(employee));
@@ -144,12 +105,7 @@ public final class EmployeeService {
         reloadEmployees();
     }
 
-    /**
-     * Removes an employee from all three CSVs.
-     *
-     * @param employeeId the ID of the employee to remove
-     * @return {@code true} if the employee was found and removed
-     */
+    // Removes an employee from all three CSVs; returns true if found and removed.
     public boolean deleteEmployee(String employeeId) {
         boolean deleted = false;
         try {
@@ -167,10 +123,8 @@ public final class EmployeeService {
     //  Reload — join data from all three readers
     // -------------------------------------------------------------------------
 
-    /**
-     * Re-reads all three CSVs and rebuilds the in-memory employee list.
-     * Attendance records are linked after loading.
-     */
+    // Re-reads all three CSVs and rebuilds the in-memory employee list.
+    // Attendance records are linked after loading.
     public void reloadEmployees() {
         List<Employee> loaded = new ArrayList<>();
 
@@ -258,12 +212,12 @@ public final class EmployeeService {
     //  Query helpers
     // -------------------------------------------------------------------------
 
-    /** Returns a read-only view of all employees. */
+    // Returns a read-only view of all employees.
     public List<Employee> getAllEmployees() {
         return Collections.unmodifiableList(employeeList);
     }
 
-    /** Returns the employee with the given ID, or {@code null} if not found. */
+    // Returns the employee with the given ID, or null if not found.
     public Employee getEmployeeById(String employeeId) {
         for (Employee e : employeeList) {
             if (e.getEmployeeID().equals(employeeId)) return e;
@@ -271,24 +225,20 @@ public final class EmployeeService {
         return null;
     }
 
-    /** Returns the next available employee ID (last ID + 1). */
+    // Returns the next available employee ID (last ID + 1).
     public String generateEmployeeID() {
         if (employeeList.isEmpty()) return "10001";
         String lastId = employeeList.get(employeeList.size() - 1).getEmployeeID();
         return String.valueOf(Integer.parseInt(lastId) + 1);
     }
 
-    /** Returns the integer value of the last employee ID, or 0 if the list is empty. */
+    // Returns the integer value of the last employee ID, or 0 if the list is empty.
     public int getLastEmployeeID() {
         if (employeeList.isEmpty()) return 0;
         return Integer.parseInt(employeeList.get(employeeList.size() - 1).getEmployeeID());
     }
 
-    /**
-     * Links attendance records to their corresponding employees.
-     *
-     * @param attendanceList list of all attendance entries
-     */
+    // Links attendance records to their corresponding employees by ID match.
     public void loadAndAssociateAttendances(List<Attendance> attendanceList) {
         for (Attendance attendance : attendanceList) {
             for (Employee employee : employeeList) {
@@ -304,9 +254,7 @@ public final class EmployeeService {
     //  Conversion helpers (Employee → CSV row / Salary object)
     // -------------------------------------------------------------------------
 
-    /**
-     * Converts an {@link Employee} to the 13-column String array expected by Employee.csv.
-     */
+    // Converts an Employee to the 13-column String array expected by Employee.csv.
     private String[] toEmployeeRow(Employee e) {
         GovernmentDetails g = e.getGovernmentDetails();
         return new String[]{
@@ -326,7 +274,7 @@ public final class EmployeeService {
         };
     }
 
-    /** Converts an {@link Employee}'s salary fields to a {@link Salary} data object. */
+    // Converts an Employee's salary fields to a Salary data object.
     private Salary toSalary(Employee e) {
         return new Salary(e.getBasicSalary(), e.getHourlyRate(), e.getGrossSemiMonthlyRate());
     }

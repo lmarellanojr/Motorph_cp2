@@ -6,37 +6,23 @@ import com.group33.cp2.motorph.model.PasswordResetRequest;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Business-logic service for processing password reset requests.
- *
- * <p>Generates a temporary password, BCrypt-hashes it, writes it to Login.csv
- * (setting {@code changePassword=YES}), and marks the request as Approved in
- * {@code Password_Reset_Requests.csv}.</p>
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> All file-read/write details
- * are delegated to {@link EmployeeDetailsReader} and {@link PasswordResetReader}.
- * This class only contains business logic.</p>
- */
+// Generates a temp password, BCrypt-hashes it, writes to Login.csv (changePassword=YES),
+// and marks the reset request as Approved in Password_Reset_Requests.csv.
 public class PasswordResetService {
 
     private static final String SPECIAL_CHARS = "!@#$%^&*";
 
-    private final EmployeeDetailsReader loginReader = new EmployeeDetailsReader();
+    // Named employeeReader because it handles both Employee.csv (via isEmployeeValid)
+    // and Login.csv (via changeUserPassword) — EmployeeDetailsReader owns both files.
+    private final EmployeeDetailsReader employeeReader = new EmployeeDetailsReader();
 
-    /**
-     * Resets the password for the given employee, then marks the pending reset
-     * request as Approved.
-     *
-     * @param employeeNumber the employee whose password will be reset
-     * @param adminName      the IT admin's full name
-     * @param adminEmpNum    the IT admin's employee number
-     * @return {@code true} on success
-     * @throws IOException            if a CSV read/write fails
-     * @throws PasswordResetException if the employee is not found or no pending request exists
-     */
+    // Resets the employee's password and marks the pending request as Approved.
+    // Throws PasswordResetException if the employee is not found or no pending request exists.
     public boolean resetPassword(String employeeNumber, String adminName, String adminEmpNum)
             throws IOException, PasswordResetException {
 
@@ -44,7 +30,7 @@ public class PasswordResetService {
         // BCrypt-hash the temp password; changePassword=YES forces a change on next login
         String hashed = BCrypt.hashpw(tempPassword, BCrypt.gensalt());
 
-        if (!loginReader.changeUserPassword(employeeNumber, hashed, "YES")) {
+        if (!employeeReader.changeUserPassword(employeeNumber, hashed, "YES")) {
             throw new PasswordResetException("Employee not found in login data: " + employeeNumber);
         }
 
@@ -56,19 +42,29 @@ public class PasswordResetService {
         return true;
     }
 
-    /**
-     * Returns all password reset requests from the CSV.
-     *
-     * <p>Delegates to {@link PasswordResetReader#getAllRequests()} so that
-     * {@code forms/} classes never need to import from {@code dao/}.</p>
-     *
-     * @return a list of all {@link PasswordResetRequest} records; never {@code null}
-     */
+    // Returns all password reset requests from the CSV.
+    // Delegates to PasswordResetReader so forms/ never import from dao/.
     public List<PasswordResetRequest> getAllRequests() {
         return PasswordResetReader.getAllRequests();
     }
 
-    /** Generates a temporary password: {@code "Default" + empNum + specialChar + twoDigits} */
+    // Validates the employee (empNum + empName in "FirstName LastName" order) and submits
+    // a new Pending reset request to Password_Reset_Requests.csv.
+    // Throws PasswordResetException if the combination is not found in Employee.csv.
+    public void submitResetRequest(String empNum, String empName)
+            throws PasswordResetException, IOException {
+
+        if (!employeeReader.isEmployeeValid(empNum, empName)) {
+            throw new PasswordResetException(
+                    "No employee found matching number '" + empNum + "' and name '" + empName + "'.");
+        }
+
+        String dateOfRequest = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        PasswordResetRequest request = new PasswordResetRequest(empNum, empName, dateOfRequest);
+        PasswordResetReader.addRequest(request);
+    }
+
+    // Generates a temporary password: "Default" + empNum + randomSpecialChar + twoRandomDigits
     private String generateTemporaryPassword(String employeeNumber) {
         Random random = new Random();
         char   specialChar   = SPECIAL_CHARS.charAt(random.nextInt(SPECIAL_CHARS.length()));

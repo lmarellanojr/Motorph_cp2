@@ -7,9 +7,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Shared formatting and date helpers used across the app.
- */
+// Shared formatting and date helpers used across the app.
 public class Utility {
 
     // private because DecimalFormat is mutable and shared across calls

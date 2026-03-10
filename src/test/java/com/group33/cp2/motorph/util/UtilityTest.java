@@ -8,16 +8,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for Utility helper methods.
- *
- * Covers:
- *   - round() — HALF_UP rounding with BigDecimal
- *   - formatTwoDecimal() — thousands-grouped, 2 decimal places
- *   - formatThreeDecimal() — 3 decimal places
- *   - formatPhp() — PHP currency prefix
- *   - isEndOfWeek() — Friday detection
- */
+// Unit tests for Utility helpers: round(), formatTwoDecimal(), formatThreeDecimal(), formatPhp(), isEndOfWeek().
 class UtilityTest {
 
     // =========================================================================

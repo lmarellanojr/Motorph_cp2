@@ -7,16 +7,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for PayrollCalculator static deduction formulas and period logic.
- *
- * All expected values are derived by hand from the documented business rules:
- *   - SSS: bracket table floorEntry(salary)
- *   - PhilHealth: salary * 3% / 2 (zero below PHP 10,000)
- *   - Pag-IBIG: 1% (<=1500) or 2% (>1500), capped at PHP 100
- *   - Withholding tax: BIR 6-tier progressive on taxable income (salary - SSS - PH - PI)
- *   - Divisors: WEEKLY=4, BIWEEKLY=2, MONTHLY=1
- */
+// Unit tests for PayrollCalculator: SSS brackets, PhilHealth, Pag-IBIG cap, tax tiers, and divisors.
+// Expected values derived by hand from documented business rules.
 class PayrollCalculatorTest {
 
     private static final double DELTA = 0.001;

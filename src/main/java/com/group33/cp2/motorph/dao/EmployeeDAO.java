@@ -2,16 +2,8 @@ package com.group33.cp2.motorph.dao;
 
 import com.group33.cp2.motorph.model.Employee;
 
-/**
- * Data Access Object (DAO) contract for employee CRUD operations.
- *
- * <p><strong>OOP Pillar demonstrated:</strong> Abstraction — callers depend on this
- * interface rather than on a specific storage implementation, enabling the persistence
- * strategy to be swapped without modifying business logic.</p>
- *
- * @author Group 33
- * @version 2.0
- */
+// DAO contract for employee CRUD operations.
+// Callers depend on this interface, not on a specific storage implementation.
 public interface EmployeeDAO {
 
     boolean create(Employee employee);

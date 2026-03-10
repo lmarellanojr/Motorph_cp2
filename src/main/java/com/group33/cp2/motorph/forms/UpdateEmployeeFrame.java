@@ -24,15 +24,7 @@ import javax.swing.JTextField;
 
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
-/**
- * GUI form for updating an existing employee's personal, government, and
- * compensation details.
- *
- * <p>Loads existing data using {@link EmployeeService}, allows editing with
- * validation (date format, government ID patterns, numeric fields), and persists
- * changes to the CSV via {@link EmployeeService#updateEmployee(Employee)}.</p>
- *
- */
+// Update Employee form — loads existing data via EmployeeService, validates edits, and persists via updateEmployee().
 public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private final EmployeeService employeeService = new EmployeeService();
@@ -63,11 +55,6 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtGrossSemiMonthly;
     private JTextField txtHourlyRate;
 
-    /**
-     * Constructs the UpdateEmployeeFrame and loads the specified employee's data.
-     *
-     * @param employeeId the ID of the employee to update
-     */
     public UpdateEmployeeFrame(String employeeId) {
         setTitle("Update Employee \u2013 MotorPH Employee Management System");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);

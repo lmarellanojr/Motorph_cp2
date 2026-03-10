@@ -29,33 +29,13 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
-/**
- * ViewSalaryFrame displays an employee's salary computation details for
- * a selected payroll period. This GUI includes personal information, salary
- * breakdown, deductions, and net pay based on calculated data.
- *
- * <p>It is part of the MotorPH Employee Payroll System.</p>
- *
- * <p><strong>OOP Pillar — Interface Polymorphism:</strong> {@code payrollDAO} is declared
- * as the {@link PayrollDAO} interface type and assigned a {@link PayrollService} instance.
- * Any future persistence implementation (CSV, database) can be substituted here without
- * changing this frame's code, as long as it implements {@link PayrollDAO}.</p>
- *
- */
+// ViewSalaryFrame — salary breakdown for a selected payroll period.
+// payrollDAO is declared as PayrollDAO interface; runtime type is PayrollService (interface polymorphism).
 public class ViewSalaryFrame extends javax.swing.JFrame {
 
-    /** Handles employee data retrieval. */
     private EmployeeService employeeService = new EmployeeService();
-
-    /**
-     * Payroll record store declared as the {@link PayrollDAO} interface type.
-     * At runtime the assigned object is a {@link PayrollService} (in-memory store).
-     * Demonstrates interface polymorphism: this frame depends on the contract, not
-     * the concrete implementation.
-     */
+    // Declared as PayrollDAO interface type — any future persistence implementation can be substituted.
     private final PayrollDAO payrollDAO = new PayrollService();
-
-    /** Currently selected employee. */
     private Employee selectedEmployee;
 
     // GUI fields for employee info (left panel)
@@ -94,17 +74,8 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
     private JLabel lblClothingAllowance2;
     private JLabel lblPayrollStatus;
     private JLabel lblPhoneAllowance2;
-    /** Payroll period start date display label. */
-    private JLabel dateFrom;
+    private JLabel dateFrom; // displays the payroll period
 
-    /**
-     * Constructs the ViewSalaryFrame window, which displays an employee's
-     * payroll details based on the selected date range.
-     *
-     * @param employeeId        the ID of the employee
-     * @param selectedStartDate the first day of the pay period
-     * @param selectEndDate     the last day of the pay period
-     */
     public ViewSalaryFrame(String employeeId, LocalDate selectedStartDate, LocalDate selectEndDate) {
         setTitle("MotorPH Employee Payroll System");
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
@@ -173,9 +144,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * Disables all text fields to make them read-only.
-     */
+    // Disables all text fields to make them read-only.
     private void disableFields() {
         txtEmployeeNumber.setEditable(false);
         txtFirstName.setEditable(false);
@@ -198,11 +167,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtHourlyRate.setEditable(false);
     }
 
-    /**
-     * Loads employee data into the form fields.
-     *
-     * @param employeeNumber the employee ID to look up
-     */
+    // Loads selectedEmployee data into all text fields.
     private void setEmployeeDetailsTextFields() {
         txtLastName.setText(selectedEmployee.getLastName());
         txtFirstName.setText(selectedEmployee.getFirstName());
@@ -223,11 +188,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()));
     }
 
-    /**
-     * Creates the form panel for displaying employee details.
-     *
-     * @return configured JPanel
-     */
+    // Creates the form panel for displaying employee details.
     private JPanel createEmployeeDetailsPanel() {
         JPanel panel = new JPanel(new GridLayout(19, 2, 5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Employee Details"));
@@ -311,11 +272,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the computation summary header panel showing pay coverage period.
-     *
-     * @return configured JPanel
-     */
+    // Creates the computation summary header panel showing pay coverage period.
     private JPanel createComputationPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 2, 5, 5));
         panel.setBackground(Color.white);
@@ -336,11 +293,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the panel displaying all payroll deductions.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel displaying all payroll deductions.
     private JPanel createDeductionsPanel() {
         JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
         panel.setBackground(Color.white);
@@ -368,11 +321,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the panel showing total regular and overtime hours.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel showing total regular and overtime hours.
     private JPanel createHoursPanel() {
         JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
         panel.setBackground(Color.white);
@@ -392,11 +341,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the panel showing regular pay, overtime pay, and gross salary.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel showing regular pay, overtime pay, and gross salary.
     private JPanel createPayBreakdownPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
         panel.setBackground(Color.white);
@@ -420,11 +365,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the panel showing allowances added to salary.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel showing allowances added to salary.
     private JPanel createAllowancesPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
         panel.setBackground(Color.white);
@@ -448,11 +389,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the panel displaying net salary, payroll status, and the Back button.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel displaying net salary, payroll status, and the Back button.
     private JPanel createStatusPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
         panel.setBackground(Color.white);
@@ -482,18 +419,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Computes and displays the employee's payroll for the given date range.
-     *
-     * <p>After a successful computation, the processed {@link Payroll} record is stored
-     * via {@link #payrollDAO} — an interface-typed reference. This is a live demonstration
-     * of interface polymorphism: the call {@code payrollDAO.create(payroll)} resolves at
-     * runtime to {@link PayrollService#create(Payroll)}, but this method only knows about
-     * the {@link PayrollDAO} contract.</p>
-     *
-     * @param selectedStartDate first day of the payroll period
-     * @param selectedEndDate   last day of the payroll period
-     */
+    // Computes and displays payroll for the given date range, then persists via payrollDAO.
     private void compute(LocalDate selectedStartDate, LocalDate selectedEndDate) {
         Payroll payroll = new Payroll(selectedEmployee.getEmployeeID(), selectedEmployee, selectedStartDate, selectedEndDate);
 

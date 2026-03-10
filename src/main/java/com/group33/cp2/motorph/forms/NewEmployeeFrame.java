@@ -26,16 +26,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-/**
- * Frame for adding a new employee to the MotorPH system.
- * Collects personal, government, and compensation details with validation,
- * then saves the record via {@link EmployeeService}.
- *
- * <p>NOTE: The original source used {@code com.toedter.calendar.JDateChooser} for the
- * birthday field. That dependency is unavailable in Maven Central, so the birthday
- * selector has been replaced with a plain {@link JTextField} accepting MM/dd/yyyy input.</p>
- *
- */
+// New Employee form — collects and validates personal/government/compensation details,
+// then saves via EmployeeService. Birthday field uses JTextField (MM/dd/yyyy) — JDateChooser removed.
 public class NewEmployeeFrame extends javax.swing.JFrame {
 
     private EmployeeService employeeService;
@@ -44,8 +36,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtEmployeeNumber;
     private JTextField txtLastName;
     private JTextField txtFirstName;
-    /** Birthday field (replaced JDateChooser — accepts MM/dd/yyyy text input). */
-    private JTextField txtBirthday;
+    private JTextField txtBirthday; // replaced JDateChooser; accepts MM/dd/yyyy text input
     private JTextField txtAddress;
     private JTextField txtPhoneNumber;
     private JComboBox<String> cmbStatus;
@@ -71,9 +62,6 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     private JButton btnCancel;
     private JButton btnClear;
 
-    /**
-     * Creates and displays the New Employee data-entry frame.
-     */
     public NewEmployeeFrame() {
         employeeService = new EmployeeService();
         initializeComponents();
@@ -95,9 +83,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         });
     }
 
-    /**
-     * Initialises all GUI components.
-     */
+    // Initialises all GUI components.
     private void initializeComponents() {
         setTitle("Add Employee");
 
@@ -144,9 +130,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         btnClear.setPreferredSize(buttonSize);
     }
 
-    /**
-     * Builds the two-column layout and adds it to the frame.
-     */
+    // Builds the two-column layout and adds it to the frame.
     private void setupLayout() {
         setLayout(new BorderLayout());
 

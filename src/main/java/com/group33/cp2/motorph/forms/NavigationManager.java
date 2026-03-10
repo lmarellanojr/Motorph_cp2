@@ -3,9 +3,7 @@ package com.group33.cp2.motorph.forms;
 import java.time.LocalDate;
 import javax.swing.JFrame;
 
-/**
- * Static helper for switching between screens. Each method closes the current frame and opens the next one.
- */
+// Static helper for switching between screens. Each method closes the current frame and opens the next.
 public class NavigationManager {
 
     public static void openMenuFrame(JFrame currentFrame) {

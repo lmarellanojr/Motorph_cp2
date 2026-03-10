@@ -13,18 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Provides read/write access to {@code Password_Reset_Requests.csv}.
- *
- * <p>CSV columns: [0]=employeeNumber, [1]=employeeName, [2]=dateOfRequest,
- * [3]=status, [4]=adminName, [5]=adminEmployeeNumber, [6]=dateOfReset</p>
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> This class is the single
- * gatekeeper for the password reset requests file.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Single gatekeeper for Password_Reset_Requests.csv.
+// CSV columns: [0]=empNum [1]=empName [2]=dateOfRequest [3]=status [4]=adminName [5]=adminEmpNum [6]=dateOfReset
 public class PasswordResetReader {
 
     private static final String FILE_PATH =

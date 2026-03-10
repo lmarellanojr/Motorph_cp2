@@ -1,8 +1,6 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Holds government ID numbers for an employee (SSS, PhilHealth, TIN, Pag-IBIG).
- */
+// Holds government ID numbers for an employee: SSS, PhilHealth, TIN, Pag-IBIG.
 public class GovernmentDetails {
 
     private String employeeID;

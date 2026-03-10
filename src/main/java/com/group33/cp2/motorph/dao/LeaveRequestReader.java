@@ -12,15 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Provides read/write access to {@code LeaveRequests.csv}.
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> This class is the single gatekeeper
- * for the leave requests CSV. No other class opens this file directly.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Single gatekeeper for LeaveRequests.csv. No other class opens this file directly.
 public class LeaveRequestReader {
 
     private static final String FILE_PATH = "src/main/resources/data/LeaveRequests.csv";

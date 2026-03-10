@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
-/**
- * Stores one day's attendance record for an employee, including login/logout times and hour calculations.
- */
+// Stores one day's attendance record: login/logout times and computed hours.
 public class Attendance {
 
     private static final LocalTime SHIFT_START = LocalTime.of(8, 0);
@@ -21,9 +19,7 @@ public class Attendance {
     private LocalTime loginTime;
     private LocalTime logoutTime;
 
-    /**
-     * Creates an attendance record. A unique ID is auto-generated.
-     */
+    // Creates an attendance record; unique ID is auto-generated via UUID.
     public Attendance(String employeeID, LocalDate date, LocalTime loginTime, LocalTime logoutTime) {
         this.attendanceID = UUID.randomUUID().toString();
         this.employeeID = employeeID;
@@ -105,10 +101,8 @@ public class Attendance {
         return Math.round(regularHours * 100.0) / 100.0;
     }
 
-    /**
-     * Returns overtime hours (beyond 8.0) rounded to two decimal places.
-     * Late employees are not eligible for overtime — returns 0.0 if the employee was late.
-     */
+    // Returns overtime hours (beyond 8.0) rounded to 2 decimal places.
+    // Late employees are not eligible for overtime — returns 0.0 if late.
     public double getRoundedOvertimeHours() {
         if (isLate()) {
             return 0.0;
