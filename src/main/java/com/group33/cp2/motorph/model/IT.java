@@ -6,16 +6,8 @@ import com.group33.cp2.motorph.service.PasswordResetService;
 
 import java.io.IOException;
 
-/**
- * Represents an IT department employee in the MotorPH Payroll System.
- *
- * <p>IT employees receive full regular-employee payroll treatment
- * (all four deductions, overtime at 1.25x) and additionally implement
- * the system access-management operations defined by {@link ITOperations}.</p>
- *
- * @author Group 33
- * @version 2.1
- */
+// IT department employee: full payroll treatment plus system access-management operations.
+// Overtime at 1.25x; all four deductions apply.
 public class IT extends Employee implements PayrollCalculable, ITOperations {
 
     public IT(String employeeID, String lastName, String firstName, String birthday,

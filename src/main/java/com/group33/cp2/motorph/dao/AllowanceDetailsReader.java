@@ -14,13 +14,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Owns read/write access to {@code Allowance.csv}.
- * Lazy-loads into an in-memory map on first access; invalidates cache after writes.
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> Only this class reads or writes
- * Allowance.csv. Callers receive {@link Allowance} objects and never see raw CSV rows.</p>
- */
+// Owns read/write access to Allowance.csv.
+// Lazy-loads into an in-memory map on first access; invalidates cache after writes.
+// Callers receive Allowance objects and never see raw CSV rows.
 public class AllowanceDetailsReader {
 
     private static final String ALLOWANCE_CSV = "src/main/resources/data/Allowance.csv";

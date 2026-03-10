@@ -31,28 +31,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
-/**
- * Finance Dashboard — the primary screen for Finance department employees.
- *
- * <p>Provides two tabs:</p>
- * <ol>
- *   <li><strong>Payroll Overview</strong> — summarised payroll table for all employees
- *       (basic salary, gross, deductions, net).</li>
- *   <li><strong>Detailed Report</strong> — expanded breakdown with individual deduction
- *       columns (SSS, PhilHealth, Pag-IBIG, Withholding Tax) and a "Generate Report"
- *       button that renders a formatted text summary in a non-editable text area.</li>
- * </ol>
- *
- * <p><strong>OOP Pillar — Polymorphism:</strong> All payroll figures are obtained by
- * calling {@code employee.calculateGrossSalary()}, {@code calculateDeductions()}, and
- * {@code calculateNetSalary()} through the abstract {@link Employee} reference.
- * At runtime, the JVM dispatches to whichever concrete implementation is stored
- * (e.g., {@link com.group33.cp2.motorph.model.RegularEmployee} includes withholding tax;
- * {@link com.group33.cp2.motorph.model.ProbationaryEmployee} does not).</p>
- *
- * @author Group 33
- * @version 2.0
- */
+// Finance Dashboard — payroll overview and detailed report tabs for Finance roles.
 public class FinanceDashboard extends JFrame {
 
     private final Finance         financeUser;
@@ -78,12 +57,6 @@ public class FinanceDashboard extends JFrame {
     private JLabel lblDetailTotalDed;
     private JLabel lblDetailNet;
 
-    /**
-     * Constructs the FinanceDashboard.
-     *
-     * @param financeUser     the logged-in Finance employee; must not be null
-     * @param employeeService the employee data service; must not be null
-     */
     public FinanceDashboard(Finance financeUser, EmployeeService employeeService) {
         this.financeUser     = financeUser;
         this.employeeService = employeeService;
@@ -288,10 +261,7 @@ public class FinanceDashboard extends JFrame {
         return panel;
     }
 
-    /**
-     * Adds a pair of (field-name label, value label) to a 4-column grid row.
-     * Two pairs per row: left field + left value + right field + right value.
-     */
+    // Adds two label-value pairs to a 4-column grid row.
     private void addPayslipDetailRow(JPanel grid,
                                      String leftName,  JLabel leftValue,
                                      String rightName, JLabel rightValue) {
@@ -305,16 +275,7 @@ public class FinanceDashboard extends JFrame {
         grid.add(rightValue);
     }
 
-    /**
-     * Fires a SwingWorker to load the payslip detail for the given employee ID
-     * and update the detail labels on the EDT when done.
-     *
-     * <p><strong>OOP Pillar — Abstraction:</strong> this method has no knowledge of
-     * deduction formulas or CSV file paths; it delegates entirely to
-     * {@link PayrollCalculatorService}.</p>
-     *
-     * @param empId the employee ID whose payslip detail to display
-     */
+    // Loads payslip detail for the given employee off the EDT; updates labels in done().
     private void loadEmployeePayslipDetail(String empId) {
         new javax.swing.SwingWorker<SalaryDetails, Void>() {
             @Override
@@ -347,7 +308,7 @@ public class FinanceDashboard extends JFrame {
         }.execute();
     }
 
-    /** Resets all payslip detail labels to the placeholder dash. */
+    // Resets all payslip detail labels to the placeholder dash.
     private void clearPayslipDetail() {
         lblDetailEmpName.setText("—");
         lblDetailBasic.setText("—");
@@ -400,20 +361,11 @@ public class FinanceDashboard extends JFrame {
     private static final int DETAIL_COL_TOTAL_DED   = 8;
     private static final int DETAIL_COL_NET         = 9;
 
-    /** Expected column count for detailModel — used as a structural guard. */
+    // Expected column count for detailModel — used as a structural guard.
     private static final int DETAIL_EXPECTED_COLUMNS = 10;
 
-    /**
-     * Generates a formatted payroll summary and displays it in the report text area.
-     * Reads values directly from the already-populated {@code detailModel} table so that
-     * the report totals are guaranteed to match what is displayed in the table.
-     *
-     * <p>No payroll formulas are re-invoked here — the single source of truth is
-     * {@link #loadDetailTable()}, which computed all figures when the tab was loaded.</p>
-     *
-     * @throws IllegalStateException if {@code detailModel} column count does not match the
-     *         expected schema (catches future structural changes early)
-     */
+    // Generates a formatted payroll summary from the already-populated detailModel.
+    // Throws IllegalStateException if column count mismatches the expected schema.
     private void generateDetailedReport() {
         if (detailModel.getRowCount() == 0) {
             reportTextArea.setText("No payroll data to report. Please refresh the table first.");

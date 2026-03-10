@@ -8,27 +8,16 @@ import com.group33.cp2.motorph.service.PayrollCalculator;
 import java.io.IOException;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Represents an HR department employee in the MotorPH Payroll System.
- *
- * <p>HR employees receive full regular-employee payroll treatment
- * (all four deductions, overtime at 1.25x) and additionally implement
- * the leave-management operations defined by {@link HROperations}.</p>
- *
- * @author Group 33
- * @version 2.1
- */
+// HR department employee: full payroll treatment plus leave-management operations.
+// Overtime at 1.25x; all four deductions apply.
 public class HR extends Employee implements PayrollCalculable, HROperations {
 
-    /** Lazily-initialized service; never created in the constructor to avoid circular instantiation. */
+    // Lazily initialized to avoid circular instantiation with EmployeeService.reloadEmployees().
+    // Never create EmployeeService inside the HR constructor — use getEmployeeService() instead.
     private EmployeeService employeeService;
 
-    /**
-     * Returns the shared {@link EmployeeService} instance, creating it on first access.
-     * Using a lazy accessor prevents the infinite-recursion that would occur if
-     * {@code EmployeeService.reloadEmployees()} constructed an HR object that eagerly
-     * created another {@code EmployeeService}.
-     */
+    // Returns the shared EmployeeService, creating it on first access.
+    // Prevents infinite recursion: reloadEmployees() creates HR, HR must not re-create the service.
     private EmployeeService getEmployeeService() {
         if (employeeService == null) {
             employeeService = new EmployeeService();
@@ -136,16 +125,7 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
         return getEmployeeService().getEmployeeById(employeeId);
     }
 
-    /**
-     * Deletes the employee with the given ID by delegating to
-     * {@link com.group33.cp2.motorph.service.EmployeeService#deleteEmployee(String)}.
-     *
-     * <p>Uses the lazy {@link #getEmployeeService()} accessor to avoid
-     * the circular-construction problem documented on that field.</p>
-     *
-     * @param empId the ID of the employee to delete
-     * @return {@code true} if the employee was found and deleted
-     */
+    // Delegates delete to EmployeeService via the lazy accessor to avoid circular construction.
     @Override
     public boolean deleteEmployee(String empId) {
         return getEmployeeService().deleteEmployee(empId);

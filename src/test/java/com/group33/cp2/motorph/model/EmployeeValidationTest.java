@@ -7,26 +7,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for Employee validated setters.
- *
- * Uses RegularEmployee as the concrete subclass since Employee is abstract.
- *
- * Validated fields:
- *   - basicSalary:   > 0, <= 500,000
- *   - hourlyRate:    > 0, <= 5,000
- *   - firstName:     non-blank
- *   - lastName:      non-blank
- *   - address:       non-null, <= 200 chars
- *   - phoneNumber:   non-blank
- *   - employeeID:    non-blank
- *   - status:        whitelist (Regular/Probationary/Active/Inactive/On Leave/Terminated)
- */
+// Unit tests for Employee validated setters. Uses RegularEmployee (abstract base cannot be instantiated).
 class EmployeeValidationTest {
 
     private RegularEmployee employee;
 
-    /** Builds a valid RegularEmployee used as base for mutation tests. */
     @BeforeEach
     void setUp() {
         Allowance allowance = new Allowance("10001", 1500, 800, 500);

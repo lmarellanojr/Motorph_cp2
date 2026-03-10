@@ -6,25 +6,13 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for LeaveProcessor pure-validation logic.
- *
- * Only tests the IllegalArgumentException paths that do NOT reach the DAO layer
- * (i.e., the guards that execute before any CSV read/write):
- *   1. Past-date guard — startDate or endDate before today
- *   2. Date-order guard — startDate after endDate
- *   3. Weekend guard — startDate or endDate on Saturday/Sunday
- *
- * The balance-check path and the actual submission path (which call
- * EmployeeLeaveTracker and LeaveRequestReader) are NOT tested here because
- * they require live CSV files. Those paths are exercised by the integration
- * simulation (SimulationRunner).
- */
+// Unit tests for LeaveProcessor pure-validation guards (past-date, date-order, weekend).
+// Balance-check and CSV-write paths require live files; covered by SimulationRunner instead.
 class LeaveProcessorTest {
 
     private final LeaveProcessor processor = new LeaveProcessor();
 
-    /** Returns a Monday that is at least 7 days in the future. */
+    // Returns a Monday that is at least 7 days in the future.
     private LocalDate nextMonday() {
         LocalDate date = LocalDate.now().plusDays(7);
         while (date.getDayOfWeek().getValue() != 1) { // 1 = MONDAY
@@ -33,7 +21,7 @@ class LeaveProcessorTest {
         return date;
     }
 
-    /** Returns the Friday of the same week as the given Monday. */
+    // Returns the Friday of the same week as the given Monday.
     private LocalDate fridayOf(LocalDate monday) {
         return monday.plusDays(4);
     }

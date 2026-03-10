@@ -1,15 +1,7 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Represents a password reset request submitted by an employee.
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> Sensitive fields are private.
- * {@code employeeNumber} and {@code employeeName} are immutable after construction
- * (final). Mutable fields (status, admin info, date) are changed through setters.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Represents a password reset request. employeeNumber and employeeName are
+// immutable after construction; status/admin info are mutable via setters.
 public class PasswordResetRequest {
 
     private final String employeeNumber;
@@ -20,10 +12,7 @@ public class PasswordResetRequest {
     private String adminEmployeeNumber;
     private String dateOfReset;
 
-    /**
-     * Constructs a full {@code PasswordResetRequest} with all fields.
-     * Used when reading existing records from the CSV.
-     */
+    // Full constructor; used when reading existing records from the CSV.
     public PasswordResetRequest(String employeeNumber, String employeeName,
                                 String dateOfRequest, String status,
                                 String adminName, String adminEmployeeNumber,
@@ -37,9 +26,7 @@ public class PasswordResetRequest {
         this.dateOfReset          = dateOfReset;
     }
 
-    /**
-     * Constructs a new pending {@code PasswordResetRequest}.
-     */
+    // Constructs a new pending reset request with status "Pending".
     public PasswordResetRequest(String employeeNumber, String employeeName, String dateOfRequest) {
         this.employeeNumber       = employeeNumber;
         this.employeeName         = employeeName;
@@ -65,9 +52,7 @@ public class PasswordResetRequest {
     }
     public void setDateOfReset(String dateOfReset) { this.dateOfReset = dateOfReset; }
 
-    /**
-     * Returns this request as a 7-element String array for CSV serialization.
-     */
+    // Returns this request as a 7-element String array for CSV serialization.
     public String[] toArray() {
         return new String[]{
             employeeNumber,

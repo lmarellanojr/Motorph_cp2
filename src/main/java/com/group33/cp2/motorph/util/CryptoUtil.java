@@ -4,10 +4,8 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
-/**
- * AES-128 encrypt/decrypt utility. Not used by the active BCrypt login flow;
- * retained for any legacy encrypted data fields.
- */
+// AES-128 encrypt/decrypt utility. Not used by the active BCrypt login flow;
+// retained for any legacy encrypted data fields.
 public class CryptoUtil {
 
     private static final String SECRET_KEY = "Group13SecretKEY"; // 16 chars = AES-128

@@ -4,9 +4,7 @@ import java.util.Collections;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-/**
- * SSS contribution bracket table. Use floorEntry(salary) to look up the contribution amount.
- */
+// SSS contribution bracket table. Use floorEntry(salary) to look up the contribution amount.
 public class SSSDeductionsBracket {
 
     private static final NavigableMap<Double, Double> sssDeductions = new TreeMap<>();

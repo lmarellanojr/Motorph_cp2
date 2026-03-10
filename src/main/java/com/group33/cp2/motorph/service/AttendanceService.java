@@ -6,9 +6,7 @@ import com.group33.cp2.motorph.model.Attendance;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Loads attendance records from CSV and provides read-only access to them.
- */
+// Loads attendance records from CSV and provides read-only access to them.
 public class AttendanceService {
 
     private final List<Attendance> attendanceList;

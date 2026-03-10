@@ -7,16 +7,7 @@ import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for Attendance business logic.
- *
- * Business rules under test:
- *   - Grace period: login <= 08:10 is on-time (isLate = false)
- *   - Late:         login > 08:10 → isLate() = true; logout capped at 17:00 (no OT)
- *   - Lunch deduction: subtract 1 hour if totalHours > 5
- *   - Regular hours: min(totalHours, 8.0)
- *   - Overtime: max(0, totalHours - 8.0) only if not late
- */
+// Unit tests for Attendance: grace period, late cap, lunch deduction, regular/OT hours.
 class AttendanceTest {
 
     private static final LocalDate SOME_DATE = LocalDate.of(2025, 1, 15);

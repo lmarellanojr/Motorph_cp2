@@ -5,9 +5,8 @@ import com.group33.cp2.motorph.service.PayrollCalculator;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/**
- * Holds payroll data for one employee over a date range. Calculates hours, pay, deductions, and net salary.
- */
+// Holds payroll data for one employee over a date range.
+// Calculates hours, pay, deductions, and net salary on demand.
 public class Payroll {
 
     private final String payrollID;
@@ -21,9 +20,7 @@ public class Payroll {
     private PayrollStatus status;
     private final Employee employee;
 
-    /**
-     * Creates a payroll record. Status starts as PENDING.
-     */
+    // Creates a payroll record; status starts as PENDING and payrollID is auto-generated.
     public Payroll(String employeeID, Employee employee, LocalDate periodStart, LocalDate periodEnd) {
         this.payrollID = UUID.randomUUID().toString();
         this.employeeID = employeeID;

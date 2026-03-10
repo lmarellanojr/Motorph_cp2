@@ -10,18 +10,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Manages leave balance data stored in {@code LeaveBalances.csv}.
- *
- * <p>CSV columns: [0]=empNum, [1]=lastName, [2]=firstName,
- * [3]=sickLeave, [4]=vacationLeave, [5]=birthdayLeave</p>
- *
- * <p><strong>OOP Pillar — Encapsulation:</strong> All file I/O is hidden behind
- * static methods. Callers never touch the file path directly.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Manages leave balance data stored in LeaveBalances.csv.
+// CSV columns: [0]=empNum [1]=lastName [2]=firstName [3]=sickLeave [4]=vacationLeave [5]=birthdayLeave
+// All file I/O is hidden behind static methods.
 public class EmployeeLeaveTracker {
 
     private static final String LEAVE_BALANCES_FILE = "src/main/resources/data/LeaveBalances.csv";

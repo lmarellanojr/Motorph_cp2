@@ -1,23 +1,10 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Represents a generated system report with textual content.
- *
- * <p>Returned by {@link com.group33.cp2.motorph.model.AdminOperations#generateSystemReport(String)}
- * to encapsulate report output in a typed object rather than a raw {@code String}.</p>
- *
- * @author Group 33
- * @version 2.0
- */
+// Wraps a generated system report's text content in a typed object.
 public class Report {
 
     private String content;
 
-    /**
-     * Constructs a Report with the given content string.
-     *
-     * @param content the report content; must not be null
-     */
     public Report(String content) {
         this.content = content;
     }

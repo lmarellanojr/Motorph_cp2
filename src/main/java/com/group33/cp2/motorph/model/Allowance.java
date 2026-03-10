@@ -1,8 +1,6 @@
 package com.group33.cp2.motorph.model;
 
-/**
- * Holds rice, phone, and clothing allowance amounts for an employee.
- */
+// Holds rice, phone, and clothing allowance amounts for an employee.
 public class Allowance {
 
     private String employeeID;

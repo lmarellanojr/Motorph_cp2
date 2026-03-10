@@ -39,31 +39,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
-/**
- * Employee self-service dashboard.
- *
- * <p>Provides four tabs:</p>
- * <ol>
- *   <li><strong>My Info</strong> — read-only personal and employment details.</li>
- *   <li><strong>My Payslip</strong> — gross salary, deductions, and net pay summary.</li>
- *   <li><strong>Time Tracking</strong> — clock in/out buttons and a time-log history table.</li>
- *   <li><strong>Leave</strong> — current balances, request submission form, and request history.</li>
- * </ol>
- *
- * <p><strong>OOP Pillar — Polymorphism:</strong> Constructor accepts any {@link Employee}
- * subtype; all tabs operate via the abstract {@code Employee} interface, dispatching to
- * the correct concrete implementation ({@link com.group33.cp2.motorph.model.RegularEmployee}
- * vs. {@link com.group33.cp2.motorph.model.ProbationaryEmployee}) at runtime.</p>
- *
- * <p><strong>OOP Pillar — Abstraction:</strong> The payslip tab delegates all computation
- * to {@link com.group33.cp2.motorph.service.PayrollCalculatorService} via a
- * {@link javax.swing.SwingWorker}. The dashboard has no knowledge of CSV layouts or
- * deduction formulas — it only observes the resulting {@link com.group33.cp2.motorph.model.SalaryDetails}
- * record.</p>
- *
- * @author Group 33
- * @version 1.0
- */
+// Employee self-service dashboard — info, payslip, time tracking, and leave tabs.
 public class EmployeeDashboard extends JFrame {
 
     private final Employee          employee;
@@ -100,17 +76,9 @@ public class EmployeeDashboard extends JFrame {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String[] LEAVE_TYPES = {"Sick Leave", "Vacation Leave", "Birthday Leave"};
 
-    /**
-     * Bundles leave-balance integers and leave-request list loaded from CSV so
-     * both can be returned from a single {@link SwingWorker#doInBackground()} call.
-     */
+    // Bundles leave-balance integers + request list so a single SwingWorker call returns both.
     private record LeaveData(int sick, int vacation, int birthday, List<LeaveRequest> requests) {}
 
-    /**
-     * Constructs the EmployeeDashboard for the given employee.
-     *
-     * @param employee the logged-in employee; must not be null
-     */
     public EmployeeDashboard(Employee employee) {
         this.employee           = employee;
         this.leaveService       = new LeaveService();
@@ -214,9 +182,7 @@ public class EmployeeDashboard extends JFrame {
         return new JScrollPane(panel);
     }
 
-    /**
-     * Builds a titled section of label-value pairs.
-     */
+    // Builds a titled section of label-value pairs.
     private JPanel infoSection(String title, String[][] fields) {
         JPanel section = new JPanel(new GridLayout(0, 2, 10, 4));
         section.setBorder(BorderFactory.createTitledBorder(title));
@@ -265,13 +231,7 @@ public class EmployeeDashboard extends JFrame {
         return new JScrollPane(panel);
     }
 
-    /**
-     * Adds a bold label and a mutable value label to the given grid panel.
-     *
-     * @param grid  the 2-column grid to add into
-     * @param name  the field name displayed on the left
-     * @return the mutable value {@link JLabel} assigned to an instance field
-     */
+    // Adds a bold label and a mutable value label to the grid; returns the value label.
     private JLabel addPayslipRow(JPanel grid, String name) {
         JLabel fieldLabel = new JLabel(name + ":");
         fieldLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -281,14 +241,7 @@ public class EmployeeDashboard extends JFrame {
         return valueLabel;
     }
 
-    /**
-     * Fires a background worker to load payroll data from CSV and populate the
-     * payslip labels. Keeps the EDT free while CSV reads are in progress.
-     *
-     * <p><strong>OOP Pillar — Abstraction:</strong> This method delegates all
-     * computation to {@link PayrollCalculatorService}. The dashboard has no
-     * knowledge of deduction formulas or CSV layouts.</p>
-     */
+    // Loads payroll data off the EDT via SwingWorker, then populates payslip labels in done().
     private void calculatePayslip() {
         new javax.swing.SwingWorker<SalaryDetails, Void>() {
             @Override
@@ -400,14 +353,7 @@ public class EmployeeDashboard extends JFrame {
         }
     }
 
-    /**
-     * Loads time-log records off the EDT via a SwingWorker, then populates the
-     * table model on the EDT inside {@code done()}.
-     *
-     * <p><strong>OOP Pillar — Abstraction:</strong> The method delegates file I/O
-     * entirely to {@link TimeTrackingService}; the dashboard has no knowledge of the
-     * underlying CSV format.</p>
-     */
+    // Loads time-log records off the EDT via SwingWorker; populates the table in done().
     private void loadTimeLogs() {
         new SwingWorker<List<String[]>, Void>() {
             @Override
@@ -505,11 +451,7 @@ public class EmployeeDashboard extends JFrame {
         return panel;
     }
 
-    /**
-     * Loads leave balances and leave-request history off the EDT via a SwingWorker.
-     * Both CSV reads are performed in {@code doInBackground()}; all label and table
-     * updates are performed in {@code done()} on the EDT.
-     */
+    // Loads leave balances and history off the EDT via SwingWorker; updates labels and table in done().
     private void loadLeaveData() {
         new SwingWorker<LeaveData, Void>() {
             @Override

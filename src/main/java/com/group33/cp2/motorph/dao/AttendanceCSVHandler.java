@@ -12,9 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Loads attendance records from the bundled CSV resource into Attendance objects.
- */
+// Loads attendance records from the bundled classpath CSV resource into Attendance objects.
 public class AttendanceCSVHandler {
 
     private static final String RESOURCE_PATH = "/MotorPHEmployeeAttendance.csv";

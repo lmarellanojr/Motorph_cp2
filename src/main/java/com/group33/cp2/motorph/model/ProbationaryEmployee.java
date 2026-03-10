@@ -2,15 +2,8 @@ package com.group33.cp2.motorph.model;
 
 import com.group33.cp2.motorph.service.PayrollCalculator;
 
-/**
- * Represents a probationary employee in the MotorPH Payroll System.
- *
- * <p>Probationary employees are not eligible for overtime pay and are subject to
- * basic government deductions only: SSS, PhilHealth, and Pag-IBIG (no withholding tax).</p>
- *
- * @author Group 33
- * @version 2.0
- */
+// Probationary employee: no overtime pay; deductions are SSS, PhilHealth,
+// and Pag-IBIG only (no withholding tax).
 public class ProbationaryEmployee extends Employee implements PayrollCalculable {
 
     public ProbationaryEmployee(String employeeID, String lastName, String firstName, String birthday,

@@ -4,14 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for Allowance.
- *
- * Business rules:
- *   - All three allowance amounts must be >= 0 (negative values rejected)
- *   - getTotal() returns the sum of all three components
- *   - Zero-arg constructor initialises all amounts to 0.0
- */
+// Unit tests for Allowance: negative rejection, total calculation, zero-default constructor.
 class AllowanceTest {
 
     private static final double DELTA = 0.001;

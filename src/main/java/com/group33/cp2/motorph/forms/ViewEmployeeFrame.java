@@ -24,26 +24,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 
-/**
- * ViewEmployeeFrame displays detailed, read-only information about a selected
- * employee, including personal, government, and compensation data, with
- * payroll period selection.
- *
- * <p>NOTE: The original source declared {@code private JDateChooser dateFrom}
- * and {@code private JDateChooser dateTo} fields, and the {@code clearAllFields()}
- * method referenced those fields plus several non-existent fields
- * ({@code txtRegularHours}, {@code txtOvertimeHours}, {@code txtRegularPay},
- * {@code txtOvertimePay}, {@code txtGrossSalary}, {@code txtNetSalary},
- * {@code txtPayrollStatus}). All JDateChooser references have been removed and
- * {@code clearAllFields()} has been corrected to only reference fields that are
- * actually declared in this class.</p>
- *
- */
+// View Employee — read-only employee detail with payroll period selection.
+// JDateChooser fields removed; clearAllFields() corrected to only reference declared fields.
 public class ViewEmployeeFrame extends javax.swing.JFrame {
 
-    /** Handles employee data retrieval. */
     private EmployeeService employeeService = new EmployeeService();
-    /** Currently selected employee. */
     private Employee selectedEmployee;
 
     // GUI fields for employee and payroll info
@@ -67,11 +52,6 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtGrossSemiMonthly;
     private JTextField txtBasicSalary;
 
-    /**
-     * Constructs the ViewEmployeeFrame for the given employee ID.
-     *
-     * @param employeeId the ID of the employee to display
-     */
     public ViewEmployeeFrame(String employeeId) {
         setTitle("MotorPH Employee Payroll System");
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
@@ -154,9 +134,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         txtHourlyRate.setText(Utility.formatTwoDecimal(selectedEmployee.getHourlyRate()));
         txtBasicSalary.setText(Utility.formatTwoDecimal(selectedEmployee.getBasicSalary()));
     }
-    /**
-     * Disables all text fields to prevent editing (read-only view).
-     */
+    // Disables all text fields to prevent editing (read-only view).
     private void disableFields() {
         txtEmployeeNumber.setEditable(false);
         txtFirstName.setEditable(false);
@@ -179,11 +157,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         txtRiceSubsidy.setEditable(false);
     }
 
-    /**
-     * Creates the panel displaying employee personal information.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel displaying employee personal information.
     private JPanel createEmployeeDetailsPanel() {
         JPanel panel = new JPanel(new GridLayout(9, 2, 5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Employee Details"));
@@ -227,11 +201,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the panel displaying government ID details.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel displaying government ID details.
     private JPanel createGovernmentDetailsPanel() {
         JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Government Details"));
@@ -255,11 +225,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the panel displaying compensation and allowance details.
-     *
-     * @return configured JPanel
-     */
+    // Creates the panel displaying compensation and allowance details.
     private JPanel createCompensationDetailsPanel() {
         JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Compensation Details"));
@@ -291,13 +257,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Creates the payroll period selection panel with month/year combo boxes
-     * and Compute/Cancel buttons.
-     *
-     * @param employeeId the employee ID for payroll computation
-     * @return configured JPanel
-     */
+    // Creates the payroll period selection panel with month/year combo boxes and Compute/Cancel buttons.
     private JPanel createPayrollPanel(String employeeId) {
         JPanel panel = new JPanel(new GridLayout(2, 3, 5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Payroll"));
@@ -390,9 +350,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         return panel;
     }
 
-    /**
-     * Clears only employee detail fields.
-     */
+    // Clears only employee detail fields.
     private void clearEmployeeFields() {
         txtLastName.setText("");
         txtFirstName.setText("");
@@ -402,14 +360,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         txtHourlyRate.setText("");
     }
 
-    /**
-     * Clears all fields in the form that are declared in this class.
-     *
-     * <p>The original implementation referenced non-existent fields from
-     * {@code PayrollFormMs1} and called {@code JDateChooser.setDate(null)}.
-     * Those invalid references have been removed; only actual declared fields
-     * are cleared here.</p>
-     */
+    // Clears all declared fields. Original had JDateChooser/PayrollFormMs1 refs that were removed.
     private void clearAllFields() {
         txtEmployeeNumber.setText("");
         clearEmployeeFields();
