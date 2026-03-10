@@ -299,7 +299,9 @@ public class AdminDashboard extends JFrame {
         return panel;
     }
 
+    /** Reloads the employee table from EmployeeService. Always re-reads CSVs first. */
     private void loadEmployeeTable() {
+        employeeService.reloadEmployees();
         employeeModel.setRowCount(0);
         List<Employee> employees = employeeService.getAllEmployees();
         for (Employee emp : employees) {

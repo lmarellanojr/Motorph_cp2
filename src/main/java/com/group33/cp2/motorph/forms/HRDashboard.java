@@ -277,8 +277,9 @@ public class HRDashboard extends JFrame {
     //  Data loaders
     // =========================================================================
 
-    /** Reloads the employee table from EmployeeService. */
+    /** Reloads the employee table from EmployeeService. Always re-reads CSVs first. */
     private void loadEmployeeTable() {
+        employeeService.reloadEmployees();
         employeeTableModel.setRowCount(0);
         List<Employee> employees = employeeService.getAllEmployees();
         for (Employee emp : employees) {
