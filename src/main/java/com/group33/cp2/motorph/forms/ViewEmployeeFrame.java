@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 /**
@@ -334,25 +335,56 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
 
         btnCancel.addActionListener(e -> NavigationManager.openEmployeeListFrame(this));
 
+        // Capture as effectively-final references for use inside the SwingWorker anonymous class.
+        final JButton computeBtn = btnCompute;
+
         btnCompute.addActionListener(e -> {
             int selectedMonth = monthComboBox.getSelectedIndex() + 1;
-            int selectedYear = (Integer) yearComboBox.getSelectedItem();
+            int selectedYear  = (Integer) yearComboBox.getSelectedItem();
 
             LocalDate selectedStartDate = LocalDate.of(selectedYear, selectedMonth, 1);
-            LocalDate selectedEndDate = selectedStartDate.withDayOfMonth(selectedStartDate.lengthOfMonth());
+            LocalDate selectedEndDate   = selectedStartDate.withDayOfMonth(selectedStartDate.lengthOfMonth());
 
-            Payroll payroll = new Payroll(selectedEmployee.getEmployeeID(), selectedEmployee, selectedStartDate, selectedEndDate);
+            // Disable the button immediately to prevent double-clicks while I/O runs.
+            computeBtn.setEnabled(false);
 
-            if (payroll.getTotalRegularHours() <= 0) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "No salary record found for the selected month.",
-                    "Notice",
-                    JOptionPane.WARNING_MESSAGE
-                );
-            } else {
-                NavigationManager.openViewSalaryFrame(this, employeeId, selectedStartDate, selectedEndDate);
-            }
+            new SwingWorker<Double, Void>() {
+                @Override
+                protected Double doInBackground() throws Exception {
+                    // Payroll construction reads attendance CSV — runs off the EDT.
+                    Payroll payroll = new Payroll(
+                            selectedEmployee.getEmployeeID(),
+                            selectedEmployee,
+                            selectedStartDate,
+                            selectedEndDate);
+                    return payroll.getTotalRegularHours();
+                }
+
+                @Override
+                protected void done() {
+                    // Re-enable the button regardless of outcome.
+                    computeBtn.setEnabled(true);
+                    try {
+                        double totalRegularHours = get();
+                        if (totalRegularHours <= 0) {
+                            JOptionPane.showMessageDialog(
+                                    ViewEmployeeFrame.this,
+                                    "No salary record found for the selected month.",
+                                    "Notice",
+                                    JOptionPane.WARNING_MESSAGE);
+                        } else {
+                            NavigationManager.openViewSalaryFrame(
+                                    ViewEmployeeFrame.this, employeeId,
+                                    selectedStartDate, selectedEndDate);
+                        }
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(
+                                ViewEmployeeFrame.this,
+                                "Failed to compute payroll: " + ex.getMessage(),
+                                "Compute Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }.execute();
         });
 
         panel.add(new JLabel("Pay Coverage:"));

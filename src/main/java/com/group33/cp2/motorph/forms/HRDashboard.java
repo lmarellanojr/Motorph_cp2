@@ -25,6 +25,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -297,20 +298,40 @@ public class HRDashboard extends JFrame {
         }
     }
 
-    /** Reloads the leave requests table from LeaveRequests.csv. */
+    /**
+     * Reloads the leave requests table from LeaveRequests.csv off the EDT via a
+     * SwingWorker. The CSV read runs in {@code doInBackground()}; the table model
+     * update runs in {@code done()} on the EDT.
+     */
     private void loadLeaveTable() {
-        leaveTableModel.setRowCount(0);
-        List<LeaveRequest> requests = leaveService.getAllLeaveRequests();
-        for (LeaveRequest req : requests) {
-            leaveTableModel.addRow(new Object[]{
-                req.getLeaveID(),
-                req.getEmployeeID(),
-                req.getLeaveType(),
-                req.getStartDate() != null ? req.getStartDate().toString() : "",
-                req.getEndDate()   != null ? req.getEndDate().toString()   : "",
-                req.getStatus()
-            });
-        }
+        new SwingWorker<List<LeaveRequest>, Void>() {
+            @Override
+            protected List<LeaveRequest> doInBackground() throws Exception {
+                return leaveService.getAllLeaveRequests();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<LeaveRequest> requests = get();
+                    leaveTableModel.setRowCount(0);
+                    for (LeaveRequest req : requests) {
+                        leaveTableModel.addRow(new Object[]{
+                            req.getLeaveID(),
+                            req.getEmployeeID(),
+                            req.getLeaveType(),
+                            req.getStartDate() != null ? req.getStartDate().toString() : "",
+                            req.getEndDate()   != null ? req.getEndDate().toString()   : "",
+                            req.getStatus()
+                        });
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(HRDashboard.this,
+                            "Failed to load leave requests: " + ex.getMessage(),
+                            "Load Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     // =========================================================================

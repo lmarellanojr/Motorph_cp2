@@ -22,6 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -156,18 +157,44 @@ public class ITDashboard extends JFrame {
     //  Data and actions
     // =========================================================================
 
-    /** Reloads the password reset requests table from the CSV. */
+    /**
+     * Reloads the password reset requests table from the CSV off the EDT via a
+     * SwingWorker. The CSV read runs in {@code doInBackground()}; the table model
+     * update runs in {@code done()} on the EDT.
+     *
+     * <p>This method is passed as {@code this::loadPasswordResetRequests} to
+     * {@link com.group33.cp2.motorph.service.ResetPasswordProcessor} as a
+     * {@link com.group33.cp2.motorph.service.PasswordResetCallback} lambda. The
+     * SwingWorker pattern is transparent to that contract because this method still
+     * returns {@code void} immediately and schedules work asynchronously.</p>
+     */
     public void loadPasswordResetRequests() {
-        requestModel.setRowCount(0);
-        List<PasswordResetRequest> requests = passwordResetService.getAllRequests();
-        for (PasswordResetRequest req : requests) {
-            requestModel.addRow(new Object[]{
-                req.getEmployeeNumber(),
-                req.getEmployeeName(),
-                req.getDateOfRequest(),
-                req.getStatus()
-            });
-        }
+        new SwingWorker<List<PasswordResetRequest>, Void>() {
+            @Override
+            protected List<PasswordResetRequest> doInBackground() throws Exception {
+                return passwordResetService.getAllRequests();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<PasswordResetRequest> requests = get();
+                    requestModel.setRowCount(0);
+                    for (PasswordResetRequest req : requests) {
+                        requestModel.addRow(new Object[]{
+                            req.getEmployeeNumber(),
+                            req.getEmployeeName(),
+                            req.getDateOfRequest(),
+                            req.getStatus()
+                        });
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(ITDashboard.this,
+                            "Failed to load password reset requests: " + ex.getMessage(),
+                            "Load Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     /** Handles the "Reset Password" button action on the selected row. */
