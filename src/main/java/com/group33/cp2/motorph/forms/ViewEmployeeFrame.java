@@ -23,7 +23,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
-import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 /**
  * ViewEmployeeFrame displays detailed, read-only information about a selected

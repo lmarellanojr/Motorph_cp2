@@ -388,21 +388,53 @@ public class FinanceDashboard extends JFrame {
         }
     }
 
+    // Column indices for detailModel — must match the schema defined in buildDetailedReportTab().
+    private static final int DETAIL_COL_EMP_ID      = 0;
+    private static final int DETAIL_COL_FULL_NAME   = 1;
+    private static final int DETAIL_COL_BASIC       = 2;
+    private static final int DETAIL_COL_ALLOWANCES  = 3;
+    private static final int DETAIL_COL_SSS         = 4;
+    private static final int DETAIL_COL_PHILHEALTH  = 5;
+    private static final int DETAIL_COL_PAGIBIG     = 6;
+    private static final int DETAIL_COL_TAX         = 7;
+    private static final int DETAIL_COL_TOTAL_DED   = 8;
+    private static final int DETAIL_COL_NET         = 9;
+
+    /** Expected column count for detailModel — used as a structural guard. */
+    private static final int DETAIL_EXPECTED_COLUMNS = 10;
+
     /**
      * Generates a formatted payroll summary and displays it in the report text area.
-     * Also shows the aggregate totals (employees count, total gross, deductions, net).
+     * Reads values directly from the already-populated {@code detailModel} table so that
+     * the report totals are guaranteed to match what is displayed in the table.
+     *
+     * <p>No payroll formulas are re-invoked here — the single source of truth is
+     * {@link #loadDetailTable()}, which computed all figures when the tab was loaded.</p>
+     *
+     * @throws IllegalStateException if {@code detailModel} column count does not match the
+     *         expected schema (catches future structural changes early)
      */
     private void generateDetailedReport() {
-        List<Employee> employees = employeeService.getAllEmployees();
+        if (detailModel.getRowCount() == 0) {
+            reportTextArea.setText("No payroll data to report. Please refresh the table first.");
+            return;
+        }
 
-        double totalBasic    = 0;
-        double totalAllow    = 0;
-        double totalSss      = 0;
-        double totalPh       = 0;
-        double totalPib      = 0;
-        double totalTax      = 0;
-        double totalDeduct   = 0;
-        double totalNet      = 0;
+        if (detailModel.getColumnCount() != DETAIL_EXPECTED_COLUMNS) {
+            throw new IllegalStateException(
+                    "detailModel schema mismatch: expected " + DETAIL_EXPECTED_COLUMNS
+                    + " columns but found " + detailModel.getColumnCount()
+                    + ". Update DETAIL_COL_* constants to match the new schema.");
+        }
+
+        double totalBasic   = 0;
+        double totalAllow   = 0;
+        double totalSss     = 0;
+        double totalPh      = 0;
+        double totalPib     = 0;
+        double totalTax     = 0;
+        double totalDeduct  = 0;
+        double totalNet     = 0;
 
         StringBuilder sb = new StringBuilder();
         sb.append("MotorPH Payroll Detailed Report\n");
@@ -412,18 +444,21 @@ public class FinanceDashboard extends JFrame {
                 "SSS", "PhilHealth", "PagIbig", "Tax", "Deductions", "Net Pay"));
         sb.append("-".repeat(120)).append("\n");
 
-        for (Employee emp : employees) {
-            double basic      = emp.getBasicSalary();
-            double allowances = emp.getAllowance();
-            double sss        = PayrollCalculator.computeSSSDeduction(basic);
-            double ph         = PayrollCalculator.computePhilhealthDeduction(basic);
-            double pib        = PayrollCalculator.computePagibigDeduction(basic);
-            double tax        = PayrollCalculator.computeWithholdingTax(basic);
-            double deduct     = emp.calculateDeductions();
-            double net        = emp.calculateNetSalary();
+        int rowCount = detailModel.getRowCount();
+        for (int row = 0; row < rowCount; row++) {
+            String empId  = (String) detailModel.getValueAt(row, DETAIL_COL_EMP_ID);
+            String name   = (String) detailModel.getValueAt(row, DETAIL_COL_FULL_NAME);
+            double basic  = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_BASIC));
+            double allow  = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_ALLOWANCES));
+            double sss    = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_SSS));
+            double ph     = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_PHILHEALTH));
+            double pib    = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_PAGIBIG));
+            double tax    = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_TAX));
+            double deduct = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_TOTAL_DED));
+            double net    = Double.parseDouble((String) detailModel.getValueAt(row, DETAIL_COL_NET));
 
             totalBasic  += basic;
-            totalAllow  += allowances;
+            totalAllow  += allow;
             totalSss    += sss;
             totalPh     += ph;
             totalPib    += pib;
@@ -431,19 +466,18 @@ public class FinanceDashboard extends JFrame {
             totalDeduct += deduct;
             totalNet    += net;
 
-            String name = emp.getFullName();
-            if (name.length() > 22) name = name.substring(0, 19) + "...";
+            String displayName = name.length() > 22 ? name.substring(0, 19) + "..." : name;
 
             sb.append(String.format("%-10s %-22s %10.2f %10.2f %8.2f %10.2f %9.2f %12.2f %12.2f %12.2f%n",
-                    emp.getEmployeeID(), name,
-                    basic, allowances, sss, ph, pib, tax, deduct, net));
+                    empId, displayName,
+                    basic, allow, sss, ph, pib, tax, deduct, net));
         }
 
         sb.append("=".repeat(120)).append("\n");
         sb.append(String.format("%-10s %-22s %10.2f %10.2f %8.2f %10.2f %9.2f %12.2f %12.2f %12.2f%n",
                 "", "TOTALS",
                 totalBasic, totalAllow, totalSss, totalPh, totalPib, totalTax, totalDeduct, totalNet));
-        sb.append(String.format("%nTotal Employees: %d%n", employees.size()));
+        sb.append(String.format("%nTotal Employees: %d%n", rowCount));
 
         reportTextArea.setText(sb.toString());
         reportTextArea.setCaretPosition(0);
