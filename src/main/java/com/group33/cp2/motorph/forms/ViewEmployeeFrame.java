@@ -4,6 +4,7 @@ import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.Payroll;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
+import com.group33.cp2.motorph.util.DialogUtil;
 import com.group33.cp2.motorph.util.Utility;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -21,7 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 /**
@@ -42,9 +43,9 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 public class ViewEmployeeFrame extends javax.swing.JFrame {
 
     /** Handles employee data retrieval. */
-    EmployeeService employeeService = new EmployeeService();
+    private EmployeeService employeeService = new EmployeeService();
     /** Currently selected employee. */
-    Employee selectedEmployee;
+    private Employee selectedEmployee;
 
     // GUI fields for employee and payroll info
     private JTextField txtEmployeeNumber;
@@ -82,13 +83,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                    null,
-                    "Are you sure you want to exit?",
-                    "Confirm Exit",
-                    JOptionPane.YES_NO_OPTION
-                );
-                if (response == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(ViewEmployeeFrame.this)) {
                     dispose();
                 }
             }
@@ -334,25 +329,56 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
 
         btnCancel.addActionListener(e -> NavigationManager.openEmployeeListFrame(this));
 
+        // Capture as effectively-final references for use inside the SwingWorker anonymous class.
+        final JButton computeBtn = btnCompute;
+
         btnCompute.addActionListener(e -> {
             int selectedMonth = monthComboBox.getSelectedIndex() + 1;
-            int selectedYear = (Integer) yearComboBox.getSelectedItem();
+            int selectedYear  = (Integer) yearComboBox.getSelectedItem();
 
             LocalDate selectedStartDate = LocalDate.of(selectedYear, selectedMonth, 1);
-            LocalDate selectedEndDate = selectedStartDate.withDayOfMonth(selectedStartDate.lengthOfMonth());
+            LocalDate selectedEndDate   = selectedStartDate.withDayOfMonth(selectedStartDate.lengthOfMonth());
 
-            Payroll payroll = new Payroll(selectedEmployee.getEmployeeID(), selectedEmployee, selectedStartDate, selectedEndDate);
+            // Disable the button immediately to prevent double-clicks while I/O runs.
+            computeBtn.setEnabled(false);
 
-            if (payroll.getTotalRegularHours() <= 0) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "No salary record found for the selected month.",
-                    "Notice",
-                    JOptionPane.WARNING_MESSAGE
-                );
-            } else {
-                NavigationManager.openViewSalaryFrame(this, employeeId, selectedStartDate, selectedEndDate);
-            }
+            new SwingWorker<Double, Void>() {
+                @Override
+                protected Double doInBackground() throws Exception {
+                    // Payroll construction reads attendance CSV — runs off the EDT.
+                    Payroll payroll = new Payroll(
+                            selectedEmployee.getEmployeeID(),
+                            selectedEmployee,
+                            selectedStartDate,
+                            selectedEndDate);
+                    return payroll.getTotalRegularHours();
+                }
+
+                @Override
+                protected void done() {
+                    // Re-enable the button regardless of outcome.
+                    computeBtn.setEnabled(true);
+                    try {
+                        double totalRegularHours = get();
+                        if (totalRegularHours <= 0) {
+                            JOptionPane.showMessageDialog(
+                                    ViewEmployeeFrame.this,
+                                    "No salary record found for the selected month.",
+                                    "Notice",
+                                    JOptionPane.WARNING_MESSAGE);
+                        } else {
+                            NavigationManager.openViewSalaryFrame(
+                                    ViewEmployeeFrame.this, employeeId,
+                                    selectedStartDate, selectedEndDate);
+                        }
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(
+                                ViewEmployeeFrame.this,
+                                "Failed to compute payroll: " + ex.getMessage(),
+                                "Compute Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }.execute();
         });
 
         panel.add(new JLabel("Pay Coverage:"));
@@ -402,12 +428,4 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         txtImmediateSupervisor.setText("");
     }
 
-    /**
-     * Entry point for standalone testing of this frame.
-     *
-     * @param args command-line arguments (unused)
-     */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ViewEmployeeFrame("").setVisible(true));
-    }
 }

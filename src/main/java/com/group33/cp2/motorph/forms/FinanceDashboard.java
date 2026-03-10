@@ -6,6 +6,7 @@ import com.group33.cp2.motorph.model.SalaryDetails;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.PayrollCalculator;
 import com.group33.cp2.motorph.service.PayrollCalculatorService;
+import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -95,13 +96,7 @@ public class FinanceDashboard extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int choice = JOptionPane.showConfirmDialog(
-                        FinanceDashboard.this,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (choice == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(FinanceDashboard.this)) {
                     dispose();
                 }
             }
@@ -144,9 +139,7 @@ public class FinanceDashboard extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnLogout = new JButton("Logout");
         btnLogout.addActionListener(e -> {
-            int choice = JOptionPane.showConfirmDialog(
-                    this, "Log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
+            if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
             }
         });

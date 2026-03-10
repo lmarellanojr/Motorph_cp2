@@ -8,6 +8,7 @@ import com.group33.cp2.motorph.dao.PayrollDAO;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.PayrollService;
 import com.group33.cp2.motorph.util.Constants;
+import com.group33.cp2.motorph.util.DialogUtil;
 import com.group33.cp2.motorph.util.Utility;
 import java.awt.Color;
 import java.awt.Font;
@@ -26,7 +27,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 import javax.swing.border.TitledBorder;
 
@@ -46,7 +46,7 @@ import javax.swing.border.TitledBorder;
 public class ViewSalaryFrame extends javax.swing.JFrame {
 
     /** Handles employee data retrieval. */
-    EmployeeService employeeService = new EmployeeService();
+    private EmployeeService employeeService = new EmployeeService();
 
     /**
      * Payroll record store declared as the {@link PayrollDAO} interface type.
@@ -57,7 +57,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
     private final PayrollDAO payrollDAO = new PayrollService();
 
     /** Currently selected employee. */
-    Employee selectedEmployee;
+    private Employee selectedEmployee;
 
     // GUI fields for employee info (left panel)
     private JTextField txtEmployeeNumber;
@@ -116,13 +116,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                    null,
-                    "Are you sure you want to exit?",
-                    "Confirm Exit",
-                    JOptionPane.YES_NO_OPTION
-                );
-                if (response == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(ViewSalaryFrame.this)) {
                     dispose();
                 }
             }
@@ -565,12 +559,4 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         lblPayrollStatus.setText(payroll.getStatus().toString());
     }
 
-    /**
-     * Entry point for standalone testing of this frame.
-     *
-     * @param args command-line arguments (unused)
-     */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ViewSalaryFrame("", null, null).setVisible(true));
-    }
 }

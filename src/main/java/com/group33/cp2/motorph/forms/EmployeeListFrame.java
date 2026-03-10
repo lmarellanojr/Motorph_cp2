@@ -3,6 +3,7 @@ package com.group33.cp2.motorph.forms;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
+import com.group33.cp2.motorph.util.DialogUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
@@ -35,13 +36,7 @@ public class EmployeeListFrame extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                        null,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (response == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(EmployeeListFrame.this)) {
                     dispose();
                 }
             }
@@ -456,13 +451,8 @@ public class EmployeeListFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_txtLastNameActionPerformed
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
-        JFrame myFrame = this;
-        int response = JOptionPane.showConfirmDialog(null,
-                "Are you sure you want to logout?",
-                "Confirm Logout",
-                JOptionPane.YES_NO_OPTION);
-        if (response == JOptionPane.YES_OPTION) {
-            NavigationManager.openLoginFrame(myFrame);
+        if (DialogUtil.confirmLogout(this)) {
+            NavigationManager.openLoginFrame(this);
         }
     }//GEN-LAST:event_btnLogoutActionPerformed
 

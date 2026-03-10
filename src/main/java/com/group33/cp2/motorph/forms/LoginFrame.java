@@ -8,6 +8,7 @@ import com.group33.cp2.motorph.model.IT;
 import com.group33.cp2.motorph.service.AuthService;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
+import com.group33.cp2.motorph.util.DialogUtil;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.awt.event.ActionEvent;
@@ -61,13 +62,7 @@ public class LoginFrame extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                        null,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (response == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(LoginFrame.this)) {
                     dispose();
                 }
             }

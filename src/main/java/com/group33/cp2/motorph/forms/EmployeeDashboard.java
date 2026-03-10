@@ -10,6 +10,7 @@ import com.group33.cp2.motorph.model.SalaryDetails;
 import com.group33.cp2.motorph.service.LeaveService;
 import com.group33.cp2.motorph.service.PayrollCalculatorService;
 import com.group33.cp2.motorph.service.TimeTrackingService;
+import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -35,6 +36,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -99,6 +101,12 @@ public class EmployeeDashboard extends JFrame {
     private static final String[] LEAVE_TYPES = {"Sick Leave", "Vacation Leave", "Birthday Leave"};
 
     /**
+     * Bundles leave-balance integers and leave-request list loaded from CSV so
+     * both can be returned from a single {@link SwingWorker#doInBackground()} call.
+     */
+    private record LeaveData(int sick, int vacation, int birthday, List<LeaveRequest> requests) {}
+
+    /**
      * Constructs the EmployeeDashboard for the given employee.
      *
      * @param employee the logged-in employee; must not be null
@@ -116,13 +124,7 @@ public class EmployeeDashboard extends JFrame {
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                int choice = JOptionPane.showConfirmDialog(
-                        EmployeeDashboard.this,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (choice == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(EmployeeDashboard.this)) {
                     dispose();
                 }
             }
@@ -165,9 +167,7 @@ public class EmployeeDashboard extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnLogout = new JButton("Logout");
         btnLogout.addActionListener(e -> {
-            int choice = JOptionPane.showConfirmDialog(
-                    this, "Log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
+            if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
             }
         });
@@ -400,16 +400,34 @@ public class EmployeeDashboard extends JFrame {
         }
     }
 
+    /**
+     * Loads time-log records off the EDT via a SwingWorker, then populates the
+     * table model on the EDT inside {@code done()}.
+     *
+     * <p><strong>OOP Pillar — Abstraction:</strong> The method delegates file I/O
+     * entirely to {@link TimeTrackingService}; the dashboard has no knowledge of the
+     * underlying CSV format.</p>
+     */
     private void loadTimeLogs() {
-        timeLogModel.setRowCount(0);
-        try {
-            List<String[]> logs = timeTrackingService.getTimeLogs(employee.getEmployeeID());
-            for (String[] row : logs) {
-                timeLogModel.addRow(row);
+        new SwingWorker<List<String[]>, Void>() {
+            @Override
+            protected List<String[]> doInBackground() throws Exception {
+                return timeTrackingService.getTimeLogs(employee.getEmployeeID());
             }
-        } catch (IOException e) {
-            System.err.println("EmployeeDashboard.loadTimeLogs: " + e.getMessage());
-        }
+
+            @Override
+            protected void done() {
+                try {
+                    List<String[]> logs = get();
+                    timeLogModel.setRowCount(0);
+                    for (String[] row : logs) {
+                        timeLogModel.addRow(row);
+                    }
+                } catch (Exception ex) {
+                    System.err.println("EmployeeDashboard.loadTimeLogs: " + ex.getMessage());
+                }
+            }
+        }.execute();
     }
 
     // =========================================================================
@@ -487,31 +505,47 @@ public class EmployeeDashboard extends JFrame {
         return panel;
     }
 
+    /**
+     * Loads leave balances and leave-request history off the EDT via a SwingWorker.
+     * Both CSV reads are performed in {@code doInBackground()}; all label and table
+     * updates are performed in {@code done()} on the EDT.
+     */
     private void loadLeaveData() {
-        // Update balance labels
-        try {
-            int sick     = leaveService.getLeaveBalance(employee.getEmployeeID(), "Sick Leave");
-            int vacation = leaveService.getLeaveBalance(employee.getEmployeeID(), "Vacation Leave");
-            int birthday = leaveService.getLeaveBalance(employee.getEmployeeID(), "Birthday Leave");
-            lblSickBalance.setText("Sick Leave: " + sick + " days");
-            lblVacationBalance.setText("Vacation Leave: " + vacation + " days");
-            lblBirthdayBalance.setText("Birthday Leave: " + birthday + " days");
-        } catch (IOException e) {
-            System.err.println("EmployeeDashboard.loadLeaveData (balances): " + e.getMessage());
-        }
+        new SwingWorker<LeaveData, Void>() {
+            @Override
+            protected LeaveData doInBackground() throws Exception {
+                String empId = employee.getEmployeeID();
+                int sick     = leaveService.getLeaveBalance(empId, "Sick Leave");
+                int vacation = leaveService.getLeaveBalance(empId, "Vacation Leave");
+                int birthday = leaveService.getLeaveBalance(empId, "Birthday Leave");
+                List<LeaveRequest> requests = leaveService.getLeaveRequestsByEmployee(empId);
+                return new LeaveData(sick, vacation, birthday, requests);
+            }
 
-        // Reload leave history
-        leaveHistoryModel.setRowCount(0);
-        List<LeaveRequest> requests = leaveService.getLeaveRequestsByEmployee(employee.getEmployeeID());
-        for (LeaveRequest req : requests) {
-            leaveHistoryModel.addRow(new Object[]{
-                req.getLeaveID(),
-                req.getLeaveType(),
-                req.getStartDate() != null ? req.getStartDate().toString() : "",
-                req.getEndDate()   != null ? req.getEndDate().toString()   : "",
-                req.getStatus()
-            });
-        }
+            @Override
+            protected void done() {
+                try {
+                    LeaveData data = get();
+                    // Update balance labels on the EDT
+                    lblSickBalance.setText("Sick Leave: " + data.sick() + " days");
+                    lblVacationBalance.setText("Vacation Leave: " + data.vacation() + " days");
+                    lblBirthdayBalance.setText("Birthday Leave: " + data.birthday() + " days");
+                    // Reload history table on the EDT
+                    leaveHistoryModel.setRowCount(0);
+                    for (LeaveRequest req : data.requests()) {
+                        leaveHistoryModel.addRow(new Object[]{
+                            req.getLeaveID(),
+                            req.getLeaveType(),
+                            req.getStartDate() != null ? req.getStartDate().toString() : "",
+                            req.getEndDate()   != null ? req.getEndDate().toString()   : "",
+                            req.getStatus()
+                        });
+                    }
+                } catch (Exception ex) {
+                    System.err.println("EmployeeDashboard.loadLeaveData: " + ex.getMessage());
+                }
+            }
+        }.execute();
     }
 
     private void handleLeaveSubmit() {

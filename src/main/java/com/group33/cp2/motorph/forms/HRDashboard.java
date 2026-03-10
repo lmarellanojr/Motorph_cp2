@@ -5,6 +5,7 @@ import com.group33.cp2.motorph.model.HR;
 import com.group33.cp2.motorph.model.LeaveRequest;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.LeaveService;
+import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -25,6 +26,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -94,13 +96,7 @@ public class HRDashboard extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int choice = JOptionPane.showConfirmDialog(
-                        HRDashboard.this,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (choice == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(HRDashboard.this)) {
                     dispose();
                 }
             }
@@ -146,9 +142,7 @@ public class HRDashboard extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnLogout = new JButton("Logout");
         btnLogout.addActionListener(e -> {
-            int choice = JOptionPane.showConfirmDialog(
-                    this, "Log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
+            if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
             }
         });
@@ -297,20 +291,40 @@ public class HRDashboard extends JFrame {
         }
     }
 
-    /** Reloads the leave requests table from LeaveRequests.csv. */
+    /**
+     * Reloads the leave requests table from LeaveRequests.csv off the EDT via a
+     * SwingWorker. The CSV read runs in {@code doInBackground()}; the table model
+     * update runs in {@code done()} on the EDT.
+     */
     private void loadLeaveTable() {
-        leaveTableModel.setRowCount(0);
-        List<LeaveRequest> requests = leaveService.getAllLeaveRequests();
-        for (LeaveRequest req : requests) {
-            leaveTableModel.addRow(new Object[]{
-                req.getLeaveID(),
-                req.getEmployeeID(),
-                req.getLeaveType(),
-                req.getStartDate() != null ? req.getStartDate().toString() : "",
-                req.getEndDate()   != null ? req.getEndDate().toString()   : "",
-                req.getStatus()
-            });
-        }
+        new SwingWorker<List<LeaveRequest>, Void>() {
+            @Override
+            protected List<LeaveRequest> doInBackground() throws Exception {
+                return leaveService.getAllLeaveRequests();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<LeaveRequest> requests = get();
+                    leaveTableModel.setRowCount(0);
+                    for (LeaveRequest req : requests) {
+                        leaveTableModel.addRow(new Object[]{
+                            req.getLeaveID(),
+                            req.getEmployeeID(),
+                            req.getLeaveType(),
+                            req.getStartDate() != null ? req.getStartDate().toString() : "",
+                            req.getEndDate()   != null ? req.getEndDate().toString()   : "",
+                            req.getStatus()
+                        });
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(HRDashboard.this,
+                            "Failed to load leave requests: " + ex.getMessage(),
+                            "Load Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     // =========================================================================

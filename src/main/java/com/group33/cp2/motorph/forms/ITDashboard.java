@@ -4,6 +4,7 @@ import com.group33.cp2.motorph.model.IT;
 import com.group33.cp2.motorph.model.PasswordResetRequest;
 import com.group33.cp2.motorph.service.PasswordResetService;
 import com.group33.cp2.motorph.service.ResetPasswordProcessor;
+import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -22,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -70,13 +72,7 @@ public class ITDashboard extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int choice = JOptionPane.showConfirmDialog(
-                        ITDashboard.this,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (choice == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(ITDashboard.this)) {
                     dispose();
                 }
             }
@@ -142,9 +138,7 @@ public class ITDashboard extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnLogout = new JButton("Logout");
         btnLogout.addActionListener(e -> {
-            int choice = JOptionPane.showConfirmDialog(
-                    this, "Log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
+            if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
             }
         });
@@ -156,18 +150,44 @@ public class ITDashboard extends JFrame {
     //  Data and actions
     // =========================================================================
 
-    /** Reloads the password reset requests table from the CSV. */
+    /**
+     * Reloads the password reset requests table from the CSV off the EDT via a
+     * SwingWorker. The CSV read runs in {@code doInBackground()}; the table model
+     * update runs in {@code done()} on the EDT.
+     *
+     * <p>This method is passed as {@code this::loadPasswordResetRequests} to
+     * {@link com.group33.cp2.motorph.service.ResetPasswordProcessor} as a
+     * {@link com.group33.cp2.motorph.service.PasswordResetCallback} lambda. The
+     * SwingWorker pattern is transparent to that contract because this method still
+     * returns {@code void} immediately and schedules work asynchronously.</p>
+     */
     public void loadPasswordResetRequests() {
-        requestModel.setRowCount(0);
-        List<PasswordResetRequest> requests = passwordResetService.getAllRequests();
-        for (PasswordResetRequest req : requests) {
-            requestModel.addRow(new Object[]{
-                req.getEmployeeNumber(),
-                req.getEmployeeName(),
-                req.getDateOfRequest(),
-                req.getStatus()
-            });
-        }
+        new SwingWorker<List<PasswordResetRequest>, Void>() {
+            @Override
+            protected List<PasswordResetRequest> doInBackground() throws Exception {
+                return passwordResetService.getAllRequests();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<PasswordResetRequest> requests = get();
+                    requestModel.setRowCount(0);
+                    for (PasswordResetRequest req : requests) {
+                        requestModel.addRow(new Object[]{
+                            req.getEmployeeNumber(),
+                            req.getEmployeeName(),
+                            req.getDateOfRequest(),
+                            req.getStatus()
+                        });
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(ITDashboard.this,
+                            "Failed to load password reset requests: " + ex.getMessage(),
+                            "Load Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     /** Handles the "Reset Password" button action on the selected row. */
