@@ -4,6 +4,7 @@ import com.group33.cp2.motorph.model.IT;
 import com.group33.cp2.motorph.model.PasswordResetRequest;
 import com.group33.cp2.motorph.service.PasswordResetService;
 import com.group33.cp2.motorph.service.ResetPasswordProcessor;
+import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -71,13 +72,7 @@ public class ITDashboard extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int choice = JOptionPane.showConfirmDialog(
-                        ITDashboard.this,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (choice == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(ITDashboard.this)) {
                     dispose();
                 }
             }
@@ -143,9 +138,7 @@ public class ITDashboard extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnLogout = new JButton("Logout");
         btnLogout.addActionListener(e -> {
-            int choice = JOptionPane.showConfirmDialog(
-                    this, "Log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
+            if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
             }
         });

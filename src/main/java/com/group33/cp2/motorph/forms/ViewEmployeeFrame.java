@@ -4,6 +4,7 @@ import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.Payroll;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
+import com.group33.cp2.motorph.util.DialogUtil;
 import com.group33.cp2.motorph.util.Utility;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -21,7 +22,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
@@ -83,13 +83,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                    null,
-                    "Are you sure you want to exit?",
-                    "Confirm Exit",
-                    JOptionPane.YES_NO_OPTION
-                );
-                if (response == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(ViewEmployeeFrame.this)) {
                     dispose();
                 }
             }
@@ -434,12 +428,4 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         txtImmediateSupervisor.setText("");
     }
 
-    /**
-     * Entry point for standalone testing of this frame.
-     *
-     * @param args command-line arguments (unused)
-     */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ViewEmployeeFrame("").setVisible(true));
-    }
 }

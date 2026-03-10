@@ -5,6 +5,8 @@ import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.GovernmentDetails;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
+import com.group33.cp2.motorph.util.DialogUtil;
+import com.group33.cp2.motorph.util.ValidationUtil;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -86,13 +88,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                        null,
-                        "Are you sure you want to exit?",
-                        "Confirm Exit",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (response == JOptionPane.YES_OPTION) {
+                if (DialogUtil.confirmExit(NewEmployeeFrame.this)) {
                     dispose();
                 }
             }
@@ -511,25 +507,25 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
     private boolean validateFormats() {
         String sss = txtSSSNumber.getText().trim();
-        if (!sss.matches("\\d{2}-\\d{7}-\\d{1}")) {
+        if (!ValidationUtil.isValidSSS(sss)) {
             showValidationError("SSS Number should follow format: XX-XXXXXXX-X (e.g., 44-4506057-3)", txtSSSNumber);
             return false;
         }
 
         String tin = txtTINNumber.getText().trim();
-        if (!tin.matches("\\d{3}-\\d{3}-\\d{3}-\\d{3}")) {
+        if (!ValidationUtil.isValidTIN(tin)) {
             showValidationError("TIN Number should follow format: XXX-XXX-XXX-XXX (e.g., 442-605-657-000)", txtTINNumber);
             return false;
         }
 
         String philhealth = txtPhilHealthNumber.getText().trim();
-        if (!philhealth.matches("\\d{12}")) {
+        if (!ValidationUtil.isValidPhilHealth(philhealth)) {
             showValidationError("PhilHealth Number should be 12 digits (e.g., 820126853951)", txtPhilHealthNumber);
             return false;
         }
 
         String pagibig = txtPagIBIGNumber.getText().trim();
-        if (!pagibig.matches("\\d{12}")) {
+        if (!ValidationUtil.isValidPagIBIG(pagibig)) {
             showValidationError("Pag-IBIG Number should be 12 digits (e.g., 691295330870)", txtPagIBIGNumber);
             return false;
         }

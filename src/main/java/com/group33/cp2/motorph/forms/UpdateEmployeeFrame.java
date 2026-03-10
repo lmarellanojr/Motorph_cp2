@@ -5,6 +5,7 @@ import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.GovernmentDetails;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Utility;
+import com.group33.cp2.motorph.util.ValidationUtil;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -20,7 +21,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
@@ -375,25 +375,25 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private boolean validateFormats() {
         String sss = txtSSSNumber.getText().trim();
-        if (!sss.matches("\\d{2}-\\d{7}-\\d{1}")) {
+        if (!ValidationUtil.isValidSSS(sss)) {
             showValidationError("SSS Number should follow format XX-XXXXXXX-X (e.g., 44-4506057-3)", txtSSSNumber);
             return false;
         }
 
         String tin = txtTINNumber.getText().trim();
-        if (!tin.matches("\\d{3}-\\d{3}-\\d{3}-\\d{3}")) {
+        if (!ValidationUtil.isValidTIN(tin)) {
             showValidationError("TIN Number should follow format XXX-XXX-XXX-XXX (e.g., 442-605-657-000)", txtTINNumber);
             return false;
         }
 
         String phil = txtPhilHealthNumber.getText().trim();
-        if (!phil.matches("\\d{12}")) {
+        if (!ValidationUtil.isValidPhilHealth(phil)) {
             showValidationError("PhilHealth Number should be 12 digits (e.g., 820126853951)", txtPhilHealthNumber);
             return false;
         }
 
         String pag = txtPagibigNumber.getText().trim();
-        if (!pag.matches("\\d{12}")) {
+        if (!ValidationUtil.isValidPagIBIG(pag)) {
             showValidationError("Pag-IBIG Number should be 12 digits (e.g., 691295330870)", txtPagibigNumber);
             return false;
         }
@@ -412,7 +412,4 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         component.requestFocus();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new UpdateEmployeeFrame("12345").setVisible(true));
-    }
 }
