@@ -3,8 +3,8 @@ package com.group33.cp2.motorph.forms;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.HR;
 import com.group33.cp2.motorph.model.LeaveRequest;
-import com.group33.cp2.motorph.dao.LeaveRequestReader;
 import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.service.LeaveService;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -50,7 +50,7 @@ public class HRDashboard extends JFrame {
     // Domain objects
     private final HR              hrUser;
     private final EmployeeService employeeService;
-    private final LeaveRequestReader leaveRequestReader;
+    private final LeaveService    leaveService;
 
     // Tab 1 — Employee Management
     private JTable employeeTable;
@@ -84,7 +84,7 @@ public class HRDashboard extends JFrame {
     public HRDashboard(HR hrUser, EmployeeService employeeService) {
         this.hrUser          = hrUser;
         this.employeeService = employeeService;
-        this.leaveRequestReader = new LeaveRequestReader();
+        this.leaveService    = new LeaveService();
 
         setTitle("HR Dashboard — " + hrUser.getFullName());
         setSize(900, 650);
@@ -300,7 +300,7 @@ public class HRDashboard extends JFrame {
     /** Reloads the leave requests table from LeaveRequests.csv. */
     private void loadLeaveTable() {
         leaveTableModel.setRowCount(0);
-        List<LeaveRequest> requests = leaveRequestReader.getAllLeaveRequests();
+        List<LeaveRequest> requests = leaveService.getAllLeaveRequests();
         for (LeaveRequest req : requests) {
             leaveTableModel.addRow(new Object[]{
                 req.getLeaveID(),

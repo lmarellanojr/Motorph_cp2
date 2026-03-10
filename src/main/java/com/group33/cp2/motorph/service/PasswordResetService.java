@@ -2,9 +2,11 @@ package com.group33.cp2.motorph.service;
 
 import com.group33.cp2.motorph.dao.EmployeeDetailsReader;
 import com.group33.cp2.motorph.dao.PasswordResetReader;
+import com.group33.cp2.motorph.model.PasswordResetRequest;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -52,6 +54,18 @@ public class PasswordResetService {
         }
 
         return true;
+    }
+
+    /**
+     * Returns all password reset requests from the CSV.
+     *
+     * <p>Delegates to {@link PasswordResetReader#getAllRequests()} so that
+     * {@code forms/} classes never need to import from {@code dao/}.</p>
+     *
+     * @return a list of all {@link PasswordResetRequest} records; never {@code null}
+     */
+    public List<PasswordResetRequest> getAllRequests() {
+        return PasswordResetReader.getAllRequests();
     }
 
     /** Generates a temporary password: {@code "Default" + empNum + specialChar + twoDigits} */
