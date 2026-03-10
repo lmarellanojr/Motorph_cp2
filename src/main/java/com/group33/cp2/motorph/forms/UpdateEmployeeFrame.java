@@ -3,8 +3,6 @@ package com.group33.cp2.motorph.forms;
 import com.group33.cp2.motorph.model.Allowance;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.GovernmentDetails;
-import com.group33.cp2.motorph.model.ProbationaryEmployee;
-import com.group33.cp2.motorph.model.RegularEmployee;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Utility;
 
@@ -353,24 +351,14 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
                 return;
             }
 
-            // Factory: preserve the correct subclass when updating.
-            // Probationary -> ProbationaryEmployee; everything else -> RegularEmployee.
-            Employee updatedEmployee;
-            if ("Probationary".equalsIgnoreCase(status)) {
-                updatedEmployee = new ProbationaryEmployee(
-                        employeeId, last, first, birthday, address, phone,
-                        basicSalary, hourlyRate, grossSemi, status, position, supervisor,
-                        new Allowance(employeeId, riceSub, phoneAllowance, clothAllowance),
-                        new GovernmentDetails(employeeId, sss, phil, tin, pagibig)
-                );
-            } else {
-                updatedEmployee = new RegularEmployee(
-                        employeeId, last, first, birthday, address, phone,
-                        basicSalary, hourlyRate, grossSemi, status, position, supervisor,
-                        new Allowance(employeeId, riceSub, phoneAllowance, clothAllowance),
-                        new GovernmentDetails(employeeId, sss, phil, tin, pagibig)
-                );
-            }
+            // Delegate subtype selection to EmployeeService.createEmployee():
+            // the form no longer decides between RegularEmployee and ProbationaryEmployee.
+            Employee updatedEmployee = employeeService.createEmployee(
+                    employeeId, last, first, birthday, address, phone,
+                    basicSalary, hourlyRate, grossSemi, status, position, supervisor,
+                    new Allowance(employeeId, riceSub, phoneAllowance, clothAllowance),
+                    new GovernmentDetails(employeeId, sss, phil, tin, pagibig)
+            );
 
             employeeService.updateEmployee(updatedEmployee);
 

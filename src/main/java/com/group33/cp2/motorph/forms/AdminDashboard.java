@@ -280,7 +280,7 @@ public class AdminDashboard extends JFrame {
             );
             if (confirm != JOptionPane.YES_OPTION) return;
 
-            boolean ok = employeeService.deleteEmployee(empId);
+            boolean ok = adminUser.deleteEmployee(empId);
             if (ok) {
                 JOptionPane.showMessageDialog(this,
                         "Employee " + empId + " has been permanently deleted.",

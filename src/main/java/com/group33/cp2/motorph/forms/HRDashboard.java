@@ -215,7 +215,7 @@ public class HRDashboard extends JFrame {
                     JOptionPane.WARNING_MESSAGE
             );
             if (confirm == JOptionPane.YES_OPTION) {
-                employeeService.deleteEmployee(empId);
+                hrUser.deleteEmployee(empId);
                 loadEmployeeTable();
             }
         });

@@ -17,4 +17,12 @@ public interface HROperations {
     boolean approveLeave(String leaveId, String remark);
     boolean rejectLeave(String leaveId, String remark);
     Employee viewEmployeeRecords(String employeeId);
+
+    /**
+     * Deletes the employee with the given ID from all CSV stores.
+     *
+     * @param empId the ID of the employee to delete
+     * @return {@code true} if the employee was found and deleted
+     */
+    boolean deleteEmployee(String empId);
 }
