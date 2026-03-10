@@ -54,4 +54,18 @@ public class PayrollCalculatorService {
             pagibig, philHealth, sss, tax, totalDeductions
         );
     }
+
+    // Same deduction math as getSalaryDetails(empId); month and year are metadata for logging only.
+    // Validates that month is 1–12 and year is a positive 4-digit value.
+    // Returns null if salary or allowance data is not found.
+    public SalaryDetails getSalaryDetailsForPeriod(String employeeId, int month, int year) throws IOException {
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("month must be 1–12, got: " + month);
+        }
+        if (year < 1000 || year > 9999) {
+            throw new IllegalArgumentException("year must be a 4-digit value, got: " + year);
+        }
+        // Deduction math is identical to getSalaryDetails; period metadata is carried by the caller.
+        return getSalaryDetails(employeeId);
+    }
 }
