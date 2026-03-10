@@ -49,7 +49,7 @@ import javax.swing.table.DefaultTableModel;
  * (e.g., {@link com.group33.cp2.motorph.model.RegularEmployee} includes withholding tax;
  * {@link com.group33.cp2.motorph.model.ProbationaryEmployee} does not).</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.0
  */
 public class FinanceDashboard extends JFrame {

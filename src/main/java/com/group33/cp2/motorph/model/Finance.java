@@ -8,7 +8,7 @@ import com.group33.cp2.motorph.service.PayrollCalculator;
  * <p>Finance employees receive full regular-employee payroll treatment
  * (all four deductions, overtime at 1.25x).</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.0
  */
 public class Finance extends Employee implements PayrollCalculable {

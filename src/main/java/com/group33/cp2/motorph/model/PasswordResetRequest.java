@@ -7,7 +7,7 @@ package com.group33.cp2.motorph.model;
  * {@code employeeNumber} and {@code employeeName} are immutable after construction
  * (final). Mutable fields (status, admin info, date) are changed through setters.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class PasswordResetRequest {

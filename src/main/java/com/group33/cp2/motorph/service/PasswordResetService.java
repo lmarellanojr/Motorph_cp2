@@ -2,9 +2,11 @@ package com.group33.cp2.motorph.service;
 
 import com.group33.cp2.motorph.dao.EmployeeDetailsReader;
 import com.group33.cp2.motorph.dao.PasswordResetReader;
+import com.group33.cp2.motorph.model.PasswordResetRequest;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -38,17 +40,14 @@ public class PasswordResetService {
     public boolean resetPassword(String employeeNumber, String adminName, String adminEmpNum)
             throws IOException, PasswordResetException {
 
-        // Generate a temporary password
         String tempPassword = generateTemporaryPassword(employeeNumber);
-        String hashed       = BCrypt.hashpw(tempPassword, BCrypt.gensalt());
+        // BCrypt-hash the temp password; changePassword=YES forces a change on next login
+        String hashed = BCrypt.hashpw(tempPassword, BCrypt.gensalt());
 
-        // Update Login.csv with hashed temp password and changePassword=YES
-        // so the employee is forced to set a new password on their next login.
         if (!loginReader.changeUserPassword(employeeNumber, hashed, "YES")) {
             throw new PasswordResetException("Employee not found in login data: " + employeeNumber);
         }
 
-        // Mark the pending request as approved in Password_Reset_Requests.csv
         if (!PasswordResetReader.approveRequest(employeeNumber, adminName, adminEmpNum)) {
             throw new PasswordResetException(
                     "Password reset request not found or already approved for: " + employeeNumber);
@@ -57,14 +56,19 @@ public class PasswordResetService {
         return true;
     }
 
-    // =========================================================================
-    //  Private helpers
-    // =========================================================================
-
     /**
-     * Generates a predictable-format temporary password:
-     * {@code "Default" + employeeNumber + specialChar + twoDigitNumber}
+     * Returns all password reset requests from the CSV.
+     *
+     * <p>Delegates to {@link PasswordResetReader#getAllRequests()} so that
+     * {@code forms/} classes never need to import from {@code dao/}.</p>
+     *
+     * @return a list of all {@link PasswordResetRequest} records; never {@code null}
      */
+    public List<PasswordResetRequest> getAllRequests() {
+        return PasswordResetReader.getAllRequests();
+    }
+
+    /** Generates a temporary password: {@code "Default" + empNum + specialChar + twoDigits} */
     private String generateTemporaryPassword(String employeeNumber) {
         Random random = new Random();
         char   specialChar   = SPECIAL_CHARS.charAt(random.nextInt(SPECIAL_CHARS.length()));

@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
  * (all four deductions, overtime at 1.25x) and additionally implement
  * the leave-management operations defined by {@link HROperations}.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public class HR extends Employee implements PayrollCalculable, HROperations {
@@ -134,6 +134,21 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
     @Override
     public Employee viewEmployeeRecords(String employeeId) {
         return getEmployeeService().getEmployeeById(employeeId);
+    }
+
+    /**
+     * Deletes the employee with the given ID by delegating to
+     * {@link com.group33.cp2.motorph.service.EmployeeService#deleteEmployee(String)}.
+     *
+     * <p>Uses the lazy {@link #getEmployeeService()} accessor to avoid
+     * the circular-construction problem documented on that field.</p>
+     *
+     * @param empId the ID of the employee to delete
+     * @return {@code true} if the employee was found and deleted
+     */
+    @Override
+    public boolean deleteEmployee(String empId) {
+        return getEmployeeService().deleteEmployee(empId);
     }
 
     @Override

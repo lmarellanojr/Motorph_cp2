@@ -5,7 +5,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
 /**
- * AES encrypt/decrypt helper used for storing passwords in the CSV.
+ * AES-128 encrypt/decrypt utility. Not used by the active BCrypt login flow;
+ * retained for any legacy encrypted data fields.
  */
 public class CryptoUtil {
 

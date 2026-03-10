@@ -5,7 +5,7 @@ import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.Finance;
 import com.group33.cp2.motorph.model.HR;
 import com.group33.cp2.motorph.model.IT;
-import com.group33.cp2.motorph.dao.EmployeeDetailsReader;
+import com.group33.cp2.motorph.service.AuthService;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
 import org.mindrot.jbcrypt.BCrypt;
@@ -41,13 +41,13 @@ import javax.swing.KeyStroke;
  * correct dashboard type based on the role string, demonstrating runtime dispatch
  * through concrete frame types.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public class LoginFrame extends javax.swing.JFrame {
 
-    private final EmployeeDetailsReader loginReader = new EmployeeDetailsReader();
-    private final EmployeeService       employeeService = new EmployeeService();
+    private final AuthService     authService     = new AuthService();
+    private final EmployeeService employeeService = new EmployeeService();
 
     /**
      * Creates the LoginFrame, configures size, close behaviour, and keyboard shortcuts.
@@ -212,7 +212,7 @@ public class LoginFrame extends javax.swing.JFrame {
         }
 
         // Look up Login.csv row: [0]=empNum, [1]=username, [2]=roleName, [3]=password, [4]=changePassword
-        String[] loginRow = loginReader.getLoginDataByUsername(username);
+        String[] loginRow = authService.getLoginDataByUsername(username);
 
         if (loginRow == null) {
             JOptionPane.showMessageDialog(this, "Invalid username or password.",
@@ -278,7 +278,7 @@ public class LoginFrame extends javax.swing.JFrame {
 
         String hashed = BCrypt.hashpw(newPw, BCrypt.gensalt());
         try {
-            boolean updated = loginReader.changeUserPassword(empNum, hashed);
+            boolean updated = authService.changeUserPassword(empNum, hashed);
             if (!updated) {
                 JOptionPane.showMessageDialog(this, "Password change failed: employee not found.",
                         "Error", JOptionPane.ERROR_MESSAGE);

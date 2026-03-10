@@ -2,7 +2,6 @@ package com.group33.cp2.motorph.forms;
 
 import com.group33.cp2.motorph.model.IT;
 import com.group33.cp2.motorph.model.PasswordResetRequest;
-import com.group33.cp2.motorph.dao.PasswordResetReader;
 import com.group33.cp2.motorph.service.PasswordResetService;
 import com.group33.cp2.motorph.service.ResetPasswordProcessor;
 
@@ -36,12 +35,13 @@ import javax.swing.table.DefaultTableModel;
  * rather than importing this class. The callback is passed as a lambda
  * ({@code this::loadPasswordResetRequests}), demonstrating the decoupling seam.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class ITDashboard extends JFrame {
 
     private final IT itUser;
+    private final PasswordResetService   passwordResetService;
     private final ResetPasswordProcessor processor;
 
     private JTable requestTable;
@@ -58,8 +58,9 @@ public class ITDashboard extends JFrame {
      * @param itUser the logged-in IT employee; must not be null
      */
     public ITDashboard(IT itUser) {
-        this.itUser    = itUser;
-        this.processor = new ResetPasswordProcessor(new PasswordResetService());
+        this.itUser               = itUser;
+        this.passwordResetService = new PasswordResetService();
+        this.processor            = new ResetPasswordProcessor(passwordResetService);
 
         setTitle("IT Dashboard — " + itUser.getFullName());
         setSize(800, 580);
@@ -158,7 +159,7 @@ public class ITDashboard extends JFrame {
     /** Reloads the password reset requests table from the CSV. */
     public void loadPasswordResetRequests() {
         requestModel.setRowCount(0);
-        List<PasswordResetRequest> requests = PasswordResetReader.getAllRequests();
+        List<PasswordResetRequest> requests = passwordResetService.getAllRequests();
         for (PasswordResetRequest req : requests) {
             requestModel.addRow(new Object[]{
                 req.getEmployeeNumber(),

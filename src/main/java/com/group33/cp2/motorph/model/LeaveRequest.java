@@ -13,7 +13,7 @@ import java.util.List;
  * Business-state transitions (approve/reject) are done through dedicated methods
  * rather than raw setters, ensuring the object always stays consistent.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class LeaveRequest {

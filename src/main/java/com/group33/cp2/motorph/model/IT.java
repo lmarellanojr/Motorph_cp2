@@ -13,7 +13,7 @@ import java.io.IOException;
  * (all four deductions, overtime at 1.25x) and additionally implement
  * the system access-management operations defined by {@link ITOperations}.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public class IT extends Employee implements PayrollCalculable, ITOperations {

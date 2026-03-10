@@ -3,8 +3,6 @@ package com.group33.cp2.motorph.forms;
 import com.group33.cp2.motorph.model.Allowance;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.GovernmentDetails;
-import com.group33.cp2.motorph.model.ProbationaryEmployee;
-import com.group33.cp2.motorph.model.RegularEmployee;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
 import java.awt.BorderLayout;
@@ -567,21 +565,13 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
         Allowance allowance = new Allowance(employeeID, riceSubsidy, phoneAllowance, clothingAllowance);
 
-        // Factory: instantiate the concrete subclass based on the selected status.
-        // Probationary -> ProbationaryEmployee; everything else -> RegularEmployee.
-        if ("Probationary".equalsIgnoreCase(status)) {
-            return new ProbationaryEmployee(
-                    employeeID, lastName, firstName, birthday, address, phoneNumber,
-                    basicSalary, hourlyRate, grossSemiMonthly, status, position,
-                    immediateSupervisor, allowance, governmentDetails
-            );
-        } else {
-            return new RegularEmployee(
-                    employeeID, lastName, firstName, birthday, address, phoneNumber,
-                    basicSalary, hourlyRate, grossSemiMonthly, status, position,
-                    immediateSupervisor, allowance, governmentDetails
-            );
-        }
+        // Delegate subtype selection to EmployeeService.createEmployee():
+        // the form no longer decides between RegularEmployee and ProbationaryEmployee.
+        return employeeService.createEmployee(
+                employeeID, lastName, firstName, birthday, address, phoneNumber,
+                basicSalary, hourlyRate, grossSemiMonthly, status, position,
+                immediateSupervisor, allowance, governmentDetails
+        );
     }
     private void clearAllFields() {
         txtLastName.setText("");

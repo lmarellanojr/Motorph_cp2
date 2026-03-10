@@ -8,7 +8,7 @@ import com.group33.cp2.motorph.service.PayrollCalculator;
  * <p>Probationary employees are not eligible for overtime pay and are subject to
  * basic government deductions only: SSS, PhilHealth, and Pag-IBIG (no withholding tax).</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.0
  */
 public class ProbationaryEmployee extends Employee implements PayrollCalculable {

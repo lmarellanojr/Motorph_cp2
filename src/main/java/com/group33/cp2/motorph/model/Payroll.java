@@ -53,12 +53,10 @@ public class Payroll {
         this.compensationDetails = compensationDetails;
     }
 
-    // checks if a date falls within the payroll period
     private boolean isWithinPeriod(LocalDate date) {
         return !date.isBefore(this.periodStartDate) && !date.isAfter(this.periodEndDate);
     }
 
-    // adds up regular and overtime hours from attendance records within the period
     protected void calculateWorkHours() {
         double regularHours = 0;
         double overtimeHours = 0;
@@ -75,7 +73,6 @@ public class Payroll {
         workHoursCalculated = true;
     }
 
-    // triggers calculation if not yet done
     public double getTotalRegularHours() {
         if (!workHoursCalculated) {
             calculateWorkHours();
@@ -83,12 +80,10 @@ public class Payroll {
         return (Math.round(this.totalRegularHours * 100.0) / 100.0);
     }
 
-    // private: only calculateWorkHours() should set this
     private void setTotalRegularHours(double totalRegularHours) {
         this.totalRegularHours = totalRegularHours;
     }
 
-    // triggers calculation if not yet done
     public double getTotalOvertimeHours() {
         if (!workHoursCalculated) {
             calculateWorkHours();
@@ -96,7 +91,6 @@ public class Payroll {
         return (Math.round(this.totalOvertimeHours * 100.0) / 100.0);
     }
 
-    // private: only calculateWorkHours() should set this
     private void setTotalOvertimeHours(double totalOvertimeHours) {
         this.totalOvertimeHours = totalOvertimeHours;
     }
@@ -119,7 +113,7 @@ public class Payroll {
         compensationDetails.setGrossSalary(grossSalary);
     }
 
-    // zero deductions if no hours were worked
+    // zero deductions if no hours were worked in the period
     public void calculateDeductions(PeriodType periodType) {
         Deductions deductions;
         if (getTotalRegularHours() > 0) {
@@ -154,7 +148,7 @@ public class Payroll {
         compensationDetails.setAllowance(allowance);
     }
 
-    // net = gross - deductions + allowances; marks as PROCESSED
+    // net = gross − deductions + allowances; marks payroll as PROCESSED
     public void calculateNetSalary() {
         this.calculateGrossSalary();
         this.calculateDeductions(PeriodType.MONTHLY);

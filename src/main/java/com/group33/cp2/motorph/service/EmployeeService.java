@@ -47,6 +47,58 @@ public final class EmployeeService {
     }
 
     // -------------------------------------------------------------------------
+    //  Employee subtype factory
+    // -------------------------------------------------------------------------
+
+    /**
+     * Creates a concrete {@link Employee} subtype based on the given employment status.
+     *
+     * <p>This factory keeps the {@code RegularEmployee} / {@code ProbationaryEmployee}
+     * instantiation decision inside the service layer, so that form classes never
+     * need to import concrete model subtypes just to branch on a status string.</p>
+     *
+     * <p><strong>OOP Pillar — Abstraction:</strong> Callers receive an {@link Employee}
+     * reference; the concrete subtype is an implementation detail of the service.</p>
+     *
+     * @param employeeID            employee ID
+     * @param lastName              last name
+     * @param firstName             first name
+     * @param birthday              birthday string (MM/dd/yyyy)
+     * @param address               address
+     * @param phoneNumber           phone number
+     * @param basicSalary           basic monthly salary
+     * @param hourlyRate            hourly rate
+     * @param grossSemiMonthlyRate  gross semi-monthly rate
+     * @param status                employment status — {@code "Probationary"} yields
+     *                              {@link ProbationaryEmployee}; any other value yields
+     *                              {@link RegularEmployee}
+     * @param position              job position/title
+     * @param immediateSupervisor   supervisor name
+     * @param allowance             allowance details; may be {@code null} (replaced with zeros)
+     * @param governmentDetails     government ID details
+     * @return the correctly-typed {@link Employee} instance, not yet persisted to CSV
+     */
+    public Employee createEmployee(
+            String employeeID, String lastName, String firstName, String birthday,
+            String address, String phoneNumber,
+            double basicSalary, double hourlyRate, double grossSemiMonthlyRate,
+            String status, String position, String immediateSupervisor,
+            Allowance allowance, GovernmentDetails governmentDetails) {
+
+        if ("Probationary".equalsIgnoreCase(status)) {
+            return new ProbationaryEmployee(
+                    employeeID, lastName, firstName, birthday, address, phoneNumber,
+                    basicSalary, hourlyRate, grossSemiMonthlyRate, status, position,
+                    immediateSupervisor, allowance, governmentDetails);
+        } else {
+            return new RegularEmployee(
+                    employeeID, lastName, firstName, birthday, address, phoneNumber,
+                    basicSalary, hourlyRate, grossSemiMonthlyRate, status, position,
+                    immediateSupervisor, allowance, governmentDetails);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     //  CRUD — fan out to all three CSVs
     // -------------------------------------------------------------------------
 

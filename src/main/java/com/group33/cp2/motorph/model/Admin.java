@@ -15,7 +15,7 @@ import java.util.List;
  * the user-management and report-generation operations defined by
  * {@link AdminOperations}.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.1
  */
 public class Admin extends Employee implements PayrollCalculable, AdminOperations {
@@ -151,6 +151,21 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
             }
             default -> false;
         };
+    }
+
+    /**
+     * Deletes the employee with the given ID by delegating to
+     * {@link com.group33.cp2.motorph.service.EmployeeService#deleteEmployee(String)}.
+     *
+     * <p>Uses the lazy {@link #getEmployeeService()} accessor to avoid
+     * the circular-construction problem documented on that field.</p>
+     *
+     * @param empId the ID of the employee to delete
+     * @return {@code true} if the employee was found and deleted
+     */
+    @Override
+    public boolean deleteEmployee(String empId) {
+        return getEmployeeService().deleteEmployee(empId);
     }
 
     @Override

@@ -7,11 +7,9 @@ import com.group33.cp2.motorph.model.LeaveRequest;
 import com.group33.cp2.motorph.model.Payroll;
 import com.group33.cp2.motorph.model.Payslip;
 import com.group33.cp2.motorph.model.SalaryDetails;
-import com.group33.cp2.motorph.dao.EmployeeLeaveTracker;
-import com.group33.cp2.motorph.dao.LeaveRequestReader;
-import com.group33.cp2.motorph.dao.TimeTrackerReader;
-import com.group33.cp2.motorph.service.LeaveProcessor;
+import com.group33.cp2.motorph.service.LeaveService;
 import com.group33.cp2.motorph.service.PayrollCalculatorService;
+import com.group33.cp2.motorph.service.TimeTrackingService;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -61,13 +59,14 @@ import javax.swing.table.DefaultTableModel;
  * deduction formulas — it only observes the resulting {@link com.group33.cp2.motorph.model.SalaryDetails}
  * record.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 1.0
  */
 public class EmployeeDashboard extends JFrame {
 
-    private final Employee employee;
-    private final LeaveRequestReader leaveRequestReader;
+    private final Employee          employee;
+    private final LeaveService       leaveService;
+    private final TimeTrackingService timeTrackingService;
 
     // Tab 3 — Time tracking state
     private JTable timeLogTable;
@@ -105,8 +104,9 @@ public class EmployeeDashboard extends JFrame {
      * @param employee the logged-in employee; must not be null
      */
     public EmployeeDashboard(Employee employee) {
-        this.employee = employee;
-        this.leaveRequestReader = new LeaveRequestReader();
+        this.employee           = employee;
+        this.leaveService       = new LeaveService();
+        this.timeTrackingService = new TimeTrackingService();
 
         setTitle("Employee Dashboard — " + employee.getFullName());
         setSize(900, 680);
@@ -382,7 +382,7 @@ public class EmployeeDashboard extends JFrame {
 
     private void handleClockIn() {
         try {
-            TimeTrackerReader.clockIn(employee.getEmployeeID());
+            timeTrackingService.clockIn(employee.getEmployeeID());
             JOptionPane.showMessageDialog(this, "Clocked in successfully.", "Clock In", JOptionPane.INFORMATION_MESSAGE);
             loadTimeLogs();
         } catch (IOException e) {
@@ -392,7 +392,7 @@ public class EmployeeDashboard extends JFrame {
 
     private void handleClockOut() {
         try {
-            TimeTrackerReader.clockOut(employee.getEmployeeID());
+            timeTrackingService.clockOut(employee.getEmployeeID());
             JOptionPane.showMessageDialog(this, "Clocked out successfully.", "Clock Out", JOptionPane.INFORMATION_MESSAGE);
             loadTimeLogs();
         } catch (IOException e) {
@@ -403,7 +403,7 @@ public class EmployeeDashboard extends JFrame {
     private void loadTimeLogs() {
         timeLogModel.setRowCount(0);
         try {
-            List<String[]> logs = TimeTrackerReader.getTimeLogs(employee.getEmployeeID());
+            List<String[]> logs = timeTrackingService.getTimeLogs(employee.getEmployeeID());
             for (String[] row : logs) {
                 timeLogModel.addRow(row);
             }
@@ -490,9 +490,9 @@ public class EmployeeDashboard extends JFrame {
     private void loadLeaveData() {
         // Update balance labels
         try {
-            int sick     = EmployeeLeaveTracker.getLeaveBalance(employee.getEmployeeID(), "Sick Leave");
-            int vacation = EmployeeLeaveTracker.getLeaveBalance(employee.getEmployeeID(), "Vacation Leave");
-            int birthday = EmployeeLeaveTracker.getLeaveBalance(employee.getEmployeeID(), "Birthday Leave");
+            int sick     = leaveService.getLeaveBalance(employee.getEmployeeID(), "Sick Leave");
+            int vacation = leaveService.getLeaveBalance(employee.getEmployeeID(), "Vacation Leave");
+            int birthday = leaveService.getLeaveBalance(employee.getEmployeeID(), "Birthday Leave");
             lblSickBalance.setText("Sick Leave: " + sick + " days");
             lblVacationBalance.setText("Vacation Leave: " + vacation + " days");
             lblBirthdayBalance.setText("Birthday Leave: " + birthday + " days");
@@ -502,17 +502,15 @@ public class EmployeeDashboard extends JFrame {
 
         // Reload leave history
         leaveHistoryModel.setRowCount(0);
-        List<LeaveRequest> allRequests = leaveRequestReader.getAllLeaveRequests();
-        for (LeaveRequest req : allRequests) {
-            if (req.getEmployeeID().equals(employee.getEmployeeID())) {
-                leaveHistoryModel.addRow(new Object[]{
-                    req.getLeaveID(),
-                    req.getLeaveType(),
-                    req.getStartDate() != null ? req.getStartDate().toString() : "",
-                    req.getEndDate()   != null ? req.getEndDate().toString()   : "",
-                    req.getStatus()
-                });
-            }
+        List<LeaveRequest> requests = leaveService.getLeaveRequestsByEmployee(employee.getEmployeeID());
+        for (LeaveRequest req : requests) {
+            leaveHistoryModel.addRow(new Object[]{
+                req.getLeaveID(),
+                req.getLeaveType(),
+                req.getStartDate() != null ? req.getStartDate().toString() : "",
+                req.getEndDate()   != null ? req.getEndDate().toString()   : "",
+                req.getStatus()
+            });
         }
     }
 
@@ -539,7 +537,7 @@ public class EmployeeDashboard extends JFrame {
         }
 
         try {
-            new LeaveProcessor().processLeaveRequest(
+            leaveService.submitLeaveRequest(
                     employee.getEmployeeID(), leaveType, startDate, endDate, reason);
             JOptionPane.showMessageDialog(this,
                     "Leave request submitted successfully.",

@@ -9,7 +9,7 @@ package com.group33.cp2.motorph.model;
  * <p><strong>OOP Pillar demonstrated:</strong> Abstraction — the interface hides the
  * details of how access control is implemented behind a clear behavioural contract.</p>
  *
- * @author Group13
+ * @author Group 33
  * @version 2.0
  */
 public interface ITOperations {

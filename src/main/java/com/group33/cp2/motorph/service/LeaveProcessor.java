@@ -52,17 +52,14 @@ public class LeaveProcessor {
     public void processLeaveRequest(String employeeId, String leaveType,
             LocalDate startDate, LocalDate endDate, String reason) throws IOException {
 
-        // Guard: dates must not be in the past
         if (startDate.isBefore(LocalDate.now()) || endDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Leave cannot be in the past!");
         }
 
-        // Guard: start must not be after end
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("Start date cannot be later than end date!");
         }
 
-        // Guard: neither boundary may fall on a weekend
         if (startDate.getDayOfWeek() == DayOfWeek.SATURDAY
                 || startDate.getDayOfWeek() == DayOfWeek.SUNDAY
                 || endDate.getDayOfWeek() == DayOfWeek.SATURDAY
@@ -70,14 +67,14 @@ public class LeaveProcessor {
             throw new IllegalArgumentException("Leave cannot start or end on a weekend!");
         }
 
-        // Balance check (weekday-only duration)
+        // balance check uses weekday-only count (weekends don't consume leave)
         int leaveDuration = calculateWeekdays(startDate, endDate);
         int balance = EmployeeLeaveTracker.getLeaveBalance(employeeId, leaveType);
         if (balance < leaveDuration) {
             throw new IllegalArgumentException("Insufficient leave balance.");
         }
 
-        // Submit the request (balance deduction deferred to HR approval)
+        // balance deduction is deferred to HR.approveLeave() to prevent double-deduction
         String leaveId = generateLeaveId();
         LeaveRequest leaveRequest = new LeaveRequest(
                 leaveId, employeeId, leaveType, LocalDate.now(),
@@ -85,17 +82,7 @@ public class LeaveProcessor {
         LeaveRequestReader.addLeaveRequest(leaveRequest);
     }
 
-    // =========================================================================
-    //  Private helpers
-    // =========================================================================
-
-    /**
-     * Counts only Monday through Friday days in the inclusive range [startDate, endDate].
-     *
-     * @param startDate first day of the range
-     * @param endDate   last day of the range
-     * @return number of weekday days in the range
-     */
+    /** Counts only Monday–Friday days in the inclusive range [startDate, endDate]. */
     private int calculateWeekdays(LocalDate startDate, LocalDate endDate) {
         int weekdays = 0;
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
@@ -107,15 +94,7 @@ public class LeaveProcessor {
         return weekdays;
     }
 
-    /**
-     * Generates the next leave ID by reading the current maximum numeric suffix from
-     * {@code LeaveRequests.csv} and incrementing it.
-     *
-     * <p>Examples: if the highest existing ID is {@code L003}, this returns {@code L004}.
-     * If no requests exist yet, this returns {@code L001}.</p>
-     *
-     * @return next leave ID in {@code L###} zero-padded format
-     */
+    /** Returns the next leave ID in L### format (e.g. L003 → L004; L001 if none exist). */
     private String generateLeaveId() {
         List<LeaveRequest> requests = new LeaveRequestReader().getAllLeaveRequests();
         int maxId = 0;
