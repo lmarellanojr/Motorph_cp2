@@ -1,7 +1,6 @@
 package com.group33.cp2.motorph.forms;
 
 import com.group33.cp2.motorph.model.Employee;
-import com.group33.cp2.motorph.model.GovernmentDetails;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
 import java.awt.event.WindowAdapter;
@@ -22,7 +21,6 @@ public class EmployeeListFrame extends javax.swing.JFrame {
     private List<Employee> employeeList;
     private String selectedEmployeeID;
     private String lastSelectedEmployeeID = "";
-    private Employee selectedEmployee = null;
 
     /**
      * Creates the EmployeeListFrame, loads the table, and registers interaction handlers.
@@ -49,6 +47,23 @@ public class EmployeeListFrame extends javax.swing.JFrame {
             }
         });
 
+        // Hide legacy inline update form — employee editing is done in UpdateEmployeeFrame
+        txtEmpID.setVisible(false);
+        txtLastName.setVisible(false);
+        txtFirstName.setVisible(false);
+        txtSSSNumber.setVisible(false);
+        txtPhilHealthNumber.setVisible(false);
+        txtTIN.setVisible(false);
+        txtPagIBIGNumber.setVisible(false);
+        btnSave.setVisible(false);
+        jLabel1.setVisible(false);
+        jLabel2.setVisible(false);
+        jLabel3.setVisible(false);
+        jLabel4.setVisible(false);
+        jLabel5.setVisible(false);
+        jLabel6.setVisible(false);
+        jLabel7.setVisible(false);
+
         loadEmployeeTable();
 
         employeesTable.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -64,20 +79,12 @@ public class EmployeeListFrame extends javax.swing.JFrame {
                     btnUpdate.setEnabled(true);
                     btnDelete.setEnabled(true);
 
-                    if (!selectedEmployeeID.equals(lastSelectedEmployeeID)) {
-                        disableUpdateFieldsAndButton();
-                        clearUpdateFields();
-                    }
-
                     if (selectedEmployeeID.equals(lastSelectedEmployeeID)) {
-                        selectedEmployee = null;
                         selectedRow = 0;
                         selectedEmployeeID = null;
                         employeesTable.clearSelection();
                         btnUpdate.setEnabled(false);
                         btnDelete.setEnabled(false);
-                        disableUpdateFieldsAndButton();
-                        clearUpdateFields();
                     }
                 }
 
@@ -373,58 +380,14 @@ public class EmployeeListFrame extends javax.swing.JFrame {
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
         if (selectedEmployeeID == null || selectedEmployeeID.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Employee not found.");
+            JOptionPane.showMessageDialog(this, "Please select an employee to update.",
+                    "No Employee Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        selectedEmployee = employeeService.getEmployeeById(selectedEmployeeID);
-        if (selectedEmployee != null) {
-            setUpdateFields();
-        }
-
-        enableUpdateFieldsAndButton();
+        UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(selectedEmployeeID);
+        updateFrame.setVisible(true);
+        loadEmployeeTable();
     }//GEN-LAST:event_btnUpdateActionPerformed
-
-    private void enableUpdateFieldsAndButton() {
-        txtLastName.setEnabled(true);
-        txtFirstName.setEnabled(true);
-        txtSSSNumber.setEnabled(true);
-        txtPhilHealthNumber.setEnabled(true);
-        txtTIN.setEnabled(true);
-        txtPagIBIGNumber.setEnabled(true);
-        btnSave.setEnabled(true);
-    }
-
-    private void disableUpdateFieldsAndButton() {
-        txtEmpID.setEnabled(false);
-        txtLastName.setEnabled(false);
-        txtFirstName.setEnabled(false);
-        txtSSSNumber.setEnabled(false);
-        txtPhilHealthNumber.setEnabled(false);
-        txtTIN.setEnabled(false);
-        txtPagIBIGNumber.setEnabled(false);
-        btnSave.setEnabled(false);
-    }
-
-    private void setUpdateFields() {
-        txtEmpID.setText(selectedEmployee.getEmployeeID());
-        txtLastName.setText(selectedEmployee.getLastName());
-        txtFirstName.setText(selectedEmployee.getFirstName());
-        txtSSSNumber.setText(selectedEmployee.getGovernmentDetails().getSssNumber());
-        txtPhilHealthNumber.setText(selectedEmployee.getGovernmentDetails().getPhilHealthNumber());
-        txtTIN.setText(selectedEmployee.getGovernmentDetails().getTinNumber());
-        txtPagIBIGNumber.setText(selectedEmployee.getGovernmentDetails().getPagibigNumber());
-    }
-
-    private void clearUpdateFields() {
-        txtEmpID.setText("");
-        txtLastName.setText("");
-        txtFirstName.setText("");
-        txtSSSNumber.setText("");
-        txtPhilHealthNumber.setText("");
-        txtTIN.setText("");
-        txtPagIBIGNumber.setText("");
-    }
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         if (selectedEmployeeID == null || selectedEmployeeID.isEmpty()) {
@@ -477,79 +440,13 @@ public class EmployeeListFrame extends javax.swing.JFrame {
         NavigationManager.openViewEmployeeFrame(this, selectedEmployeeID);
     }//GEN-LAST:event_btnViewActionPerformed
 
-    /**
-     * Validates SSS, TIN, PhilHealth, and Pag-IBIG formats.
-     *
-     * @return {@code true} if all formats are valid
-     */
-    private boolean validateFormats() {
-        String sss = txtSSSNumber.getText().trim();
-        if (!sss.matches("\\d{2}-\\d{7}-\\d{1}")) {
-            showValidationError("SSS Number should follow format XX-XXXXXXX-X (e.g., 44-4506057-3)", txtSSSNumber);
-            return false;
-        }
-
-        String tin = txtTIN.getText().trim();
-        if (!tin.matches("\\d{3}-\\d{3}-\\d{3}-\\d{3}")) {
-            showValidationError("TIN Number should follow format XXX-XXX-XXX-XXX (e.g., 442-605-657-000)", txtTIN);
-            return false;
-        }
-
-        String phil = txtPhilHealthNumber.getText().trim();
-        if (!phil.matches("\\d{12}")) {
-            showValidationError("PhilHealth Number should be 12 digits (e.g., 820126853951)", txtPhilHealthNumber);
-            return false;
-        }
-
-        String pag = txtPagIBIGNumber.getText().trim();
-        if (!pag.matches("\\d{12}")) {
-            showValidationError("Pag-IBIG Number should be 12 digits (e.g., 691295330870)", txtPagIBIGNumber);
-            return false;
-        }
-
-        return true;
-    }
-
-    private void showValidationError(String message, java.awt.Component component) {
-        JOptionPane.showMessageDialog(this, message, "Validation Error", JOptionPane.WARNING_MESSAGE);
-        component.requestFocus();
-    }
-
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         dispose();
         NavigationManager.openNewEmployeeFrame(this);
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        if (txtFirstName.getText().trim().isEmpty()
-                || txtLastName.getText().trim().isEmpty()
-                || txtPagIBIGNumber.getText().trim().isEmpty()
-                || txtPhilHealthNumber.getText().trim().isEmpty()
-                || txtTIN.getText().trim().isEmpty()
-                || txtSSSNumber.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields.",
-                    "Validation Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (!validateFormats()) {
-            return;
-        }
-
-        selectedEmployee.setLastName(txtLastName.getText());
-        selectedEmployee.setFirstName(txtFirstName.getText());
-        selectedEmployee.setGovernmentDetails(new GovernmentDetails(
-                selectedEmployeeID,
-                txtSSSNumber.getText(),
-                txtPhilHealthNumber.getText(),
-                txtTIN.getText(),
-                txtPagIBIGNumber.getText()
-        ));
-
-        employeeService.updateEmployee(selectedEmployee);
-        JOptionPane.showMessageDialog(this, "Employee details have been updated successfully!",
-                "Update Success", JOptionPane.INFORMATION_MESSAGE);
-        loadEmployeeTable();
+        // Inline update form removed — editing is handled by UpdateEmployeeFrame
     }//GEN-LAST:event_btnSaveActionPerformed
 
     private void txtEmpIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtEmpIDActionPerformed
