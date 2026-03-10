@@ -174,7 +174,7 @@ public class EmployeeListFrame extends javax.swing.JFrame {
 
         jButton1.setText("jButton1");
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
         employeesTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
