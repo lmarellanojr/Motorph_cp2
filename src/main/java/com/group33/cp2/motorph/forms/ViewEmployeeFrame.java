@@ -43,9 +43,9 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 public class ViewEmployeeFrame extends javax.swing.JFrame {
 
     /** Handles employee data retrieval. */
-    EmployeeService employeeService = new EmployeeService();
+    private EmployeeService employeeService = new EmployeeService();
     /** Currently selected employee. */
-    Employee selectedEmployee;
+    private Employee selectedEmployee;
 
     // GUI fields for employee and payroll info
     private JTextField txtEmployeeNumber;

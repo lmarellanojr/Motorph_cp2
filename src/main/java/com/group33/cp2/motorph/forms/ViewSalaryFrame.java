@@ -46,7 +46,7 @@ import javax.swing.border.TitledBorder;
 public class ViewSalaryFrame extends javax.swing.JFrame {
 
     /** Handles employee data retrieval. */
-    EmployeeService employeeService = new EmployeeService();
+    private EmployeeService employeeService = new EmployeeService();
 
     /**
      * Payroll record store declared as the {@link PayrollDAO} interface type.
@@ -57,7 +57,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
     private final PayrollDAO payrollDAO = new PayrollService();
 
     /** Currently selected employee. */
-    Employee selectedEmployee;
+    private Employee selectedEmployee;
 
     // GUI fields for employee info (left panel)
     private JTextField txtEmployeeNumber;
