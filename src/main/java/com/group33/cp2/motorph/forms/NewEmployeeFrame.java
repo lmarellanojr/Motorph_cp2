@@ -31,6 +31,7 @@ import javax.swing.JTextField;
 public class NewEmployeeFrame extends javax.swing.JFrame {
 
     private EmployeeService employeeService;
+    private final boolean canEditCompensation;
 
     // Personal Information Fields (Left Column)
     private JTextField txtEmployeeNumber;
@@ -62,7 +63,8 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     private JButton btnCancel;
     private JButton btnClear;
 
-    public NewEmployeeFrame() {
+    public NewEmployeeFrame(boolean canEditCompensation) {
+        this.canEditCompensation = canEditCompensation;
         employeeService = new EmployeeService();
         initializeComponents();
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
@@ -352,7 +354,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
                         JOptionPane.QUESTION_MESSAGE
                 );
                 if (option == JOptionPane.YES_OPTION) {
-                    NavigationManager.openEmployeeListFrame(currentFrame);
+                    NavigationManager.openEmployeeListFrame(currentFrame, canEditCompensation);
                 }
             }
         });
@@ -410,7 +412,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-            NavigationManager.openEmployeeListFrame(this);
+            NavigationManager.openEmployeeListFrame(this, canEditCompensation);
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this,

@@ -29,6 +29,7 @@ import javax.swing.SwingWorker;
 public class ViewEmployeeFrame extends javax.swing.JFrame {
 
     private EmployeeService employeeService = new EmployeeService();
+    private final boolean canEditCompensation;
     private Employee selectedEmployee;
 
     // GUI fields for employee and payroll info
@@ -52,7 +53,8 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtGrossSemiMonthly;
     private JTextField txtBasicSalary;
 
-    public ViewEmployeeFrame(String employeeId) {
+    public ViewEmployeeFrame(String employeeId, boolean canEditCompensation) {
+        this.canEditCompensation = canEditCompensation;
         setTitle("MotorPH Employee Payroll System");
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
         setResizable(false);
@@ -75,7 +77,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this,
                     "Employee ID " + employeeId + " was not found.",
                     "Load Error", JOptionPane.ERROR_MESSAGE);
-            NavigationManager.openEmployeeListFrame(this); // Go back if employee not found
+            NavigationManager.openEmployeeListFrame(this, canEditCompensation); // Go back if employee not found
             return;
         }
 
@@ -286,7 +288,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
         btnCancel.setPreferredSize(comboSize);
         btnCompute.setPreferredSize(comboSize);
 
-        btnCancel.addActionListener(e -> NavigationManager.openEmployeeListFrame(this));
+        btnCancel.addActionListener(e -> NavigationManager.openEmployeeListFrame(this, canEditCompensation));
 
         // Capture as effectively-final references for use inside the SwingWorker anonymous class.
         final JButton computeBtn = btnCompute;
@@ -328,7 +330,7 @@ public class ViewEmployeeFrame extends javax.swing.JFrame {
                         } else {
                             NavigationManager.openViewSalaryFrame(
                                     ViewEmployeeFrame.this, employeeId,
-                                    selectedStartDate, selectedEndDate);
+                                    selectedStartDate, selectedEndDate, canEditCompensation);
                         }
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(

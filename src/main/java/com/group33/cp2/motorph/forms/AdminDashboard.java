@@ -139,7 +139,7 @@ public class AdminDashboard extends JFrame {
             adminUser.manageUsers(0, "create", new UserManagementCallback() {
                 @Override
                 public void onCreateUser() {
-                    NewEmployeeFrame frame = new NewEmployeeFrame();
+                    NewEmployeeFrame frame = new NewEmployeeFrame(true);
                     frame.setLocationRelativeTo(AdminDashboard.this);
                     frame.setVisible(true);
                 }
@@ -172,6 +172,13 @@ public class AdminDashboard extends JFrame {
                     // Admin has full access — pass true for canEditCompensation.
                     UpdateEmployeeFrame frame = new UpdateEmployeeFrame(employeeId, true);
                     frame.setLocationRelativeTo(AdminDashboard.this);
+                    // Reload the employee table after the update frame closes (cancel or save).
+                    frame.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosed(WindowEvent e) {
+                            loadEmployeeTable();
+                        }
+                    });
                     frame.setVisible(true);
                 }
             });

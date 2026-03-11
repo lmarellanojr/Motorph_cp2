@@ -154,7 +154,7 @@ public class HRDashboard extends JFrame {
         JButton btnRefresh = new JButton("Refresh");
 
         btnAdd.addActionListener(e -> {
-            NavigationManager.openNewEmployeeFrame(this);
+            NavigationManager.openNewEmployeeFrame(this, false);
         });
 
         btnEdit.addActionListener(e -> {
@@ -168,6 +168,13 @@ public class HRDashboard extends JFrame {
             // HR users may not edit compensation data — pass false for canEditCompensation.
             UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(empId, false);
             updateFrame.setLocationRelativeTo(this);
+            // Reload the employee table after the update frame closes (cancel or save).
+            updateFrame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    loadEmployeeTable();
+                }
+            });
             updateFrame.setVisible(true);
         });
 

@@ -70,7 +70,7 @@ public class MenuFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnManageEmployeesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnManageEmployeesActionPerformed
-        NavigationManager.openEmployeeListFrame(this);
+        NavigationManager.openEmployeeListFrame(this, true);
     }//GEN-LAST:event_btnManageEmployeesActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

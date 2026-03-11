@@ -35,6 +35,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
     // In-memory payroll store for the current session; declared as the concrete service type
     // so forms/ has no dependency on the dao/ package.
     private final PayrollService payrollDAO = new PayrollService();
+    private final boolean canEditCompensation;
     private Employee selectedEmployee;
 
     // GUI fields for employee info (left panel)
@@ -75,7 +76,9 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
     private JLabel lblPhoneAllowance2;
     private JLabel dateFrom; // displays the payroll period
 
-    public ViewSalaryFrame(String employeeId, LocalDate selectedStartDate, LocalDate selectEndDate) {
+    public ViewSalaryFrame(String employeeId, LocalDate selectedStartDate, LocalDate selectEndDate,
+                           boolean canEditCompensation) {
+        this.canEditCompensation = canEditCompensation;
         setTitle("MotorPH Employee Payroll System");
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
         setResizable(false);
@@ -98,7 +101,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this,
                     "Employee ID " + employeeId + " was not found.",
                     "Load Error", JOptionPane.ERROR_MESSAGE);
-            NavigationManager.openEmployeeListFrame(this); // Go back if employee not found
+            NavigationManager.openEmployeeListFrame(this, canEditCompensation); // Go back if employee not found
             return;
         }
 
@@ -410,7 +413,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         panel.add(lblPayrollStatus);
 
         JButton btnBack = new JButton("Back");
-        btnBack.addActionListener(e -> NavigationManager.openEmployeeListFrame(this));
+        btnBack.addActionListener(e -> NavigationManager.openEmployeeListFrame(this, canEditCompensation));
 
         panel.add(new JLabel(""));
         panel.add(btnBack);
@@ -425,7 +428,7 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         payroll.calculateNetSalary();
 
         if (payroll.getTotalRegularHours() <= 0) {
-            NavigationManager.openEmployeeListFrame(this);
+            NavigationManager.openEmployeeListFrame(this, canEditCompensation);
             JOptionPane.showMessageDialog(
                 this,
                 "No salary record found for the selected month.",
