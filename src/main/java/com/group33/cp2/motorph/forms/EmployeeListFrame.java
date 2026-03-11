@@ -365,7 +365,8 @@ public class EmployeeListFrame extends javax.swing.JFrame {
                     "No Employee Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(selectedEmployeeID);
+        // Legacy MenuFrame path — no specific role restriction; full access granted.
+        UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(selectedEmployeeID, true);
         updateFrame.setVisible(true);
         loadEmployeeTable();
     }//GEN-LAST:event_btnUpdateActionPerformed

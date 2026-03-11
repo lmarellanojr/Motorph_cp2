@@ -165,7 +165,8 @@ public class HRDashboard extends JFrame {
                 return;
             }
             String empId = employeeTableModel.getValueAt(row, EMP_COL_ID).toString();
-            UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(empId);
+            // HR users may not edit compensation data — pass false for canEditCompensation.
+            UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(empId, false);
             updateFrame.setLocationRelativeTo(this);
             updateFrame.setVisible(true);
         });

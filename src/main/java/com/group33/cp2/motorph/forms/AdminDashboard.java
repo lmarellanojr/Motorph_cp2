@@ -169,7 +169,8 @@ public class AdminDashboard extends JFrame {
                 public void onCreateUser() { /* not used for update */ }
                 @Override
                 public void onUpdateUser(String employeeId) {
-                    UpdateEmployeeFrame frame = new UpdateEmployeeFrame(employeeId);
+                    // Admin has full access — pass true for canEditCompensation.
+                    UpdateEmployeeFrame frame = new UpdateEmployeeFrame(employeeId, true);
                     frame.setLocationRelativeTo(AdminDashboard.this);
                     frame.setVisible(true);
                 }
