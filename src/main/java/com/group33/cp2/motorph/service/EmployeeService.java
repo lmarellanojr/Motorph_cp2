@@ -105,6 +105,73 @@ public final class EmployeeService {
         reloadEmployees();
     }
 
+    /**
+     * Role-aware update overload. Behaves identically to {@link #updateEmployee(Employee)}
+     * for all roles except HR. When {@code callerRole} is {@code "HR"} (case-insensitive),
+     * this method compares the incoming employee's five compensation fields against the
+     * currently-stored values. If any value differs by more than a floating-point epsilon,
+     * an {@link IllegalArgumentException} is thrown and no CSV writes are performed.
+     *
+     * <p>This is a defense-in-depth guard. Normal HR saves via {@code UpdateEmployeeFrame}
+     * already copy compensation values from the stored record, so this guard should never
+     * fire in practice — it exists to catch future code paths that bypass the form.</p>
+     *
+     * @param employee   the employee record to persist
+     * @param callerRole the role string of the caller (e.g., "HR", "ADMIN")
+     * @throws IllegalArgumentException if an HR caller attempts to modify compensation data
+     */
+    public void updateEmployee(Employee employee, String callerRole) {
+        if ("HR".equalsIgnoreCase(callerRole)) {
+            assertCompensationUnchanged(employee);
+        }
+        updateEmployee(employee);
+    }
+
+    /**
+     * Compares the five compensation fields of the supplied employee against the
+     * currently-stored record. Throws {@link IllegalArgumentException} if any field
+     * differs by more than {@code 1e-9} (floating-point epsilon guard).
+     *
+     * <p>Fields compared: basicSalary, hourlyRate, grossSemiMonthlyRate,
+     * riceAllowance, phoneAllowance, clothingAllowance.</p>
+     *
+     * @param incoming the employee object being saved
+     * @throws IllegalArgumentException if a compensation field differs from the stored value
+     */
+    private void assertCompensationUnchanged(Employee incoming) {
+        Employee stored = getEmployeeById(incoming.getEmployeeID());
+        if (stored == null) {
+            // New employee on an update path — defensive: allow through.
+            return;
+        }
+
+        // Resolve allowance values for both sides, treating null as all-zeros.
+        Allowance inAllowance = incoming.getAllowanceDetails();
+        Allowance stAllowance = stored.getAllowanceDetails();
+
+        double inRice     = inAllowance  != null ? inAllowance.getRiceAllowance()     : 0.0;
+        double inPhone    = inAllowance  != null ? inAllowance.getPhoneAllowance()    : 0.0;
+        double inClothing = inAllowance  != null ? inAllowance.getClothingAllowance() : 0.0;
+        double stRice     = stAllowance  != null ? stAllowance.getRiceAllowance()     : 0.0;
+        double stPhone    = stAllowance  != null ? stAllowance.getPhoneAllowance()    : 0.0;
+        double stClothing = stAllowance  != null ? stAllowance.getClothingAllowance() : 0.0;
+
+        final double EPSILON = 1e-9;
+
+        boolean compensationChanged =
+                Math.abs(incoming.getBasicSalary()          - stored.getBasicSalary())          > EPSILON
+             || Math.abs(incoming.getHourlyRate()           - stored.getHourlyRate())           > EPSILON
+             || Math.abs(incoming.getGrossSemiMonthlyRate() - stored.getGrossSemiMonthlyRate()) > EPSILON
+             || Math.abs(inRice     - stRice)     > EPSILON
+             || Math.abs(inPhone    - stPhone)    > EPSILON
+             || Math.abs(inClothing - stClothing) > EPSILON;
+
+        if (compensationChanged) {
+            throw new IllegalArgumentException(
+                    "HR role is not permitted to modify employee compensation data");
+        }
+    }
+
     // Removes an employee from all three CSVs; returns true if found and removed.
     public boolean deleteEmployee(String employeeId) {
         boolean deleted = false;

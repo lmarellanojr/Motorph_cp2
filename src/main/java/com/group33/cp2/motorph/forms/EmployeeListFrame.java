@@ -15,11 +15,13 @@ import javax.swing.table.DefaultTableModel;
 public class EmployeeListFrame extends javax.swing.JFrame {
 
     private final EmployeeService employeeService = new EmployeeService();
+    private final boolean canEditCompensation;
     private List<Employee> employeeList;
     private String selectedEmployeeID;
     private String lastSelectedEmployeeID = "";
 
-    public EmployeeListFrame() {
+    public EmployeeListFrame(boolean canEditCompensation) {
+        this.canEditCompensation = canEditCompensation;
         initComponents();
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
         setResizable(false);
@@ -365,10 +367,16 @@ public class EmployeeListFrame extends javax.swing.JFrame {
                     "No Employee Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        // Legacy MenuFrame path — no specific role restriction; full access granted.
-        UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(selectedEmployeeID, true);
+        UpdateEmployeeFrame updateFrame = new UpdateEmployeeFrame(selectedEmployeeID, canEditCompensation);
+        // Reload the employee table after the update frame is closed (cancel or save).
+        // windowClosed fires after dispose(), so the CSV has already been written.
+        updateFrame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                loadEmployeeTable();
+            }
+        });
         updateFrame.setVisible(true);
-        loadEmployeeTable();
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
@@ -419,12 +427,14 @@ public class EmployeeListFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Employee not found.");
             return;
         }
-        NavigationManager.openViewEmployeeFrame(this, selectedEmployeeID);
+        NavigationManager.openViewEmployeeFrame(this, selectedEmployeeID, canEditCompensation);
     }//GEN-LAST:event_btnViewActionPerformed
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-        dispose();
-        NavigationManager.openNewEmployeeFrame(this);
+        // NavigationManager.openNewEmployeeFrame already disposes this frame internally.
+        // Do NOT call dispose() here — double-disposing fires a second windowClosed event
+        // and leaves a stale JFrame instance in Swing's window registry.
+        NavigationManager.openNewEmployeeFrame(this, canEditCompensation);
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed

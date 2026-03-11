@@ -291,7 +291,10 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         btnUpdate.setPreferredSize(btnSize);
 
         btnCancel.addActionListener((ActionEvent e) -> {
-            NavigationManager.openEmployeeListFrame(this);
+            // Simply close this frame. The parent frame (EmployeeListFrame or a
+            // dashboard) remains visible behind us and will refresh itself via
+            // the WindowListener it registered on this frame.
+            dispose();
         });
 
         btnUpdate.addActionListener((ActionEvent e) -> {
@@ -408,12 +411,17 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
                     new GovernmentDetails(employeeId, sss, phil, tin, pagibig)
             );
 
-            employeeService.updateEmployee(updatedEmployee);
+            // Pass the caller role so EmployeeService can enforce the compensation
+            // guard (Option C). canEditCompensation=false means the caller is HR.
+            String callerRole = canEditCompensation ? "ADMIN" : "HR";
+            employeeService.updateEmployee(updatedEmployee, callerRole);
 
             JOptionPane.showMessageDialog(this,
                     "Employee \"" + first + " " + last + "\" has been updated successfully!",
                     "Update Success", JOptionPane.INFORMATION_MESSAGE);
-            NavigationManager.openEmployeeListFrame(this);
+            // Close this frame only. The parent frame refreshes via its
+            // WindowListener.windowClosed() handler registered on this frame.
+            dispose();
         });
 
         panel.add(btnCancel);
