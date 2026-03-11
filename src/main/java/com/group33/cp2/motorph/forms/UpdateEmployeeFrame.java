@@ -7,6 +7,7 @@ import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Utility;
 import com.group33.cp2.motorph.util.ValidationUtil;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -25,10 +26,20 @@ import javax.swing.JTextField;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 // Update Employee form — loads existing data via EmployeeService, validates edits, and persists via updateEmployee().
+// The canEditCompensation flag controls whether salary and allowance fields are editable.
+// HR callers pass false; Admin and legacy callers pass true.
 public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private final EmployeeService employeeService = new EmployeeService();
     private Employee selectedEmployee;
+
+    // Controls whether the six compensation fields are editable.
+    // false = HR mode (read-only compensation); true = Admin/full-access mode.
+    private final boolean canEditCompensation;
+
+    // Visual indicator colour applied to read-only compensation fields.
+    private static final Color READ_ONLY_BG = new Color(220, 220, 220);
+    private static final Color READ_ONLY_FG = Color.DARK_GRAY;
 
     // Personal fields
     private JTextField txtEmployeeNumber;
@@ -55,7 +66,16 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtGrossSemiMonthly;
     private JTextField txtHourlyRate;
 
-    public UpdateEmployeeFrame(String employeeId) {
+    /**
+     * Opens the Update Employee form.
+     *
+     * @param employeeId        the ID of the employee to edit
+     * @param canEditCompensation true if the caller role is permitted to modify
+     *                            salary and allowance data; false for HR users
+     */
+    public UpdateEmployeeFrame(String employeeId, boolean canEditCompensation) {
+        this.canEditCompensation = canEditCompensation;
+
         setTitle("Update Employee \u2013 MotorPH Employee Management System");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(true);
@@ -83,7 +103,15 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         mainPanel.add(rightPanel);
         add(mainPanel);
 
+        // Always lock the employee ID field — it is never editable.
         disableFields();
+
+        // If the caller role cannot edit compensation, lock all six compensation
+        // fields and apply a visual indicator so the user understands they are
+        // read-only in this session.
+        if (!canEditCompensation) {
+            disableCompensationFields();
+        }
     }
 
     private void setEmployeeDetails(String employeeId) {
@@ -127,8 +155,31 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         }
     }
 
+    // Locks the employee ID field — always non-editable regardless of caller role.
     private void disableFields() {
         txtEmployeeNumber.setEditable(false);
+    }
+
+    /**
+     * Locks all six compensation fields and applies a visual indicator.
+     * Called only when canEditCompensation is false (HR mode).
+     * The fields still display the current values so HR can see them;
+     * they simply cannot be changed.
+     */
+    private void disableCompensationFields() {
+        JTextField[] compensationFields = {
+            txtBasicSalary,
+            txtRiceSubsidy,
+            txtPhoneAllowance,
+            txtClothingAllowance,
+            txtGrossSemiMonthly,
+            txtHourlyRate
+        };
+        for (JTextField field : compensationFields) {
+            field.setEditable(false);
+            field.setBackground(READ_ONLY_BG);
+            field.setForeground(READ_ONLY_FG);
+        }
     }
 
     private JPanel createEmployeeDetailsPanel() {
@@ -297,45 +348,55 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
             String tin = txtTINNumber.getText().trim();
             String pagibig = txtPagibigNumber.getText().trim();
 
-            double basicSalary = 0.0;
-            double riceSub = 0.0;
-            double phoneAllowance = 0.0;
-            double clothAllowance = 0.0;
-            double grossSemi = 0.0;
-            double hourlyRate = 0.0;
+            double basicSalary;
+            double riceSub;
+            double phoneAllowance;
+            double clothAllowance;
+            double grossSemi;
+            double hourlyRate;
 
-            try {
-                basicSalary = Double.parseDouble(txtBasicSalary.getText().trim().replace(",", ""));
-                if (!txtRiceSubsidy.getText().trim().isEmpty()) {
-                    riceSub = Double.parseDouble(txtRiceSubsidy.getText().trim().replace(",", ""));
+            if (canEditCompensation) {
+                // Admin / full-access path: read compensation values from the form fields.
+                try {
+                    basicSalary = Double.parseDouble(txtBasicSalary.getText().trim().replace(",", ""));
+                    riceSub = txtRiceSubsidy.getText().trim().isEmpty() ? 0.0
+                            : Double.parseDouble(txtRiceSubsidy.getText().trim().replace(",", ""));
+                    phoneAllowance = txtPhoneAllowance.getText().trim().isEmpty() ? 0.0
+                            : Double.parseDouble(txtPhoneAllowance.getText().trim().replace(",", ""));
+                    clothAllowance = txtClothingAllowance.getText().trim().isEmpty() ? 0.0
+                            : Double.parseDouble(txtClothingAllowance.getText().trim().replace(",", ""));
+                    grossSemi = Double.parseDouble(txtGrossSemiMonthly.getText().trim().replace(",", ""));
+                    hourlyRate = Double.parseDouble(txtHourlyRate.getText().trim().replace(",", ""));
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "Please enter valid numeric values in the compensation fields.",
+                            "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
-                if (!txtPhoneAllowance.getText().trim().isEmpty()) {
-                    phoneAllowance = Double.parseDouble(txtPhoneAllowance.getText().trim().replace(",", ""));
+                if (basicSalary <= 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "Basic Salary must be greater than zero.",
+                            "Invalid Salary", JOptionPane.WARNING_MESSAGE);
+                    txtBasicSalary.requestFocus();
+                    return;
                 }
-                if (!txtClothingAllowance.getText().trim().isEmpty()) {
-                    clothAllowance = Double.parseDouble(txtClothingAllowance.getText().trim().replace(",", ""));
+                if (hourlyRate <= 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "Hourly Rate must be greater than zero.",
+                            "Invalid Rate", JOptionPane.WARNING_MESSAGE);
+                    txtHourlyRate.requestFocus();
+                    return;
                 }
-                grossSemi = Double.parseDouble(txtGrossSemiMonthly.getText().trim().replace(",", ""));
-                hourlyRate = Double.parseDouble(txtHourlyRate.getText().trim().replace(",", ""));
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Please enter valid numeric values in the compensation fields.",
-                        "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (basicSalary <= 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Basic Salary must be greater than zero.",
-                        "Invalid Salary", JOptionPane.WARNING_MESSAGE);
-                txtBasicSalary.requestFocus();
-                return;
-            }
-            if (hourlyRate <= 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Hourly Rate must be greater than zero.",
-                        "Invalid Rate", JOptionPane.WARNING_MESSAGE);
-                txtHourlyRate.requestFocus();
-                return;
+            } else {
+                // HR path: compensation fields are locked. Re-use the values that
+                // were loaded from the employee record so the save does not alter
+                // Salary.csv or Allowance.csv.
+                basicSalary    = selectedEmployee.getBasicSalary();
+                riceSub        = selectedEmployee.getAllowanceDetails().getRiceAllowance();
+                phoneAllowance = selectedEmployee.getAllowanceDetails().getPhoneAllowance();
+                clothAllowance = selectedEmployee.getAllowanceDetails().getClothingAllowance();
+                grossSemi      = selectedEmployee.getGrossSemiMonthlyRate();
+                hourlyRate     = selectedEmployee.getHourlyRate();
             }
 
             // Delegate subtype selection to EmployeeService.createEmployee():
