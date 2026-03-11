@@ -22,8 +22,9 @@ public class PasswordResetService {
     private final EmployeeDetailsReader employeeReader = new EmployeeDetailsReader();
 
     // Resets the employee's password and marks the pending request as Approved.
+    // Returns the plaintext temporary password so the caller can display it to IT staff.
     // Throws PasswordResetException if the employee is not found or no pending request exists.
-    public boolean resetPassword(String employeeNumber, String adminName, String adminEmpNum)
+    public String resetPassword(String employeeNumber, String adminName, String adminEmpNum)
             throws IOException, PasswordResetException {
 
         String tempPassword = generateTemporaryPassword(employeeNumber);
@@ -39,7 +40,8 @@ public class PasswordResetService {
                     "Password reset request not found or already approved for: " + employeeNumber);
         }
 
-        return true;
+        // Return plaintext so the caller (ResetPasswordProcessor) can relay it to IT staff.
+        return tempPassword;
     }
 
     // Returns all password reset requests from the CSV.
