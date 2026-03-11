@@ -4,7 +4,6 @@ import com.group33.cp2.motorph.model.CompensationDetails;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.Payroll;
 import com.group33.cp2.motorph.model.PayrollStatus;
-import com.group33.cp2.motorph.dao.PayrollDAO;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.PayrollService;
 import com.group33.cp2.motorph.util.Constants;
@@ -30,12 +29,12 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 // ViewSalaryFrame — salary breakdown for a selected payroll period.
-// payrollDAO is declared as PayrollDAO interface; runtime type is PayrollService (interface polymorphism).
 public class ViewSalaryFrame extends javax.swing.JFrame {
 
     private EmployeeService employeeService = new EmployeeService();
-    // Declared as PayrollDAO interface type — any future persistence implementation can be substituted.
-    private final PayrollDAO payrollDAO = new PayrollService();
+    // In-memory payroll store for the current session; declared as the concrete service type
+    // so forms/ has no dependency on the dao/ package.
+    private final PayrollService payrollDAO = new PayrollService();
     private Employee selectedEmployee;
 
     // GUI fields for employee info (left panel)

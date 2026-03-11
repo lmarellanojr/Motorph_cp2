@@ -1,12 +1,10 @@
 package com.group33.cp2.motorph.model;
 
-import com.group33.cp2.motorph.dao.EmployeeLeaveTracker;
-import com.group33.cp2.motorph.dao.LeaveRequestReader;
 import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.service.LeaveService;
 import com.group33.cp2.motorph.service.PayrollCalculator;
 
 import java.io.IOException;
-import java.time.temporal.ChronoUnit;
 
 // HR department employee: full payroll treatment plus leave-management operations.
 // Overtime at 1.25x; all four deductions apply.
@@ -23,6 +21,19 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
             employeeService = new EmployeeService();
         }
         return employeeService;
+    }
+
+    // Lazily initialized — LeaveService is not needed at construction time.
+    // Keeping it lazy is consistent with the EmployeeService pattern and avoids
+    // unnecessary CSV I/O during object creation.
+    private LeaveService leaveService;
+
+    // Returns the shared LeaveService, creating it on first access.
+    private LeaveService getLeaveService() {
+        if (leaveService == null) {
+            leaveService = new LeaveService();
+        }
+        return leaveService;
     }
 
     public HR(String employeeID, String lastName, String firstName, String birthday,
@@ -79,41 +90,24 @@ public class HR extends Employee implements PayrollCalculable, HROperations {
         return calculateGrossSalary() - calculateDeductions();
     }
 
+    // Delegates to LeaveService so this model class has no direct dao/ imports.
+    // LeaveService owns the DAO orchestration: fetch request, approve, persist, deduct balance.
     @Override
     public boolean approveLeave(String leaveId, String remark) {
         try {
-            LeaveRequest request = LeaveRequestReader.getLeaveById(leaveId);
-            if (request == null || !"Pending".equalsIgnoreCase(request.getStatus())) {
-                return false;
-            }
-            request.approve(getFullName());
-            if (remark != null && !remark.isBlank()) {
-                request.setRemark(remark);
-            }
-            LeaveRequestReader.updateLeaveRequest(request);
-
-            long daysRequested = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1;
-            EmployeeLeaveTracker.updateLeaveBalance(
-                    request.getEmployeeID(), request.getLeaveType(), (int) daysRequested);
-            return true;
-
+            return getLeaveService().approveLeave(leaveId, getFullName(), remark);
         } catch (IOException e) {
             System.err.println("HR.approveLeave failed for leaveId=" + leaveId + ": " + e.getMessage());
             return false;
         }
     }
 
+    // Delegates to LeaveService so this model class has no direct dao/ imports.
+    // LeaveService owns the DAO orchestration: fetch request, reject, persist.
     @Override
     public boolean rejectLeave(String leaveId, String remark) {
         try {
-            LeaveRequest request = LeaveRequestReader.getLeaveById(leaveId);
-            if (request == null || !"Pending".equalsIgnoreCase(request.getStatus())) {
-                return false;
-            }
-            request.reject(getFullName(), remark);
-            LeaveRequestReader.updateLeaveRequest(request);
-            return true;
-
+            return getLeaveService().rejectLeave(leaveId, getFullName(), remark);
         } catch (IOException e) {
             System.err.println("HR.rejectLeave failed for leaveId=" + leaveId + ": " + e.getMessage());
             return false;

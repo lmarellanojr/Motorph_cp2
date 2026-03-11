@@ -188,9 +188,17 @@ public class ITDashboard extends JFrame {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // Use PasswordResetCallback lambda — decouples processor from GUI
-            processor.resetPassword(empNum, itUser.getFullName(), itUser.getEmployeeID(),
-                    this::loadPasswordResetRequests);
+            // ResetPasswordProcessor no longer shows dialogs — it stores the result message.
+            // This form is responsible for displaying the outcome dialog.
+            boolean success = processor.resetPassword(empNum, itUser.getFullName(),
+                    itUser.getEmployeeID(), this::loadPasswordResetRequests);
+
+            String msg = processor.getLastResultMessage();
+            if (success) {
+                JOptionPane.showMessageDialog(this, msg, "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }
