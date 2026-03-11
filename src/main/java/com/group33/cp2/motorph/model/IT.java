@@ -75,8 +75,12 @@ public class IT extends Employee implements PayrollCalculable, ITOperations {
     public boolean resetPassword(String employeeId) {
         try {
             PasswordResetService service = new PasswordResetService();
-            service.resetPassword(employeeId, getFullName(), getEmployeeID());
-            return true;
+            // resetPassword() now returns the plaintext temp password on success;
+            // non-null return indicates success — temp password is not used here
+            // because the GUI path (ITDashboard → ResetPasswordProcessor) is
+            // the display-capable caller. This path is used for programmatic/headless resets.
+            String tempPassword = service.resetPassword(employeeId, getFullName(), getEmployeeID());
+            return tempPassword != null;
         } catch (PasswordResetException e) {
             System.err.println("IT.resetPassword: business rule violation — " + e.getMessage());
             return false;

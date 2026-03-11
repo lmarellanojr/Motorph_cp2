@@ -19,6 +19,10 @@ public class ResetPasswordProcessor {
     // True if the most recent resetPassword() call succeeded; false otherwise.
     private boolean lastResetSuccessful = false;
 
+    // Stores the plaintext temporary password from the most recent successful reset.
+    // Empty string if the last call failed or resetPassword() has not been called yet.
+    private String lastTempPassword = "";
+
     public ResetPasswordProcessor(PasswordResetService passwordResetService) {
         this.passwordResetService = passwordResetService;
     }
@@ -34,25 +38,38 @@ public class ResetPasswordProcessor {
         return lastResetSuccessful;
     }
 
+    // Returns the plaintext temporary password from the most recent successful reset.
+    // Empty string if the last call failed or resetPassword() has not been called yet.
+    // The calling form should display this to IT staff so they can communicate it to the employee.
+    public String getLastTempPassword() {
+        return lastTempPassword;
+    }
+
     // Resets the password and invokes onSuccess if the operation succeeds.
-    // Sets lastResultMessage and lastResetSuccessful so the calling form can display
-    // an appropriate dialog without this service class importing javax.swing.
+    // Sets lastResultMessage, lastResetSuccessful, and lastTempPassword so the calling form
+    // can display an appropriate dialog (including the temp password) without this class
+    // importing javax.swing.
     // Returns true on success, false on any error.
     public boolean resetPassword(String employeeNumber, String adminName,
                                   String adminEmpNum, PasswordResetCallback onSuccess) {
         try {
-            passwordResetService.resetPassword(employeeNumber, adminName, adminEmpNum);
-            lastResultMessage = "Password reset successful for employee " + employeeNumber
-                    + ".\nA temporary password has been set. The employee must change it on next login.";
+            String tempPassword = passwordResetService.resetPassword(employeeNumber, adminName, adminEmpNum);
+            lastTempPassword = tempPassword;
+            lastResultMessage = "Password reset successful for employee " + employeeNumber + ".\n\n"
+                    + "Temporary password: " + tempPassword + "\n\n"
+                    + "Please communicate this to the employee securely.\n"
+                    + "The employee will be required to change it on next login.";
             lastResetSuccessful = true;
             onSuccess.onPasswordResetComplete();
             return true;
         } catch (PasswordResetException e) {
+            lastTempPassword = "";
             lastResultMessage = "Reset failed: " + e.getMessage();
             lastResetSuccessful = false;
             System.err.println("ResetPasswordProcessor: business rule violation — " + e.getMessage());
             return false;
         } catch (IOException e) {
+            lastTempPassword = "";
             lastResultMessage = "I/O error during reset: " + e.getMessage();
             lastResetSuccessful = false;
             System.err.println("ResetPasswordProcessor: I/O error — " + e.getMessage());
