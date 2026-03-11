@@ -1,8 +1,8 @@
 package com.group33.cp2.motorph.model;
 
-import com.group33.cp2.motorph.dao.TimeTrackerReader;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.PayrollCalculator;
+import com.group33.cp2.motorph.service.TimeTrackingService;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +23,18 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
             employeeService = new EmployeeService();
         }
         return employeeService;
+    }
+
+    // Lazily initialized — only needed when generating attendance reports.
+    // Never initialized in the constructor to remain consistent with the lazy accessor pattern.
+    private TimeTrackingService timeTrackingService;
+
+    // Returns the shared TimeTrackingService, creating it on first access.
+    private TimeTrackingService getTimeTrackingService() {
+        if (timeTrackingService == null) {
+            timeTrackingService = new TimeTrackingService();
+        }
+        return timeTrackingService;
     }
 
     public Admin(String employeeID, String lastName, String firstName, String birthday,
@@ -132,7 +144,7 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
     }
 
     private Report generatePayrollReport() {
-        List<Employee> employees = new EmployeeService().getAllEmployees();
+        List<Employee> employees = getEmployeeService().getAllEmployees();
         StringBuilder sb = new StringBuilder();
         sb.append("=== MotorPH Payroll Report ===\n");
         sb.append(String.format("%-10s %-25s %12s %12s %12s%n",
@@ -166,7 +178,7 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
     }
 
     private Report generateAttendanceReport() {
-        List<Employee> employees = new EmployeeService().getAllEmployees();
+        List<Employee> employees = getEmployeeService().getAllEmployees();
         StringBuilder sb = new StringBuilder();
         sb.append("=== MotorPH Attendance Report ===\n");
         sb.append(String.format("%-10s %-25s %10s %10s%n",
@@ -175,7 +187,8 @@ public class Admin extends Employee implements PayrollCalculable, AdminOperation
 
         for (Employee emp : employees) {
             try {
-                List<String[]> logs = TimeTrackerReader.getTimeLogs(emp.getEmployeeID());
+                // Delegates to TimeTrackingService — no direct dao/ access from this model class.
+                List<String[]> logs = getTimeTrackingService().getTimeLogs(emp.getEmployeeID());
                 double totalHours = 0;
                 int sessions = 0;
                 for (String[] row : logs) {
