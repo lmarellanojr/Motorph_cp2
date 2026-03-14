@@ -63,7 +63,7 @@ public class ForgotPasswordForm extends JFrame {
     public ForgotPasswordForm() {
         this.resetService = new PasswordResetService();
         initComponents();
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(null);
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

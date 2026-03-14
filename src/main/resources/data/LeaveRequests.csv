@@ -1,1 +1,2 @@
-leaveID,empNum,leaveType,dateRequest,startDate,endDate,reason,status,approver,dateResponded,remark
+"leaveID","empNum","leaveType","dateRequest","startDate","endDate","reason","status","approver","dateResponded","remark"
+"L001","10004","Sick Leave","2026-03-12","2026-02-24","2026-03-03","Acid Reflux","Pending","","",""

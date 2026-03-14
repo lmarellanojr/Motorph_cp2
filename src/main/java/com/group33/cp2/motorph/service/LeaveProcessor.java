@@ -9,7 +9,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
-// Validates and submits leave requests: past-date guard, date-order check, weekend check,
+// Validates and submits leave requests: leave-type date rules, date-order check, weekend check,
 // balance verification, ID generation, and CSV write.
 // NOTE: Leave balance is NOT deducted on submission — only on HR approval (HR.approveLeave).
 public class LeaveProcessor {
@@ -19,7 +19,22 @@ public class LeaveProcessor {
     public void processLeaveRequest(String employeeId, String leaveType,
             LocalDate startDate, LocalDate endDate, String reason) throws IOException {
 
-        if (startDate.isBefore(LocalDate.now()) || endDate.isBefore(LocalDate.now())) {
+        if (employeeId == null || employeeId.isBlank()) {
+            throw new IllegalArgumentException("Employee ID is required.");
+        }
+        if (leaveType == null || leaveType.isBlank()) {
+            throw new IllegalArgumentException("Leave type is required.");
+        }
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("Reason is required.");
+        }
+
+        boolean isSickLeave = "Sick Leave".equalsIgnoreCase(leaveType);
+        boolean isVacationLeave = "Vacation Leave".equalsIgnoreCase(leaveType);
+        boolean isBirthdayLeave = "Birthday Leave".equalsIgnoreCase(leaveType);
+        boolean allowsWeekendDates = isSickLeave || isVacationLeave || isBirthdayLeave;
+
+        if (!isSickLeave && (startDate.isBefore(LocalDate.now()) || endDate.isBefore(LocalDate.now()))) {
             throw new IllegalArgumentException("Leave cannot be in the past!");
         }
 
@@ -27,15 +42,20 @@ public class LeaveProcessor {
             throw new IllegalArgumentException("Start date cannot be later than end date!");
         }
 
-        if (startDate.getDayOfWeek() == DayOfWeek.SATURDAY
+        if (!allowsWeekendDates
+                && (startDate.getDayOfWeek() == DayOfWeek.SATURDAY
                 || startDate.getDayOfWeek() == DayOfWeek.SUNDAY
                 || endDate.getDayOfWeek() == DayOfWeek.SATURDAY
-                || endDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                || endDate.getDayOfWeek() == DayOfWeek.SUNDAY)) {
             throw new IllegalArgumentException("Leave cannot start or end on a weekend!");
         }
 
-        // balance check uses weekday-only count (weekends don't consume leave)
-        int leaveDuration = calculateWeekdays(startDate, endDate);
+        int leaveDuration = allowsWeekendDates
+                ? calculateCalendarDays(startDate, endDate)
+                : calculateWeekdays(startDate, endDate);
+        if (leaveDuration <= 0) {
+            throw new IllegalArgumentException("Leave request must include at least one valid leave day.");
+        }
         int balance = EmployeeLeaveTracker.getLeaveBalance(employeeId, leaveType);
         if (balance < leaveDuration) {
             throw new IllegalArgumentException("Insufficient leave balance.");
@@ -59,6 +79,14 @@ public class LeaveProcessor {
             }
         }
         return weekdays;
+    }
+
+    private int calculateCalendarDays(LocalDate startDate, LocalDate endDate) {
+        int days = 0;
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            days++;
+        }
+        return days;
     }
 
     // Returns the next leave ID in L### format (e.g. L003 becomes L004; L001 if none exist).

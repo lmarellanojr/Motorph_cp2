@@ -5,9 +5,12 @@ import com.group33.cp2.motorph.model.HR;
 import com.group33.cp2.motorph.model.LeaveRequest;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.LeaveService;
+import com.group33.cp2.motorph.util.Constants;
 import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.WindowAdapter;
@@ -31,6 +34,11 @@ import javax.swing.table.DefaultTableModel;
 
 // HR Dashboard — employee management and leave approval/rejection for HR roles.
 public class HRDashboard extends JFrame {
+
+    private static final Color HR_ORANGE = new Color(230, 136, 37);
+    private static final Color HR_ORANGE_DARK = new Color(184, 101, 20);
+    private static final Color HR_GREEN = new Color(54, 146, 88);
+    private static final Color HR_GREEN_DARK = new Color(34, 112, 63);
 
     // Domain objects
     private final HR              hrUser;
@@ -66,7 +74,7 @@ public class HRDashboard extends JFrame {
         this.leaveService    = new LeaveService();
 
         setTitle("HR Dashboard — " + hrUser.getFullName());
-        setSize(900, 650);
+        setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -93,8 +101,13 @@ public class HRDashboard extends JFrame {
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Employee Management", buildEmployeeTab());
         tabs.addTab("Leave Management", buildLeaveTab());
+        tabs.setBackground(new Color(247, 243, 238));
+        tabs.setForeground(new Color(67, 50, 24));
+        tabs.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        UITheme.styleTabs(tabs);
 
         getContentPane().setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(247, 243, 238));
         getContentPane().add(headerPanel, BorderLayout.NORTH);
         getContentPane().add(tabs, BorderLayout.CENTER);
         getContentPane().add(buildFooterPanel(), BorderLayout.SOUTH);
@@ -102,13 +115,16 @@ public class HRDashboard extends JFrame {
 
     private JPanel buildHeaderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(HR_ORANGE_DARK);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 5, 15));
 
         JLabel title = new JLabel("HR Dashboard", SwingConstants.LEFT);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        title.setFont(new Font("Lucida Grande", Font.BOLD, 20));
+        title.setForeground(Color.WHITE);
 
         JLabel welcome = new JLabel("Welcome, " + hrUser.getFullName(), SwingConstants.RIGHT);
-        welcome.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        welcome.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        welcome.setForeground(Color.WHITE);
 
         panel.add(title, BorderLayout.WEST);
         panel.add(welcome, BorderLayout.EAST);
@@ -117,7 +133,9 @@ public class HRDashboard extends JFrame {
 
     private JPanel buildFooterPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panel.setBackground(new Color(247, 243, 238));
         JButton btnLogout = new JButton("Logout");
+        UITheme.styleDangerButton(btnLogout);
         btnLogout.addActionListener(e -> {
             if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
@@ -132,8 +150,9 @@ public class HRDashboard extends JFrame {
     // =========================================================================
 
     private JPanel buildEmployeeTab() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout(12, 12));
+        panel.setBackground(new Color(247, 243, 238));
+        panel.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
 
         // Table
         employeeTableModel = new DefaultTableModel(
@@ -144,14 +163,28 @@ public class HRDashboard extends JFrame {
         employeeTable = new JTable(employeeTableModel);
         employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         employeeTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        employeeTable.setAutoCreateRowSorter(true);
 
         JScrollPane scrollPane = new JScrollPane(employeeTable);
+        styleTable(employeeTable, scrollPane);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(209, 201, 193), 1),
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
+        ));
 
         // Button bar
         JButton btnAdd    = new JButton("Add Employee");
         JButton btnEdit   = new JButton("Edit Employee");
         JButton btnDelete = new JButton("Delete Employee");
         JButton btnRefresh = new JButton("Refresh");
+        styleButton(btnAdd, false);
+        styleButton(btnEdit, false);
+        styleButton(btnDelete, false);
+        styleRefreshButton(btnRefresh);
+        btnAdd.setPreferredSize(new Dimension(170, 48));
+        btnEdit.setPreferredSize(new Dimension(170, 48));
+        btnDelete.setPreferredSize(new Dimension(195, 48));
+        btnRefresh.setPreferredSize(new Dimension(120, 48));
 
         btnAdd.addActionListener(e -> {
             NavigationManager.openNewEmployeeFrame(this, false);
@@ -204,14 +237,36 @@ public class HRDashboard extends JFrame {
             loadEmployeeTable();
         });
 
-        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        JLabel sectionTitle = new JLabel("Employee Directory");
+        sectionTitle.setFont(new Font("Noto Sans Kannada", Font.BOLD, 18));
+        sectionTitle.setForeground(new Color(66, 47, 24));
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonBar.setOpaque(false);
         buttonBar.add(btnAdd);
         buttonBar.add(btnEdit);
         buttonBar.add(btnDelete);
         buttonBar.add(btnRefresh);
 
-        panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(buttonBar, BorderLayout.SOUTH);
+        JPanel topBar = new JPanel(new BorderLayout(0, 10));
+        topBar.setOpaque(false);
+        topBar.add(sectionTitle, BorderLayout.NORTH);
+        topBar.add(buttonBar, BorderLayout.SOUTH);
+
+        JPanel tableCard = new JPanel(new BorderLayout());
+        tableCard.setBackground(Color.WHITE);
+        tableCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(209, 201, 193), 1),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+        JLabel helperText = new JLabel("Review employee records, then select a row to edit or remove.");
+        helperText.setFont(new Font("Noto Sans Kannada", Font.PLAIN, 13));
+        helperText.setForeground(new Color(111, 98, 79));
+        tableCard.add(helperText, BorderLayout.NORTH);
+        tableCard.add(scrollPane, BorderLayout.CENTER);
+
+        panel.add(topBar, BorderLayout.NORTH);
+        panel.add(tableCard, BorderLayout.CENTER);
         return panel;
     }
 
@@ -220,8 +275,9 @@ public class HRDashboard extends JFrame {
     // =========================================================================
 
     private JPanel buildLeaveTab() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout(12, 12));
+        panel.setBackground(new Color(247, 243, 238));
+        panel.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
 
         // Table
         leaveTableModel = new DefaultTableModel(
@@ -231,31 +287,126 @@ public class HRDashboard extends JFrame {
         };
         leaveTable = new JTable(leaveTableModel);
         leaveTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        leaveTable.setAutoCreateRowSorter(true);
 
         JScrollPane scrollPane = new JScrollPane(leaveTable);
+        styleTable(leaveTable, scrollPane);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(209, 201, 193), 1),
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
+        ));
 
         // Remark field
-        JPanel remarkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        remarkPanel.add(new JLabel("Remark:"));
+        JLabel sectionTitle = new JLabel("Leave Requests");
+        sectionTitle.setFont(new Font("Noto Sans Kannada", Font.BOLD, 18));
+        sectionTitle.setForeground(new Color(66, 47, 24));
+
+        JPanel remarkPanel = new JPanel(new BorderLayout(10, 0));
+        remarkPanel.setOpaque(false);
+        JLabel remarkLabel = new JLabel("Remark:");
+        remarkLabel.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        remarkLabel.setForeground(new Color(88, 58, 21));
         txtRemark = new JTextField(30);
-        remarkPanel.add(txtRemark);
+        UITheme.styleTextField(txtRemark);
+        JPanel remarkFieldRow = new JPanel(new BorderLayout(10, 0));
+        remarkFieldRow.setOpaque(false);
+        remarkFieldRow.add(remarkLabel, BorderLayout.WEST);
+        remarkFieldRow.add(txtRemark, BorderLayout.CENTER);
+        remarkPanel.add(remarkFieldRow, BorderLayout.CENTER);
 
         // Action buttons
         JButton btnApprove = new JButton("Approve");
         JButton btnReject  = new JButton("Reject");
         JButton btnRefresh = new JButton("Refresh");
+        styleButton(btnApprove, false);
+        styleButton(btnReject, false);
+        styleRefreshButton(btnRefresh);
+        btnApprove.setPreferredSize(new Dimension(128, 48));
+        btnReject.setPreferredSize(new Dimension(128, 48));
+        btnRefresh.setPreferredSize(new Dimension(120, 48));
 
         btnApprove.addActionListener(e -> handleLeaveAction(true));
         btnReject.addActionListener(e  -> handleLeaveAction(false));
         btnRefresh.addActionListener(e -> loadLeaveTable());
 
-        remarkPanel.add(btnApprove);
-        remarkPanel.add(btnReject);
-        remarkPanel.add(btnRefresh);
+        JPanel actionBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        actionBar.setOpaque(false);
+        actionBar.add(btnApprove);
+        actionBar.add(btnReject);
+        actionBar.add(btnRefresh);
+        remarkPanel.add(actionBar, BorderLayout.EAST);
 
-        panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(remarkPanel, BorderLayout.SOUTH);
+        JPanel topBar = new JPanel(new BorderLayout(0, 10));
+        topBar.setOpaque(false);
+        topBar.add(sectionTitle, BorderLayout.NORTH);
+        topBar.add(remarkPanel, BorderLayout.SOUTH);
+
+        JPanel tableCard = new JPanel(new BorderLayout());
+        tableCard.setBackground(Color.WHITE);
+        tableCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(209, 201, 193), 1),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+        JLabel helperText = new JLabel("Select a pending request, add an optional remark, then approve or reject.");
+        helperText.setFont(new Font("Noto Sans Kannada", Font.PLAIN, 13));
+        helperText.setForeground(new Color(111, 98, 79));
+        tableCard.add(helperText, BorderLayout.NORTH);
+        tableCard.add(scrollPane, BorderLayout.CENTER);
+
+        panel.add(topBar, BorderLayout.NORTH);
+        panel.add(tableCard, BorderLayout.CENTER);
         return panel;
+    }
+
+    private void styleButton(JButton button, boolean primary) {
+        button.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(184, 174, 163), 1, true),
+                BorderFactory.createEmptyBorder(9, 16, 9, 16)
+        ));
+        if (primary) {
+            button.setBackground(HR_ORANGE);
+            button.setForeground(Color.WHITE);
+        } else {
+            UITheme.styleNeutralButton(button, new Color(88, 58, 21));
+            return;
+        }
+    }
+
+    private void styleRefreshButton(JButton button) {
+        button.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBackground(HR_GREEN);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(HR_GREEN_DARK, 1, true),
+                BorderFactory.createEmptyBorder(9, 18, 9, 18)
+        ));
+    }
+
+    private void styleTable(JTable table, JScrollPane scrollPane) {
+        table.setBackground(Color.WHITE);
+        table.setForeground(new Color(34, 43, 56));
+        table.setSelectionBackground(new Color(248, 224, 190));
+        table.setSelectionForeground(new Color(90, 57, 17));
+        table.setGridColor(new Color(227, 223, 218));
+        table.setRowHeight(38);
+        table.setShowVerticalLines(false);
+        table.setShowHorizontalLines(true);
+        table.setIntercellSpacing(new java.awt.Dimension(0, 1));
+        table.setFillsViewportHeight(true);
+        table.getTableHeader().setBackground(new Color(242, 238, 232));
+        table.getTableHeader().setForeground(Color.BLACK);
+        table.getTableHeader().setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        table.getTableHeader().setReorderingAllowed(false);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
     }
 
     // =========================================================================

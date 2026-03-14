@@ -9,9 +9,12 @@ import com.group33.cp2.motorph.service.PayrollService;
 import com.group33.cp2.motorph.util.Constants;
 import com.group33.cp2.motorph.util.DialogUtil;
 import com.group33.cp2.motorph.util.Utility;
-import java.awt.Color;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.SimpleDateFormat;
@@ -19,21 +22,20 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.border.TitledBorder;
 
 // ViewSalaryFrame — salary breakdown for a selected payroll period.
 public class ViewSalaryFrame extends javax.swing.JFrame {
 
-    private EmployeeService employeeService = new EmployeeService();
-    // In-memory payroll store for the current session; declared as the concrete service type
-    // so forms/ has no dependency on the dao/ package.
+    private final EmployeeService employeeService = new EmployeeService();
     private final PayrollService payrollDAO = new PayrollService();
     private final boolean canEditCompensation;
     private Employee selectedEmployee;
@@ -74,14 +76,14 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
     private JLabel lblClothingAllowance2;
     private JLabel lblPayrollStatus;
     private JLabel lblPhoneAllowance2;
-    private JLabel dateFrom; // displays the payroll period
+    private JLabel dateFrom;
 
     public ViewSalaryFrame(String employeeId, LocalDate selectedStartDate, LocalDate selectEndDate,
                            boolean canEditCompensation) {
         this.canEditCompensation = canEditCompensation;
         setTitle("MotorPH Employee Payroll System");
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -94,59 +96,103 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
             }
         });
 
-        // Fetch employee once
         selectedEmployee = employeeService.getEmployeeById(employeeId);
 
         if (selectedEmployee == null) {
             JOptionPane.showMessageDialog(this,
                     "Employee ID " + employeeId + " was not found.",
                     "Load Error", JOptionPane.ERROR_MESSAGE);
-            NavigationManager.openEmployeeListFrame(this, canEditCompensation); // Go back if employee not found
+            NavigationManager.openEmployeeListFrame(this, canEditCompensation);
             return;
         }
 
-        // Main layout: 2 columns with spacing
-        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 30, 0));
+        JPanel contentPanel = new JPanel(new BorderLayout(0, 18));
+        UITheme.styleSurfacePanel(contentPanel);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Left panel: employee info
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.add(createEmployeeDetailsPanel());
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel header = UITheme.createPageHeader(
+                "PAYROLL REVIEW",
+                "Computed Salary Summary",
+                "Review payroll totals, deductions, and allowances for the selected coverage."
+        );
+        contentPanel.add(header, BorderLayout.NORTH);
 
-        // Right panel: all payroll computation results
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setOpaque(false);
+        GridBagConstraints rootGbc = new GridBagConstraints();
+        rootGbc.gridy = 0;
+        rootGbc.fill = GridBagConstraints.BOTH;
+        rootGbc.weighty = 1.0;
+        rootGbc.insets = new Insets(0, 0, 0, 18);
+
+        JPanel leftPanel = createEmployeeDetailsPanel();
+
         JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
-        rightPanel.setBorder(BorderFactory.createMatteBorder(20, 20, 20, 20, Color.WHITE));
-        rightPanel.add(createComputationPanel());
-        rightPanel.add(createHoursPanel());
-        rightPanel.add(createPayBreakdownPanel());
-        rightPanel.add(createDeductionsPanel());
-        rightPanel.add(createAllowancesPanel());
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setOpaque(false);
+        rightPanel.add(createSummaryHeaderPanel());
+        rightPanel.add(Box.createVerticalStrut(14));
+        rightPanel.add(createMetricCard("Hours", new String[][]{
+            {"Regular Hours:", ""},
+            {"Overtime Hours:", ""}
+        }));
+        rightPanel.add(Box.createVerticalStrut(14));
+        rightPanel.add(createMetricCard("Pay Breakdown", new String[][]{
+            {"Regular Pay:", ""},
+            {"Overtime Pay:", ""},
+            {"Gross Salary:", ""}
+        }));
+        rightPanel.add(Box.createVerticalStrut(14));
+        rightPanel.add(createMetricCard("Deductions", new String[][]{
+            {"SSS:", ""},
+            {"PhilHealth:", ""},
+            {"Pag-IBIG:", ""},
+            {"Withholding Tax:", ""}
+        }));
+        rightPanel.add(Box.createVerticalStrut(14));
+        rightPanel.add(createMetricCard("Allowances", new String[][]{
+            {"Rice:", ""},
+            {"Phone:", ""},
+            {"Clothing:", ""}
+        }));
+        rightPanel.add(Box.createVerticalStrut(14));
         rightPanel.add(createStatusPanel());
 
-        mainPanel.add(leftPanel);
-        mainPanel.add(rightPanel);
-        add(mainPanel);
+        rootGbc.gridx = 0;
+        rootGbc.weightx = 1.12;
+        mainPanel.add(leftPanel, rootGbc);
+
+        rootGbc.gridx = 1;
+        rootGbc.insets = new Insets(0, 0, 0, 0);
+        rootGbc.weightx = 0.88;
+        mainPanel.add(rightPanel, rootGbc);
+
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(UITheme.APP_BACKGROUND);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
+
+        setContentPane(contentPanel);
 
         disableFields();
-
-        // Use selectedEmployee.getEmployeeID() to set the text field
         txtEmployeeNumber.setText(selectedEmployee.getEmployeeID());
         setEmployeeDetailsTextFields();
 
-        // Format and display the selected payroll period
         if (selectedStartDate != null) {
             Date date = Date.from(selectedStartDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            SimpleDateFormat formatter = new SimpleDateFormat("MMMM yyyy");
-            String formattedDate = formatter.format(date);
-            dateFrom.setText(formattedDate);
-
+            SimpleDateFormat formatter = new SimpleDateFormat("MMMM d, yyyy");
+            String startLabel = formatter.format(date);
+            String coverageLabel = startLabel;
+            if (selectEndDate != null) {
+                Date endDate = Date.from(selectEndDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                coverageLabel = startLabel + " to " + formatter.format(endDate);
+            }
+            dateFrom.setText(coverageLabel);
             compute(selectedStartDate, selectEndDate);
         }
     }
 
-    // Disables all text fields to make them read-only.
     private void disableFields() {
         txtEmployeeNumber.setEditable(false);
         txtFirstName.setEditable(false);
@@ -169,7 +215,6 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtHourlyRate.setEditable(false);
     }
 
-    // Loads selectedEmployee data into all text fields.
     private void setEmployeeDetailsTextFields() {
         txtLastName.setText(selectedEmployee.getLastName());
         txtFirstName.setText(selectedEmployee.getFirstName());
@@ -188,240 +233,123 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         txtPhoneAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getPhoneAllowance()));
         txtClothingAllowance.setText(Utility.formatTwoDecimal(selectedEmployee.getAllowanceDetails().getClothingAllowance()));
         txtGrossSemiMonthly.setText(Utility.formatTwoDecimal(selectedEmployee.getGrossSemiMonthlyRate()));
+        txtHourlyRate.setText(Utility.formatTwoDecimal(selectedEmployee.getHourlyRate()));
     }
 
-    // Creates the form panel for displaying employee details.
     private JPanel createEmployeeDetailsPanel() {
-        JPanel panel = new JPanel(new GridLayout(19, 2, 5, 5));
-        panel.setBorder(BorderFactory.createTitledBorder("Employee Details"));
+        JPanel panel = createFormCard("Employee Details");
 
-        panel.add(new JLabel("Employee Number:"));
-        txtEmployeeNumber = new JTextField();
-        panel.add(txtEmployeeNumber);
+        txtEmployeeNumber = createReadOnlyField();
+        txtLastName = createReadOnlyField();
+        txtFirstName = createReadOnlyField();
+        txtBirthday = createReadOnlyField();
+        txtAddress = createReadOnlyField();
+        txtPhoneNumber = createReadOnlyField();
+        txtSSSNumber = createReadOnlyField();
+        txtPhilHealthNumber = createReadOnlyField();
+        txtTIN = createReadOnlyField();
+        txtPagIbigNumber = createReadOnlyField();
+        txtStatus = createReadOnlyField();
+        txtPosition = createReadOnlyField();
+        txtImmediateSupervisor = createReadOnlyField();
+        txtBasicSalary = createReadOnlyField();
+        txtRiceAllowance = createReadOnlyField();
+        txtPhoneAllowance = createReadOnlyField();
+        txtClothingAllowance = createReadOnlyField();
+        txtGrossSemiMonthly = createReadOnlyField();
+        txtHourlyRate = createReadOnlyField();
 
-        panel.add(new JLabel("Last Name:"));
-        txtLastName = new JTextField();
-        panel.add(txtLastName);
-
-        panel.add(new JLabel("First Name:"));
-        txtFirstName = new JTextField();
-        panel.add(txtFirstName);
-
-        panel.add(new JLabel("Birthday:"));
-        txtBirthday = new JTextField();
-        panel.add(txtBirthday);
-
-        panel.add(new JLabel("Address:"));
-        txtAddress = new JTextField();
-        panel.add(txtAddress);
-
-        panel.add(new JLabel("Phone Number:"));
-        txtPhoneNumber = new JTextField();
-        panel.add(txtPhoneNumber);
-
-        panel.add(new JLabel("SSS Number:"));
-        txtSSSNumber = new JTextField();
-        panel.add(txtSSSNumber);
-
-        panel.add(new JLabel("PhilHealth Number:"));
-        txtPhilHealthNumber = new JTextField();
-        panel.add(txtPhilHealthNumber);
-
-        panel.add(new JLabel("TIN Number:"));
-        txtTIN = new JTextField();
-        panel.add(txtTIN);
-
-        panel.add(new JLabel("Pag-IBIG Number:"));
-        txtPagIbigNumber = new JTextField();
-        panel.add(txtPagIbigNumber);
-
-        panel.add(new JLabel("Status:"));
-        txtStatus = new JTextField();
-        panel.add(txtStatus);
-
-        panel.add(new JLabel("Position:"));
-        txtPosition = new JTextField();
-        panel.add(txtPosition);
-
-        panel.add(new JLabel("Immediate Supervisor:"));
-        txtImmediateSupervisor = new JTextField();
-        panel.add(txtImmediateSupervisor);
-
-        panel.add(new JLabel("Basic Salary:"));
-        txtBasicSalary = new JTextField();
-        panel.add(txtBasicSalary);
-
-        panel.add(new JLabel("Rice Subsidy:"));
-        txtRiceAllowance = new JTextField();
-        panel.add(txtRiceAllowance);
-
-        panel.add(new JLabel("Phone Allowance:"));
-        txtPhoneAllowance = new JTextField();
-        panel.add(txtPhoneAllowance);
-
-        panel.add(new JLabel("Clothing Allowance:"));
-        txtClothingAllowance = new JTextField();
-        panel.add(txtClothingAllowance);
-
-        panel.add(new JLabel("Gross Semi-Monthly:"));
-        txtGrossSemiMonthly = new JTextField();
-        panel.add(txtGrossSemiMonthly);
-
-        panel.add(new JLabel("Hourly Rate:"));
-        txtHourlyRate = new JTextField();
-        panel.add(txtHourlyRate);
+        addFormRow(panel, 0, "Employee Number:", txtEmployeeNumber);
+        addFormRow(panel, 1, "Last Name:", txtLastName);
+        addFormRow(panel, 2, "First Name:", txtFirstName);
+        addFormRow(panel, 3, "Birthday:", txtBirthday);
+        addFormRow(panel, 4, "Address:", txtAddress);
+        addFormRow(panel, 5, "Phone Number:", txtPhoneNumber);
+        addFormRow(panel, 6, "SSS Number:", txtSSSNumber);
+        addFormRow(panel, 7, "PhilHealth Number:", txtPhilHealthNumber);
+        addFormRow(panel, 8, "TIN Number:", txtTIN);
+        addFormRow(panel, 9, "Pag-IBIG Number:", txtPagIbigNumber);
+        addFormRow(panel, 10, "Status:", txtStatus);
+        addFormRow(panel, 11, "Position:", txtPosition);
+        addFormRow(panel, 12, "Immediate Supervisor:", txtImmediateSupervisor);
+        addFormRow(panel, 13, "Basic Salary:", txtBasicSalary);
+        addFormRow(panel, 14, "Rice Subsidy:", txtRiceAllowance);
+        addFormRow(panel, 15, "Phone Allowance:", txtPhoneAllowance);
+        addFormRow(panel, 16, "Clothing Allowance:", txtClothingAllowance);
+        addFormRow(panel, 17, "Gross Semi-Monthly:", txtGrossSemiMonthly);
+        addFormRow(panel, 18, "Hourly Rate:", txtHourlyRate);
 
         return panel;
     }
 
-    // Creates the computation summary header panel showing pay coverage period.
-    private JPanel createComputationPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 2, 5, 5));
-        panel.setBackground(Color.white);
-
-        TitledBorder border = BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 100, 10, 10),
-                "Computed Salary Summary"
-        );
-        border.setTitleJustification(TitledBorder.CENTER);
-        border.setTitlePosition(TitledBorder.ABOVE_TOP);
-        border.setTitleFont(new Font("Arial", Font.BOLD, 16));
-        panel.setBorder(border);
-
-        panel.add(new JLabel("Pay Coverage:"));
-        dateFrom = new JLabel();
-        panel.add(dateFrom);
-
+    private JPanel createSummaryHeaderPanel() {
+        JPanel panel = createFormCard("Computed Salary Summary");
+        dateFrom = new JLabel("—");
+        styleValueLabel(dateFrom, false);
+        addLabelRow(panel, 0, "Pay Coverage:", dateFrom, false);
         return panel;
     }
 
-    // Creates the panel displaying all payroll deductions.
-    private JPanel createDeductionsPanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
-        panel.setBackground(Color.white);
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 100, 10, 10),
-                "Deductions"
-        ));
+    private JPanel createMetricCard(String title, String[][] rows) {
+        JPanel panel = createFormCard(title);
+        for (int i = 0; i < rows.length; i++) {
+            JLabel valueLabel = new JLabel("—");
+            boolean emphasize = "Gross Salary:".equals(rows[i][0]);
+            styleValueLabel(valueLabel, emphasize);
+            addLabelRow(panel, i, rows[i][0], valueLabel, emphasize);
 
-        panel.add(new JLabel("SSS:"));
-        lblSSSDeductions = new JLabel();
-        panel.add(lblSSSDeductions);
-
-        panel.add(new JLabel("PhilHealth:"));
-        lblPhilHealthDeductions = new JLabel();
-        panel.add(lblPhilHealthDeductions);
-
-        panel.add(new JLabel("Pag-IBIG:"));
-        lblPagIBIGDeductions = new JLabel();
-        panel.add(lblPagIBIGDeductions);
-
-        panel.add(new JLabel("Withholding Tax:"));
-        lblWithholdingTax = new JLabel();
-        panel.add(lblWithholdingTax);
-
+            switch (rows[i][0]) {
+                case "Regular Hours:" -> lblRegularHours = valueLabel;
+                case "Overtime Hours:" -> lblOvertimeHours = valueLabel;
+                case "Regular Pay:" -> lblRegularPay = valueLabel;
+                case "Overtime Pay:" -> lblOvertimePay = valueLabel;
+                case "Gross Salary:" -> lblGrossSalary = valueLabel;
+                case "SSS:" -> lblSSSDeductions = valueLabel;
+                case "PhilHealth:" -> lblPhilHealthDeductions = valueLabel;
+                case "Pag-IBIG:" -> lblPagIBIGDeductions = valueLabel;
+                case "Withholding Tax:" -> lblWithholdingTax = valueLabel;
+                case "Rice:" -> lblRiceAllowance2 = valueLabel;
+                case "Phone:" -> lblPhoneAllowance2 = valueLabel;
+                case "Clothing:" -> lblClothingAllowance2 = valueLabel;
+                default -> {
+                }
+            }
+        }
         return panel;
     }
 
-    // Creates the panel showing total regular and overtime hours.
-    private JPanel createHoursPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
-        panel.setBackground(Color.white);
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 100, 10, 10),
-                "Hours"
-        ));
-
-        panel.add(new JLabel("Regular Hours:"));
-        lblRegularHours = new JLabel();
-        panel.add(lblRegularHours);
-
-        panel.add(new JLabel("Overtime Hours:"));
-        lblOvertimeHours = new JLabel();
-        panel.add(lblOvertimeHours);
-
-        return panel;
-    }
-
-    // Creates the panel showing regular pay, overtime pay, and gross salary.
-    private JPanel createPayBreakdownPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
-        panel.setBackground(Color.white);
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 100, 10, 10),
-                "Pay Breakdown"
-        ));
-
-        panel.add(new JLabel("Regular Pay:"));
-        lblRegularPay = new JLabel();
-        panel.add(lblRegularPay);
-
-        panel.add(new JLabel("Overtime Pay:"));
-        lblOvertimePay = new JLabel();
-        panel.add(lblOvertimePay);
-
-        panel.add(new JLabel("Gross Salary:"));
-        lblGrossSalary = new JLabel();
-        panel.add(lblGrossSalary);
-
-        return panel;
-    }
-
-    // Creates the panel showing allowances added to salary.
-    private JPanel createAllowancesPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
-        panel.setBackground(Color.white);
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 100, 10, 10),
-                "Allowances"
-        ));
-
-        panel.add(new JLabel("Rice:"));
-        lblRiceAllowance2 = new JLabel();
-        panel.add(lblRiceAllowance2);
-
-        panel.add(new JLabel("Phone:"));
-        lblPhoneAllowance2 = new JLabel();
-        panel.add(lblPhoneAllowance2);
-
-        panel.add(new JLabel("Clothing:"));
-        lblClothingAllowance2 = new JLabel();
-        panel.add(lblClothingAllowance2);
-
-        return panel;
-    }
-
-    // Creates the panel displaying net salary, payroll status, and the Back button.
     private JPanel createStatusPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
-        panel.setBackground(Color.white);
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 100, 10, 10),
-                ""
-        ));
+        JPanel panel = createFormCard("Payroll Status");
 
-        JLabel lblNetSalaryTitle = new JLabel("Net Salary:");
-        lblNetSalaryTitle.setFont(new Font("Arial", Font.BOLD, 14));
-        panel.add(lblNetSalaryTitle);
+        lblNetSalary = new JLabel("—");
+        styleValueLabel(lblNetSalary, true);
+        lblNetSalary.setFont(lblNetSalary.getFont().deriveFont(Font.BOLD, 22f));
+        addLabelRow(panel, 0, "Net Salary:", lblNetSalary, true);
 
-        lblNetSalary = new JLabel();
-        lblNetSalary.setFont(new Font("Arial", Font.BOLD, 14));
-        panel.add(lblNetSalary);
-
-        panel.add(new JLabel("Payroll Status:"));
         lblPayrollStatus = new JLabel(PayrollStatus.PENDING.toString());
-        panel.add(lblPayrollStatus);
+        styleValueLabel(lblPayrollStatus, false);
+        addLabelRow(panel, 1, "Status:", lblPayrollStatus, false);
 
         JButton btnBack = new JButton("Back");
+        UITheme.styleSecondaryButton(btnBack);
         btnBack.addActionListener(e -> NavigationManager.openEmployeeListFrame(this, canEditCompensation));
 
-        panel.add(new JLabel(""));
-        panel.add(btnBack);
+        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        buttonRow.setOpaque(false);
+        buttonRow.add(btnBack);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(14, 8, 6, 8);
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(buttonRow, gbc);
 
         return panel;
     }
 
-    // Computes and displays payroll for the given date range, then persists via payrollDAO.
     private void compute(LocalDate selectedStartDate, LocalDate selectedEndDate) {
         Payroll payroll = new Payroll(selectedEmployee.getEmployeeID(), selectedEmployee, selectedStartDate, selectedEndDate);
 
@@ -438,35 +366,28 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
             return;
         }
 
-        // Store the processed payroll record via the PayrollDAO interface — interface polymorphism:
-        // the declared type is PayrollDAO; the runtime object is PayrollService.
         payrollDAO.create(payroll);
 
-        // Format work hours
         String regularHours = Utility.formatTwoDecimal(payroll.getTotalRegularHours());
         String overtimeHours = Utility.formatTwoDecimal(payroll.getTotalOvertimeHours());
 
         CompensationDetails compensationDetails = payroll.getCompensationDetails();
 
-        // Format pay components
         String regularPay = Utility.formatTwoDecimal(compensationDetails.getRegularPay());
         String overtimePay = Utility.formatTwoDecimal(compensationDetails.getOvertimePay());
         String grossSalary = Utility.formatTwoDecimal(compensationDetails.getGrossSalary());
 
-        // Format deductions
         String sss = Utility.formatTwoDecimal(compensationDetails.getDeductions().getSss());
         String pagibig = Utility.formatTwoDecimal(compensationDetails.getDeductions().getPagIbig());
         String philhealth = Utility.formatTwoDecimal(compensationDetails.getDeductions().getPhilHealth());
         String tax = Utility.formatTwoDecimal(compensationDetails.getDeductions().getTax());
 
-        // Format allowances
         String rice = Utility.formatTwoDecimal(compensationDetails.getAllowance().getRiceAllowance());
         String phone = Utility.formatTwoDecimal(compensationDetails.getAllowance().getPhoneAllowance());
         String clothing = Utility.formatTwoDecimal(compensationDetails.getAllowance().getClothingAllowance());
 
         String netPay = Utility.formatTwoDecimal(compensationDetails.getNetSalary());
 
-        // Update UI labels with calculated values
         lblRegularHours.setText(regularHours);
         lblOvertimeHours.setText(overtimeHours);
         lblRegularPay.setText(regularPay);
@@ -486,4 +407,59 @@ public class ViewSalaryFrame extends javax.swing.JFrame {
         lblPayrollStatus.setText(payroll.getStatus().toString());
     }
 
+    private JPanel createFormCard(String title) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        UITheme.styleCardPanel(panel, title);
+        panel.setAlignmentX(LEFT_ALIGNMENT);
+        return panel;
+    }
+
+    private JTextField createReadOnlyField() {
+        JTextField field = new JTextField();
+        UITheme.styleReadOnlyField(field);
+        return field;
+    }
+
+    private void addFormRow(JPanel panel, int row, String labelText, JTextField field) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.insets = new Insets(6, 8, 6, 12);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel label = new JLabel(labelText);
+        UITheme.styleLabel(label);
+        label.setFont(label.getFont().deriveFont(Font.BOLD));
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(6, 0, 6, 8);
+        panel.add(field, gbc);
+    }
+
+    private void addLabelRow(JPanel panel, int row, String labelText, JLabel valueLabel, boolean emphasize) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.insets = new Insets(6, 8, 6, 12);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel label = new JLabel(labelText);
+        UITheme.styleLabel(label);
+        label.setFont(label.getFont().deriveFont(emphasize ? Font.BOLD : Font.PLAIN));
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(6, 0, 6, 8);
+        panel.add(valueLabel, gbc);
+    }
+
+    private void styleValueLabel(JLabel label, boolean emphasize) {
+        label.setForeground(UITheme.INK);
+        label.setFont(new Font("SansSerif", emphasize ? Font.BOLD : Font.PLAIN, emphasize ? 18 : 14));
+    }
 }
