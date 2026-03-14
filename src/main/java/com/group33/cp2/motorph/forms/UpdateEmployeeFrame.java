@@ -4,23 +4,27 @@ import com.group33.cp2.motorph.model.Allowance;
 import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.model.GovernmentDetails;
 import com.group33.cp2.motorph.service.EmployeeService;
+import com.group33.cp2.motorph.util.Constants;
 import com.group33.cp2.motorph.util.Utility;
 import com.group33.cp2.motorph.util.ValidationUtil;
 
 import java.awt.Color;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
+import javax.swing.Box;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
@@ -45,8 +49,8 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtEmployeeNumber;
     private JTextField txtLastName;
     private JTextField txtFirstName;
-    private JTextField txtBirthday;
-    private JTextField txtAddress;
+    private DateDropdownPanel birthdayChooser;
+    private JTextArea txtAddress;
     private JTextField txtPhoneNumber;
     private JTextField txtStatus;
     private JTextField txtPosition;
@@ -65,6 +69,8 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtClothingAllowance;
     private JTextField txtGrossSemiMonthly;
     private JTextField txtHourlyRate;
+    private JButton btnCancel;
+    private JButton btnUpdate;
 
     /**
      * Opens the Update Employee form.
@@ -79,18 +85,36 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         setTitle("Update Employee \u2013 MotorPH Employee Management System");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(true);
-        setSize(900, 600);
+        setSize(1360, 920);
+        setMinimumSize(new Dimension(1280, 860));
         setLocationRelativeTo(null);
+        getContentPane().setBackground(UITheme.APP_BACKGROUND);
 
-        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 30, 0));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        UITheme.styleSurfacePanel(mainPanel);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(24, 28, 20, 28));
+
+        JPanel contentStack = new JPanel();
+        contentStack.setLayout(new BoxLayout(contentStack, BoxLayout.Y_AXIS));
+        UITheme.styleSurfacePanel(contentStack);
+
+        JPanel headerPanel = UITheme.createPageHeader(
+                "EMPLOYEE RECORDS",
+                "Update Employee Profile",
+                "Review and refine employee information with a cleaner, more premium editing surface."
+        );
+
+        JPanel formPanel = new JPanel(new GridLayout(1, 2, 30, 0));
+        UITheme.styleSurfacePanel(formPanel);
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setOpaque(false);
         leftPanel.add(createEmployeeDetailsPanel());
 
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setOpaque(false);
         rightPanel.add(createGovernmentDetailsPanel());
         rightPanel.add(createCompensationDetailsPanel());
         rightPanel.add(createUpdatePanel(employeeId));
@@ -99,8 +123,15 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         setGovernmentDetails();
         setCompensationDetails();
 
-        mainPanel.add(leftPanel);
-        mainPanel.add(rightPanel);
+        formPanel.add(leftPanel);
+        formPanel.add(rightPanel);
+
+        contentStack.add(headerPanel);
+        contentStack.add(formPanel);
+        contentStack.add(Box.createVerticalStrut(18));
+        contentStack.add(createFooterHint());
+
+        mainPanel.add(contentStack, BorderLayout.CENTER);
         add(mainPanel);
 
         // Always lock the employee ID field — it is never editable.
@@ -112,6 +143,8 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         if (!canEditCompensation) {
             disableCompensationFields();
         }
+
+        applyTheme();
     }
 
     private void setEmployeeDetails(String employeeId) {
@@ -127,7 +160,7 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
         txtLastName.setText(selectedEmployee.getLastName());
         txtFirstName.setText(selectedEmployee.getFirstName());
-        txtBirthday.setText(selectedEmployee.getBirthday());
+        birthdayChooser.setDate(selectedEmployee.getBirthday());
         txtAddress.setText(selectedEmployee.getAddress());
         txtPhoneNumber.setText(selectedEmployee.getPhoneNumber());
         txtStatus.setText(selectedEmployee.getStatus());
@@ -183,8 +216,8 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
     }
 
     private JPanel createEmployeeDetailsPanel() {
-        JPanel panel = new JPanel(new GridLayout(9, 2, 5, 5));
-        panel.setBorder(BorderFactory.createTitledBorder("Employee Details"));
+        JPanel panel = new JPanel(new GridLayout(9, 2, 10, 10));
+        UITheme.styleCardPanel(panel, "Employee Details");
 
         panel.add(new JLabel("Employee ID:"));
         txtEmployeeNumber = new JTextField();
@@ -199,12 +232,20 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         panel.add(txtFirstName);
 
         panel.add(new JLabel("Birthday: *"));
-        txtBirthday = new JTextField();
-        panel.add(txtBirthday);
+        birthdayChooser = new DateDropdownPanel();
+        birthdayChooser.setFieldWidths(80, 80, 100);
+        panel.add(birthdayChooser);
 
         panel.add(new JLabel("Address: *"));
-        txtAddress = new JTextField();
-        panel.add(txtAddress);
+        txtAddress = new JTextArea(2, 20);
+        txtAddress.setLineWrap(true);
+        txtAddress.setWrapStyleWord(true);
+        JScrollPane addressScrollPane = new JScrollPane(txtAddress);
+        addressScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        addressScrollPane.setOpaque(false);
+        addressScrollPane.getViewport().setOpaque(false);
+        addressScrollPane.setPreferredSize(new Dimension(0, 70));
+        panel.add(addressScrollPane);
 
         panel.add(new JLabel("Phone Number:"));
         txtPhoneNumber = new JTextField();
@@ -227,7 +268,7 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private JPanel createGovernmentDetailsPanel() {
         JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
-        panel.setBorder(BorderFactory.createTitledBorder("Government Details"));
+        UITheme.styleCardPanel(panel, "Government Details");
 
         panel.add(new JLabel("SSS Number: *"));
         txtSSSNumber = new JTextField();
@@ -250,7 +291,7 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private JPanel createCompensationDetailsPanel() {
         JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
-        panel.setBorder(BorderFactory.createTitledBorder("Compensation Details"));
+        UITheme.styleCardPanel(panel, "Compensation Details");
 
         panel.add(new JLabel("Basic Salary: *"));
         txtBasicSalary = new JTextField();
@@ -281,11 +322,12 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
 
     private JPanel createUpdatePanel(String employeeId) {
         JPanel panel = new JPanel(new GridLayout(1, 2, 20, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createEmptyBorder(14, 0, 0, 0));
 
         Dimension btnSize = new Dimension(120, 35);
-        JButton btnCancel = new JButton("Cancel");
-        JButton btnUpdate = new JButton("Update");
+        btnCancel = new JButton("Cancel");
+        btnUpdate = new JButton("Update");
 
         btnCancel.setPreferredSize(btnSize);
         btnUpdate.setPreferredSize(btnSize);
@@ -300,7 +342,7 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         btnUpdate.addActionListener((ActionEvent e) -> {
             if (txtFirstName.getText().trim().isEmpty()
                     || txtLastName.getText().trim().isEmpty()
-                    || txtBirthday.getText().trim().isEmpty()
+                    || !birthdayChooser.isSelectionComplete()
                     || txtAddress.getText().trim().isEmpty()
                     || txtPosition.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this,
@@ -309,23 +351,19 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
                 return;
             }
 
-            String birthdayText = txtBirthday.getText().trim();
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-            LocalDate birthdayDate;
-            try {
-                birthdayDate = LocalDate.parse(birthdayText, fmt);
-            } catch (DateTimeParseException ex) {
+            LocalDate birthdayDate = birthdayChooser.getSelectedDate();
+            if (birthdayDate == null) {
                 JOptionPane.showMessageDialog(this,
-                        "Birthday must be a valid date (MM/dd/yyyy).",
+                        "Birthday must be a valid date.",
                         "Validation Error", JOptionPane.WARNING_MESSAGE);
-                txtBirthday.requestFocus();
+                birthdayChooser.focusFirstField();
                 return;
             }
             if (birthdayDate.isAfter(LocalDate.now())) {
                 JOptionPane.showMessageDialog(this,
                         "Birthday cannot be in the future.",
                         "Validation Error", JOptionPane.WARNING_MESSAGE);
-                txtBirthday.requestFocus();
+                birthdayChooser.focusFirstField();
                 return;
             }
 
@@ -336,7 +374,7 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
             String id = txtEmployeeNumber.getText().trim();
             String last = txtLastName.getText().trim();
             String first = txtFirstName.getText().trim();
-            String birthday = txtBirthday.getText().trim();
+            String birthday = birthdayChooser.getFormattedDate();
             String address = txtAddress.getText().trim();
             String phone = txtPhoneNumber.getText().trim();
             String status = txtStatus.getText().trim();
@@ -427,6 +465,51 @@ public class UpdateEmployeeFrame extends javax.swing.JFrame {
         panel.add(btnCancel);
         panel.add(btnUpdate);
         return panel;
+    }
+
+    private JPanel createFooterHint() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        UITheme.styleSurfacePanel(panel);
+        JLabel hint = new JLabel("Tip: Compensation fields are visually locked for HR sessions.");
+        hint.setForeground(UITheme.MUTED_TEXT);
+        hint.setFont(UITheme.SUBTITLE_FONT);
+        panel.add(hint);
+        return panel;
+    }
+
+    private void applyTheme() {
+        JTextField[] textFields = {
+            txtEmployeeNumber, txtLastName, txtFirstName, txtPhoneNumber,
+            txtStatus, txtPosition, txtImmediateSupervisor, txtSSSNumber,
+            txtPhilHealthNumber, txtTINNumber, txtPagibigNumber, txtBasicSalary,
+            txtRiceSubsidy, txtPhoneAllowance, txtClothingAllowance,
+            txtGrossSemiMonthly, txtHourlyRate
+        };
+        for (JTextField field : textFields) {
+            UITheme.styleTextField(field);
+        }
+        txtAddress.setFont(UITheme.FIELD_FONT);
+        txtAddress.setForeground(UITheme.INK);
+        txtAddress.setBackground(UITheme.INPUT_BACKGROUND);
+        txtAddress.setCaretColor(UITheme.PRIMARY);
+        txtAddress.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UITheme.INPUT_BORDER, 1, true),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+
+        UITheme.styleReadOnlyField(txtEmployeeNumber);
+        UITheme.styleComponentTree(birthdayChooser);
+        UITheme.styleDangerButton(btnCancel);
+        UITheme.stylePrimaryButton(btnUpdate);
+
+        if (!canEditCompensation) {
+            UITheme.styleReadOnlyField(txtBasicSalary);
+            UITheme.styleReadOnlyField(txtRiceSubsidy);
+            UITheme.styleReadOnlyField(txtPhoneAllowance);
+            UITheme.styleReadOnlyField(txtClothingAllowance);
+            UITheme.styleReadOnlyField(txtGrossSemiMonthly);
+            UITheme.styleReadOnlyField(txtHourlyRate);
+        }
     }
 
     private boolean validateFormats() {

@@ -5,8 +5,8 @@ import com.group33.cp2.motorph.dao.LeaveRequestReader;
 import com.group33.cp2.motorph.model.LeaveRequest;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,9 +62,14 @@ public class LeaveService {
         }
         LeaveRequestReader.updateLeaveRequest(request);
 
-        long daysRequested = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1;
+        boolean usesCalendarDays = "Sick Leave".equalsIgnoreCase(request.getLeaveType())
+                || "Vacation Leave".equalsIgnoreCase(request.getLeaveType())
+                || "Birthday Leave".equalsIgnoreCase(request.getLeaveType());
+        int daysRequested = usesCalendarDays
+                ? calculateCalendarDays(request.getStartDate(), request.getEndDate())
+                : calculateWeekdays(request.getStartDate(), request.getEndDate());
         EmployeeLeaveTracker.updateLeaveBalance(
-                request.getEmployeeID(), request.getLeaveType(), (int) daysRequested);
+                request.getEmployeeID(), request.getLeaveType(), daysRequested);
         return true;
     }
 
@@ -79,5 +84,24 @@ public class LeaveService {
         request.reject(hrName, remark);
         LeaveRequestReader.updateLeaveRequest(request);
         return true;
+    }
+
+    private int calculateWeekdays(LocalDate startDate, LocalDate endDate) {
+        int weekdays = 0;
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            DayOfWeek day = date.getDayOfWeek();
+            if (day != DayOfWeek.SATURDAY && day != DayOfWeek.SUNDAY) {
+                weekdays++;
+            }
+        }
+        return weekdays;
+    }
+
+    private int calculateCalendarDays(LocalDate startDate, LocalDate endDate) {
+        int days = 0;
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            days++;
+        }
+        return days;
     }
 }

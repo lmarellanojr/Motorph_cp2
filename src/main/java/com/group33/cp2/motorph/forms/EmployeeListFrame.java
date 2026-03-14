@@ -4,12 +4,29 @@ import com.group33.cp2.motorph.model.Employee;
 import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.util.Constants;
 import com.group33.cp2.motorph.util.DialogUtil;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
+import java.util.regex.Pattern;
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.RowFilter;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 // Displays a list of all employees; supports view, add, update, delete actions.
 public class EmployeeListFrame extends javax.swing.JFrame {
@@ -18,13 +35,21 @@ public class EmployeeListFrame extends javax.swing.JFrame {
     private final boolean canEditCompensation;
     private List<Employee> employeeList;
     private String selectedEmployeeID;
-    private String lastSelectedEmployeeID = "";
+    private JTextField searchField;
+    private TableRowSorter<DefaultTableModel> employeeSorter;
 
     public EmployeeListFrame(boolean canEditCompensation) {
         this.canEditCompensation = canEditCompensation;
         initComponents();
+        configureFrame();
+        configureEmployeeTable();
+        rebuildLayout();
+        loadEmployeeTable();
+    }
+
+    private void configureFrame() {
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -36,51 +61,212 @@ public class EmployeeListFrame extends javax.swing.JFrame {
                 }
             }
         });
+    }
 
-        // Hide legacy inline update form — employee editing is done in UpdateEmployeeFrame
-        txtEmpID.setVisible(false);
-        txtLastName.setVisible(false);
-        txtFirstName.setVisible(false);
-        txtSSSNumber.setVisible(false);
-        txtPhilHealthNumber.setVisible(false);
-        txtTIN.setVisible(false);
-        txtPagIBIGNumber.setVisible(false);
-        btnSave.setVisible(false);
-        jLabel1.setVisible(false);
-        jLabel2.setVisible(false);
-        jLabel3.setVisible(false);
-        jLabel4.setVisible(false);
-        jLabel5.setVisible(false);
-        jLabel6.setVisible(false);
-        jLabel7.setVisible(false);
-
-        loadEmployeeTable();
-
-        employeesTable.addMouseListener(new java.awt.event.MouseAdapter() {
+    private void configureEmployeeTable() {
+        employeesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        employeesTable.setRowHeight(38);
+        employeesTable.setFillsViewportHeight(true);
+        employeesTable.setShowVerticalLines(false);
+        employeesTable.setShowHorizontalLines(true);
+        employeesTable.setGridColor(new Color(232, 226, 241));
+        employeesTable.setIntercellSpacing(new Dimension(0, 1));
+        employeesTable.setBackground(Color.WHITE);
+        employeesTable.setForeground(new Color(34, 41, 52));
+        employeesTable.setSelectionBackground(new Color(223, 208, 255));
+        employeesTable.setSelectionForeground(new Color(37, 21, 72));
+        employeesTable.setFont(new Font("Noto Sans Kannada", Font.PLAIN, 14));
+        employeesTable.getTableHeader().setReorderingAllowed(false);
+        employeesTable.getTableHeader().setBackground(new Color(239, 233, 250));
+        employeesTable.getTableHeader().setForeground(Color.BLACK);
+        employeesTable.getTableHeader().setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        employeesTable.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        employeesTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int selectedRow = employeesTable.getSelectedRow();
-                if (selectedRow < 0) {
-                    return;
+            public java.awt.Component getTableCellRendererComponent(javax.swing.JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component component = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+                if (isSelected) {
+                    component.setBackground(new Color(223, 208, 255));
+                    component.setForeground(new Color(37, 21, 72));
+                } else {
+                    component.setBackground(row % 2 == 0 ? Color.WHITE : new Color(250, 248, 253));
+                    component.setForeground(new Color(34, 41, 52));
                 }
-                selectedEmployeeID = employeesTable.getValueAt(selectedRow, 0).toString();
-
-                if (selectedEmployeeID != null && !selectedEmployeeID.isEmpty()) {
-                    btnUpdate.setEnabled(true);
-                    btnDelete.setEnabled(true);
-
-                    if (selectedEmployeeID.equals(lastSelectedEmployeeID)) {
-                        selectedRow = 0;
-                        selectedEmployeeID = null;
-                        employeesTable.clearSelection();
-                        btnUpdate.setEnabled(false);
-                        btnDelete.setEnabled(false);
-                    }
+                if (component instanceof JLabel label) {
+                    label.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+                    label.setHorizontalAlignment(JLabel.LEFT);
                 }
-
-                lastSelectedEmployeeID = selectedEmployeeID;
+                return component;
             }
         });
+
+        employeesTable.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+            int selectedRow = employeesTable.getSelectedRow();
+            if (selectedRow < 0) {
+                selectedEmployeeID = null;
+                btnView.setEnabled(false);
+                btnUpdate.setEnabled(false);
+                btnDelete.setEnabled(false);
+                return;
+            }
+            int modelRow = employeesTable.convertRowIndexToModel(selectedRow);
+            selectedEmployeeID = employeesTable.getModel().getValueAt(modelRow, 0).toString();
+            btnView.setEnabled(true);
+            btnUpdate.setEnabled(true);
+            btnDelete.setEnabled(true);
+        });
+
+        btnView.setEnabled(false);
+        btnUpdate.setEnabled(false);
+        btnDelete.setEnabled(false);
+    }
+
+    private void rebuildLayout() {
+        getContentPane().removeAll();
+        getContentPane().setBackground(new Color(241, 236, 247));
+        getContentPane().setLayout(new BorderLayout(0, 0));
+
+        JPanel shell = new JPanel(new BorderLayout(0, 18));
+        shell.setBackground(new Color(241, 236, 247));
+        shell.setBorder(BorderFactory.createEmptyBorder(22, 24, 22, 24));
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(103, 58, 183));
+        header.setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
+
+        JLabel titleLabel = new JLabel("Employee List");
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("Lucida Grande", Font.BOLD, 30));
+
+        JPanel headerActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        headerActions.setOpaque(false);
+        styleActionButton(btnBack, false);
+        styleActionButton(btnLogout, true);
+        btnBack.setText("Back");
+        headerActions.add(btnBack);
+        headerActions.add(btnLogout);
+
+        header.add(titleLabel, BorderLayout.WEST);
+        header.add(headerActions, BorderLayout.EAST);
+
+        JPanel contentCard = new JPanel(new BorderLayout(0, 16));
+        contentCard.setBackground(new Color(249, 247, 252));
+        contentCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(212, 202, 229), 1),
+                BorderFactory.createEmptyBorder(18, 18, 18, 18)
+        ));
+
+        JPanel toolbar = new JPanel(new BorderLayout(16, 0));
+        toolbar.setOpaque(false);
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonBar.setOpaque(false);
+        styleActionButton(btnView, false);
+        styleActionButton(btnAdd, false);
+        styleActionButton(btnUpdate, false);
+        styleActionButton(btnDelete, false);
+        buttonBar.add(btnView);
+        buttonBar.add(btnAdd);
+        buttonBar.add(btnUpdate);
+        buttonBar.add(btnDelete);
+
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        searchPanel.setOpaque(false);
+        JLabel searchLabel = new JLabel("Search:");
+        searchLabel.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        searchLabel.setForeground(new Color(67, 49, 106));
+        searchField = new JTextField(20);
+        UITheme.styleTextField(searchField);
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                applySearchFilter();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                applySearchFilter();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                applySearchFilter();
+            }
+        });
+        searchPanel.add(searchLabel);
+        searchPanel.add(searchField);
+
+        toolbar.add(buttonBar, BorderLayout.WEST);
+        toolbar.add(searchPanel, BorderLayout.EAST);
+
+        int availableWidth = Math.max(Constants.FRAME_WIDTH - 560, 720);
+        buttonBar.setPreferredSize(new Dimension(availableWidth, 52));
+
+        JScrollPane employeeScrollPane = new JScrollPane(employeesTable);
+        employeeScrollPane.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(204, 194, 222), 1, true),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+        employeeScrollPane.getViewport().setBackground(Color.WHITE);
+
+        contentCard.add(toolbar, BorderLayout.NORTH);
+        contentCard.add(employeeScrollPane, BorderLayout.CENTER);
+
+        shell.add(header, BorderLayout.NORTH);
+        shell.add(contentCard, BorderLayout.CENTER);
+        getContentPane().add(shell, BorderLayout.CENTER);
+
+        revalidate();
+        repaint();
+    }
+
+    private void styleActionButton(javax.swing.JButton button, boolean primary) {
+        button.setFocusPainted(false);
+        button.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        if ("Back".equals(button.getText()) || "Logout".equals(button.getText())) {
+            button.setPreferredSize(new Dimension(190, 52));
+        } else {
+            button.setPreferredSize(new Dimension(170, 52));
+        }
+        if (primary) {
+            if ("Logout".equals(button.getText())) {
+                button.setBackground(new Color(186, 67, 67));
+                button.setForeground(Color.WHITE);
+                button.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(145, 42, 42), 1),
+                        BorderFactory.createEmptyBorder(10, 18, 10, 18)
+                ));
+            } else {
+                button.setBackground(new Color(139, 92, 246));
+                button.setForeground(Color.WHITE);
+            }
+        } else {
+            button.setBackground(Color.WHITE);
+            button.setForeground(new Color(74, 55, 112));
+            button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(196, 182, 221), 1),
+                BorderFactory.createEmptyBorder(10, 18, 10, 18)
+            ));
+        }
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+    }
+
+    private void applySearchFilter() {
+        if (employeeSorter == null || searchField == null) {
+            return;
+        }
+        String text = searchField.getText().trim();
+        if (text.isEmpty()) {
+            employeeSorter.setRowFilter(null);
+            return;
+        }
+        employeeSorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
     }
 
     // Reloads and displays employee data in a non-editable table.
@@ -113,6 +299,9 @@ public class EmployeeListFrame extends javax.swing.JFrame {
         };
 
         employeesTable.setModel(model);
+        employeeSorter = new TableRowSorter<>(model);
+        employeesTable.setRowSorter(employeeSorter);
+        applySearchFilter();
     }
 
     @SuppressWarnings("unchecked")

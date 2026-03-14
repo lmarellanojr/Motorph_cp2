@@ -4,9 +4,12 @@ import com.group33.cp2.motorph.model.IT;
 import com.group33.cp2.motorph.model.PasswordResetRequest;
 import com.group33.cp2.motorph.service.PasswordResetService;
 import com.group33.cp2.motorph.service.ResetPasswordProcessor;
+import com.group33.cp2.motorph.util.Constants;
 import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.WindowAdapter;
@@ -29,6 +32,11 @@ import javax.swing.table.DefaultTableModel;
 // IT Dashboard — password reset request table; approval generates a temp password and updates Login.csv.
 public class ITDashboard extends JFrame {
 
+    private static final Color IT_BLUE = new Color(28, 92, 184);
+    private static final Color IT_BLUE_DARK = new Color(18, 68, 142);
+    private static final Color IT_GREEN = new Color(54, 146, 88);
+    private static final Color IT_GREEN_DARK = new Color(34, 112, 63);
+
     private final IT itUser;
     private final PasswordResetService   passwordResetService;
     private final ResetPasswordProcessor processor;
@@ -47,7 +55,7 @@ public class ITDashboard extends JFrame {
         this.processor            = new ResetPasswordProcessor(passwordResetService);
 
         setTitle("IT Dashboard — " + itUser.getFullName());
-        setSize(800, 580);
+        setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -79,22 +87,57 @@ public class ITDashboard extends JFrame {
         };
         requestTable = new JTable(requestModel);
         requestTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        requestTable.setAutoCreateRowSorter(true);
+        requestTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        JScrollPane tableScrollPane = new JScrollPane(requestTable);
+        styleTable(requestTable, tableScrollPane);
 
         // Buttons
         JButton btnReset   = new JButton("Reset Password");
         JButton btnRefresh = new JButton("Refresh");
+        styleButton(btnReset, false);
+        styleRefreshButton(btnRefresh);
+        btnReset.setPreferredSize(new Dimension(170, 48));
+        btnRefresh.setPreferredSize(new Dimension(120, 48));
 
         btnReset.addActionListener(e -> handleResetPassword());
         btnRefresh.addActionListener(e -> loadPasswordResetRequests());
 
-        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel sectionTitle = new JLabel("Password Reset Requests");
+        sectionTitle.setFont(new Font("Noto Sans Kannada", Font.BOLD, 18));
+        sectionTitle.setForeground(new Color(28, 47, 79));
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonBar.setOpaque(false);
         buttonBar.add(btnReset);
         buttonBar.add(btnRefresh);
 
-        JPanel content = new JPanel(new BorderLayout(5, 5));
-        content.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        content.add(new JScrollPane(requestTable), BorderLayout.CENTER);
-        content.add(buttonBar, BorderLayout.SOUTH);
+        JPanel topBar = new JPanel(new BorderLayout(0, 10));
+        topBar.setOpaque(false);
+        topBar.add(sectionTitle, BorderLayout.NORTH);
+        topBar.add(buttonBar, BorderLayout.SOUTH);
+
+        JPanel helperRow = new JPanel(new BorderLayout());
+        helperRow.setOpaque(false);
+        JLabel helperText = new JLabel("Review pending password resets and process requests from the selected row.");
+        helperText.setFont(new Font("Noto Sans Kannada", Font.PLAIN, 13));
+        helperText.setForeground(new Color(90, 102, 118));
+        helperRow.add(helperText, BorderLayout.WEST);
+
+        JPanel tableCard = new JPanel(new BorderLayout(0, 10));
+        tableCard.setBackground(Color.WHITE);
+        tableCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(202, 210, 219), 1),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+        tableCard.add(helperRow, BorderLayout.NORTH);
+        tableCard.add(tableScrollPane, BorderLayout.CENTER);
+
+        JPanel content = new JPanel(new BorderLayout(12, 12));
+        content.setBackground(new Color(240, 244, 249));
+        content.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
+        content.add(topBar, BorderLayout.NORTH);
+        content.add(tableCard, BorderLayout.CENTER);
 
         JPanel footer = buildFooterPanel();
 
@@ -106,19 +149,24 @@ public class ITDashboard extends JFrame {
 
     private JPanel buildHeaderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(IT_BLUE_DARK);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 5, 15));
         JLabel title = new JLabel("IT Dashboard — Password Reset Requests", SwingConstants.LEFT);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setFont(new Font("Lucida Grande", Font.BOLD, 20));
+        title.setForeground(Color.WHITE);
         JLabel welcome = new JLabel("Welcome, " + itUser.getFullName(), SwingConstants.RIGHT);
-        welcome.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        welcome.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        welcome.setForeground(Color.WHITE);
         panel.add(title, BorderLayout.WEST);
         panel.add(welcome, BorderLayout.EAST);
         return panel;
     }
 
     private JPanel buildFooterPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 10));
+        panel.setBackground(new Color(240, 244, 249));
         JButton btnLogout = new JButton("Logout");
+        UITheme.styleDangerButton(btnLogout);
         btnLogout.addActionListener(e -> {
             if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
@@ -200,5 +248,59 @@ public class ITDashboard extends JFrame {
                 JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private void styleButton(JButton button, boolean primary) {
+        button.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(184, 194, 208), 1, true),
+                BorderFactory.createEmptyBorder(9, 16, 9, 16)
+        ));
+        if (primary) {
+            button.setBackground(IT_BLUE);
+            button.setForeground(Color.WHITE);
+        } else {
+            button.setBackground(new Color(248, 250, 252));
+            button.setForeground(new Color(35, 51, 74));
+        }
+    }
+
+    private void styleRefreshButton(JButton button) {
+        button.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBackground(IT_GREEN);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(IT_GREEN_DARK, 1, true),
+                BorderFactory.createEmptyBorder(9, 18, 9, 18)
+        ));
+    }
+
+    private void styleTable(JTable table, JScrollPane scrollPane) {
+        table.setBackground(Color.WHITE);
+        table.setForeground(new Color(34, 43, 56));
+        table.setSelectionBackground(new Color(214, 228, 246));
+        table.setSelectionForeground(new Color(22, 43, 74));
+        table.setGridColor(new Color(220, 226, 234));
+        table.setRowHeight(38);
+        table.setShowVerticalLines(false);
+        table.setShowHorizontalLines(true);
+        table.setIntercellSpacing(new java.awt.Dimension(0, 1));
+        table.setFillsViewportHeight(true);
+        table.getTableHeader().setBackground(new Color(238, 242, 247));
+        table.getTableHeader().setForeground(Color.BLACK);
+        table.getTableHeader().setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        table.getTableHeader().setReorderingAllowed(false);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(214, 220, 228), 1, true),
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
+        ));
     }
 }

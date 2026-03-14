@@ -17,6 +17,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -24,10 +27,15 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 // New Employee form — collects and validates personal/government/compensation details,
-// then saves via EmployeeService. Birthday field uses JTextField (MM/dd/yyyy) — JDateChooser removed.
+// then saves via EmployeeService. Birthday uses month/day/year combo boxes.
 public class NewEmployeeFrame extends javax.swing.JFrame {
 
     private EmployeeService employeeService;
@@ -37,7 +45,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     private JTextField txtEmployeeNumber;
     private JTextField txtLastName;
     private JTextField txtFirstName;
-    private JTextField txtBirthday; // replaced JDateChooser; accepts MM/dd/yyyy text input
+    private DateDropdownPanel birthdayChooser;
     private JTextField txtAddress;
     private JTextField txtPhoneNumber;
     private JComboBox<String> cmbStatus;
@@ -68,7 +76,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         employeeService = new EmployeeService();
         initializeComponents();
         setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
-        setResizable(false);
+        setResizable(true);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
         setupLayout();
@@ -88,16 +96,14 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     // Initialises all GUI components.
     private void initializeComponents() {
         setTitle("Add Employee");
+        getContentPane().setBackground(UITheme.APP_BACKGROUND);
 
         txtEmployeeNumber = new JTextField(15);
         txtEmployeeNumber.setEditable(false);
-        txtEmployeeNumber.setBackground(getBackground().darker());
 
         txtLastName = new JTextField(20);
         txtFirstName = new JTextField(20);
-        // Plain text field replaces JDateChooser (jcalendar not available)
-        txtBirthday = new JTextField(15);
-        txtBirthday.setToolTipText("Enter birthday as MM/dd/yyyy");
+        birthdayChooser = new DateDropdownPanel();
 
         txtAddress = new JTextField(25);
         txtPhoneNumber = new JTextField(15);
@@ -126,26 +132,43 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         btnCancel = new JButton("Cancel");
         btnClear = new JButton("Clear All Fields");
 
-        Dimension buttonSize = new Dimension(130, 30);
+        Dimension buttonSize = new Dimension(170, 38);
         btnSave.setPreferredSize(buttonSize);
         btnCancel.setPreferredSize(buttonSize);
         btnClear.setPreferredSize(buttonSize);
+
+        applyTheme();
+        configureInputFormatting();
     }
 
     // Builds the two-column layout and adds it to the frame.
     private void setupLayout() {
         setLayout(new BorderLayout());
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
+        UITheme.styleSurfacePanel(mainPanel);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(24, 28, 20, 28));
+
+        JPanel contentStack = new JPanel();
+        contentStack.setLayout(new BoxLayout(contentStack, BoxLayout.Y_AXIS));
+        UITheme.styleSurfacePanel(contentStack);
+
+        JPanel headerPanel = UITheme.createPageHeader(
+                "EMPLOYEE RECORDS",
+                "Add a New Team Member",
+                "Capture personal, government, and compensation details."
+        );
 
         JPanel formPanel = new JPanel(new GridBagLayout());
+        UITheme.styleSurfacePanel(formPanel);
 
         JPanel leftColumn = createPersonalInformationPanel();
         JPanel rightTopColumn = createGovernmentDetailsPanel();
         JPanel rightBottomColumn = createCompensationDetailsPanel();
+        JPanel buttonPanel = createButtonPanel();
 
         JPanel rightColumn = new JPanel(new GridBagLayout());
+        rightColumn.setOpaque(false);
         GridBagConstraints rightGbc = new GridBagConstraints();
         rightGbc.insets = new Insets(0, 0, 10, 0);
         rightGbc.fill = GridBagConstraints.BOTH;
@@ -159,6 +182,12 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         rightGbc.gridy = 1;
         rightGbc.weighty = 0.5; // Distribute vertical space
         rightColumn.add(rightBottomColumn, rightGbc);
+
+        rightGbc.gridx = 0;
+        rightGbc.gridy = 2;
+        rightGbc.weighty = 0.0;
+        rightGbc.insets = new Insets(14, 0, 0, 0);
+        rightColumn.add(buttonPanel, rightGbc);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -174,22 +203,28 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         gbc.insets = new Insets(0, 15, 0, 0);
         formPanel.add(rightColumn, gbc);
 
-        JPanel buttonPanel = createButtonPanel();
+        contentStack.add(headerPanel);
+        contentStack.add(formPanel);
 
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        mainPanel.add(contentStack, BorderLayout.NORTH);
 
-        add(mainPanel);
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(UITheme.APP_BACKGROUND);
+
+        add(scrollPane, BorderLayout.CENTER);
         pack();
+        setSize(Math.max(getWidth(), Constants.FRAME_WIDTH), Math.max(getHeight(), Constants.FRAME_HEIGHT));
         setLocationRelativeTo(getParent());
     }
 
     private JPanel createPersonalInformationPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Personal Information"));
+        UITheme.styleCardPanel(panel, "Personal Information");
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 6, 8, 6);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
@@ -210,9 +245,9 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         panel.add(txtFirstName, gbc);
 
         gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(new JLabel("Birthday (MM/dd/yyyy):"), gbc);
+        panel.add(new JLabel("Birthday:"), gbc);
         gbc.gridx = 1;
-        panel.add(txtBirthday, gbc);
+        panel.add(birthdayChooser, gbc);
 
         gbc.gridx = 0; gbc.gridy = 4;
         panel.add(new JLabel("Address:"), gbc);
@@ -244,10 +279,10 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
     private JPanel createGovernmentDetailsPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Government Details"));
+        UITheme.styleCardPanel(panel, "Government Details");
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 6, 8, 6);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
@@ -277,10 +312,10 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
     private JPanel createCompensationDetailsPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Compensation Details"));
+        UITheme.styleCardPanel(panel, "Compensation Details");
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 6, 8, 6);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
@@ -319,12 +354,68 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     }
 
     private JPanel createButtonPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        panel.setOpaque(false);
         panel.add(btnSave);
         panel.add(btnClear);
         panel.add(btnCancel);
         return panel;
+    }
+
+    private void applyTheme() {
+        UITheme.styleTextField(txtEmployeeNumber);
+        UITheme.styleReadOnlyField(txtEmployeeNumber);
+
+        JTextField[] textFields = {
+            txtLastName, txtFirstName, txtAddress, txtPhoneNumber, txtPosition,
+            txtImmediateSupervisor, txtSSSNumber, txtPhilHealthNumber,
+            txtTINNumber, txtPagIBIGNumber, txtRiceSubsidy, txtPhoneAllowance,
+            txtClothingAllowance, txtGrossSemiMonthly, txtHourlyRate, txtBasicSalary
+        };
+        for (JTextField field : textFields) {
+            UITheme.styleTextField(field);
+        }
+
+        UITheme.styleComboBox(cmbStatus);
+        UITheme.styleComponentTree(birthdayChooser);
+
+        UITheme.stylePrimaryButton(btnSave);
+        UITheme.styleSecondaryButton(btnClear);
+        UITheme.styleDangerButton(btnCancel);
+    }
+
+    private void configureInputFormatting() {
+        applyFormattedDigitsFilter(txtPhoneNumber, 10, 3, 3, 4);
+        applyFormattedDigitsFilter(txtSSSNumber, 10, 2, 7, 1);
+        applyDigitLengthFilter(txtPagIBIGNumber, 12);
+        applyDigitLengthFilter(txtPhilHealthNumber, 12);
+        applyFormattedDigitsFilter(txtTINNumber, 12, 3, 3, 3, 3);
+        applyDecimalFilter(txtBasicSalary);
+        applyDecimalFilter(txtGrossSemiMonthly);
+        applyDecimalFilter(txtHourlyRate);
+        applyDecimalFilter(txtRiceSubsidy);
+        applyDecimalFilter(txtPhoneAllowance);
+        applyDecimalFilter(txtClothingAllowance);
+        applyLettersOnlyFilter(txtLastName);
+        applyLettersOnlyFilter(txtFirstName);
+        applyLettersOnlyFilter(txtPosition);
+        applyLettersOnlyFilter(txtImmediateSupervisor);
+    }
+
+    private void applyDigitLengthFilter(JTextField field, int maxDigits) {
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new DigitLengthFilter(maxDigits));
+    }
+
+    private void applyFormattedDigitsFilter(JTextField field, int maxDigits, int... groupSizes) {
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new FormattedDigitsFilter(maxDigits, groupSizes));
+    }
+
+    private void applyDecimalFilter(JTextField field) {
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new DecimalOnlyFilter());
+    }
+
+    private void applyLettersOnlyFilter(JTextField field) {
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new LettersOnlyFilter());
     }
 
     private void setupEventHandlers() {
@@ -373,7 +464,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
         txtLastName.setText("");
         txtFirstName.setText("");
-        txtBirthday.setText("");
+        birthdayChooser.clearSelection();
         txtAddress.setText("");
         txtPhoneNumber.setText("");
         txtPosition.setText("");
@@ -436,6 +527,11 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
             showValidationError("First Name is required.", txtFirstName);
             return false;
         }
+        if (!birthdayChooser.isSelectionComplete()) {
+            showValidationError("Birthday is required.", null);
+            birthdayChooser.focusFirstField();
+            return false;
+        }
         if (txtSSSNumber.getText().trim().isEmpty()) {
             showValidationError("SSS Number is required.", txtSSSNumber);
             return false;
@@ -492,6 +588,18 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     }
 
     private boolean validateFormats() {
+        LocalDate birthday = birthdayChooser.getSelectedDate();
+        if (birthday == null) {
+            showValidationError("Birthday must be a valid date.", null);
+            birthdayChooser.focusFirstField();
+            return false;
+        }
+        if (birthday.isAfter(LocalDate.now())) {
+            showValidationError("Birthday cannot be in the future.", null);
+            birthdayChooser.focusFirstField();
+            return false;
+        }
+
         String sss = txtSSSNumber.getText().trim();
         if (!ValidationUtil.isValidSSS(sss)) {
             showValidationError("SSS Number should follow format: XX-XXXXXXX-X (e.g., 44-4506057-3)", txtSSSNumber);
@@ -523,7 +631,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
         String employeeID = txtEmployeeNumber.getText().trim();
         String lastName = txtLastName.getText().trim();
         String firstName = txtFirstName.getText().trim();
-        String birthday = txtBirthday.getText().trim();
+        String birthday = birthdayChooser.getFormattedDate();
         String address = txtAddress.getText().trim();
         String phoneNumber = txtPhoneNumber.getText().trim();
         String status = (String) cmbStatus.getSelectedItem();
@@ -558,7 +666,7 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
     private void clearAllFields() {
         txtLastName.setText("");
         txtFirstName.setText("");
-        txtBirthday.setText("");    // Replaced dateChooserBirthday.setDate(null)
+        birthdayChooser.clearSelection();
         txtAddress.setText("");
         txtPhoneNumber.setText("");
         cmbStatus.setSelectedIndex(0);
@@ -582,6 +690,108 @@ public class NewEmployeeFrame extends javax.swing.JFrame {
 
     private void showValidationError(String message, java.awt.Component component) {
         JOptionPane.showMessageDialog(this, message, "Validation Error", JOptionPane.WARNING_MESSAGE);
-        component.requestFocus();
+        if (component != null) {
+            component.requestFocus();
+        }
+    }
+
+    private static final class DigitLengthFilter extends DocumentFilter {
+        private final int maxDigits;
+
+        private DigitLengthFilter(int maxDigits) {
+            this.maxDigits = maxDigits;
+        }
+
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+            replace(fb, offset, 0, string, attr);
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            String current = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String updated = current.substring(0, offset) + (text == null ? "" : text) + current.substring(offset + length);
+            String digitsOnly = updated.replaceAll("\\D", "");
+            if (digitsOnly.length() <= maxDigits) {
+                fb.replace(0, fb.getDocument().getLength(), digitsOnly, attrs);
+            }
+        }
+    }
+
+    private static final class FormattedDigitsFilter extends DocumentFilter {
+        private final int maxDigits;
+        private final int[] groupSizes;
+
+        private FormattedDigitsFilter(int maxDigits, int... groupSizes) {
+            this.maxDigits = maxDigits;
+            this.groupSizes = groupSizes;
+        }
+
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+            replace(fb, offset, 0, string, attr);
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            String current = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String updated = current.substring(0, offset) + (text == null ? "" : text) + current.substring(offset + length);
+            String digitsOnly = updated.replaceAll("\\D", "");
+            if (digitsOnly.length() > maxDigits) {
+                digitsOnly = digitsOnly.substring(0, maxDigits);
+            }
+            String formatted = formatDigits(digitsOnly);
+            fb.replace(0, fb.getDocument().getLength(), formatted, attrs);
+        }
+
+        private String formatDigits(String digitsOnly) {
+            StringBuilder builder = new StringBuilder();
+            int index = 0;
+            for (int groupSize : groupSizes) {
+                if (index >= digitsOnly.length()) {
+                    break;
+                }
+                int groupEnd = Math.min(index + groupSize, digitsOnly.length());
+                if (builder.length() > 0) {
+                    builder.append('-');
+                }
+                builder.append(digitsOnly, index, groupEnd);
+                index = groupEnd;
+            }
+            return builder.toString();
+        }
+    }
+
+    private static final class DecimalOnlyFilter extends DocumentFilter {
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+            replace(fb, offset, 0, string, attr);
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            String current = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String updated = current.substring(0, offset) + (text == null ? "" : text) + current.substring(offset + length);
+            if (updated.isEmpty() || updated.matches("\\d*(\\.\\d{0,2})?")) {
+                fb.replace(offset, length, text, attrs);
+            }
+        }
+    }
+
+    private static final class LettersOnlyFilter extends DocumentFilter {
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+            replace(fb, offset, 0, string, attr);
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            String current = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String replacement = text == null ? "" : text;
+            String updated = current.substring(0, offset) + replacement + current.substring(offset + length);
+            if (updated.matches("[A-Za-z .,'-]*")) {
+                fb.replace(offset, length, replacement, attrs);
+            }
+        }
     }
 }

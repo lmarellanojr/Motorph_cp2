@@ -13,11 +13,14 @@ import com.group33.cp2.motorph.service.EmployeeService;
 import com.group33.cp2.motorph.service.PayrollCalculator;
 import com.group33.cp2.motorph.service.PayrollCalculatorService;
 import com.group33.cp2.motorph.service.PayrollLogService;
+import com.group33.cp2.motorph.util.Constants;
 import com.group33.cp2.motorph.util.DialogUtil;
 
 import java.time.YearMonth;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -55,6 +58,11 @@ import javax.swing.table.TableRowSorter;
 // Finance Dashboard — payroll overview, detailed report, and payroll-by-period tabs.
 public class FinanceDashboard extends JFrame {
 
+    private static final Color FINANCE_RED = new Color(188, 50, 61);
+    private static final Color FINANCE_RED_DARK = new Color(140, 31, 40);
+    private static final Color FINANCE_GREEN = new Color(54, 146, 88);
+    private static final Color FINANCE_GREEN_DARK = new Color(34, 112, 63);
+
     private final Finance              financeUser;
     private final EmployeeService      employeeService;
     private final PayrollLogService    payrollLogService;
@@ -80,8 +88,9 @@ public class FinanceDashboard extends JFrame {
     private JLabel lblDetailNet;
 
     // Tab 3 — Payroll by Period controls
-    private JComboBox<String>   cmbPeriodMonth;
-    private JComboBox<String>   cmbPeriodYear;
+    private DateDropdownPanel   coverageStartChooser;
+    private DateDropdownPanel   coverageEndChooser;
+    private JComboBox<String>   cutoffPeriodCombo;
     private JTable              periodEmpTable;
     private DefaultTableModel   periodEmpModel;
     private TableRowSorter<DefaultTableModel> periodSorter;
@@ -114,13 +123,7 @@ public class FinanceDashboard extends JFrame {
 
     // Tab 3 — active SwingWorker; cancelled before a new one starts to prevent race conditions
     private SwingWorker<?, ?> currentPeriodWorker;
-
-    // Month name labels for the combo box — index 0 is the placeholder
-    private static final String[] MONTH_NAMES = {
-        "Select Month",
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    };
+    private boolean updatingCutoffSelection;
 
     public FinanceDashboard(Finance financeUser, EmployeeService employeeService) {
         this.financeUser      = financeUser;
@@ -128,7 +131,7 @@ public class FinanceDashboard extends JFrame {
         this.payrollLogService = new PayrollLogService();
 
         setTitle("Finance Dashboard — " + financeUser.getFullName());
-        setSize(1100, 700);
+        setSize(Constants.FRAME_WIDTH, Constants.FRAME_HEIGHT);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -157,8 +160,13 @@ public class FinanceDashboard extends JFrame {
         tabs.addTab("Payroll Overview",    buildOverviewTab());
         tabs.addTab("Detailed Report",     buildDetailedReportTab());
         tabs.addTab("Payroll by Period",   buildPayrollByPeriodTab());
+        tabs.setBackground(new Color(248, 242, 243));
+        tabs.setForeground(new Color(86, 33, 40));
+        tabs.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        UITheme.styleTabs(tabs);
 
         getContentPane().setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(248, 242, 243));
         getContentPane().add(header,              BorderLayout.NORTH);
         getContentPane().add(tabs,                BorderLayout.CENTER);
         getContentPane().add(buildFooterPanel(),  BorderLayout.SOUTH);
@@ -166,11 +174,14 @@ public class FinanceDashboard extends JFrame {
 
     private JPanel buildHeaderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(FINANCE_RED_DARK);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 5, 15));
         JLabel title = new JLabel("Finance Dashboard", SwingConstants.LEFT);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        title.setFont(new Font("Lucida Grande", Font.BOLD, 20));
+        title.setForeground(Color.WHITE);
         JLabel welcome = new JLabel("Welcome, " + financeUser.getFullName(), SwingConstants.RIGHT);
-        welcome.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        welcome.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        welcome.setForeground(Color.WHITE);
         panel.add(title,   BorderLayout.WEST);
         panel.add(welcome, BorderLayout.EAST);
         return panel;
@@ -178,7 +189,9 @@ public class FinanceDashboard extends JFrame {
 
     private JPanel buildFooterPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panel.setBackground(new Color(248, 242, 243));
         JButton btnLogout = new JButton("Logout");
+        UITheme.styleDangerButton(btnLogout);
         btnLogout.addActionListener(e -> {
             if (DialogUtil.confirmLogout(this)) {
                 NavigationManager.openLoginFrame(this);
@@ -193,8 +206,9 @@ public class FinanceDashboard extends JFrame {
     // =========================================================================
 
     private JPanel buildOverviewTab() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(new Color(248, 242, 243));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         payrollModel = new DefaultTableModel(
                 new String[]{
@@ -206,16 +220,38 @@ public class FinanceDashboard extends JFrame {
         };
         payrollTable = new JTable(payrollModel);
         payrollTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        payrollTable.setFillsViewportHeight(true);
         payrollTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        JScrollPane payrollScroll = new JScrollPane(payrollTable);
+        styleTable(payrollTable, payrollScroll);
 
         JButton btnRefresh = new JButton("Refresh");
+        styleRefreshButton(btnRefresh);
         btnRefresh.addActionListener(e -> loadPayrollTable());
 
-        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel sectionTitle = new JLabel("Payroll Overview");
+        sectionTitle.setFont(new Font("Noto Sans Kannada", Font.BOLD, 18));
+        sectionTitle.setForeground(new Color(86, 33, 40));
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        buttonBar.setOpaque(false);
         buttonBar.add(btnRefresh);
 
-        panel.add(new JScrollPane(payrollTable), BorderLayout.CENTER);
-        panel.add(buttonBar,                     BorderLayout.SOUTH);
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setOpaque(false);
+        topBar.add(sectionTitle, BorderLayout.WEST);
+        topBar.add(buttonBar, BorderLayout.EAST);
+
+        JPanel tableCard = new JPanel(new BorderLayout());
+        tableCard.setBackground(Color.WHITE);
+        tableCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        tableCard.add(payrollScroll, BorderLayout.CENTER);
+
+        panel.add(topBar, BorderLayout.NORTH);
+        panel.add(tableCard, BorderLayout.CENTER);
         return panel;
     }
 
@@ -240,8 +276,9 @@ public class FinanceDashboard extends JFrame {
     // =========================================================================
 
     private JPanel buildDetailedReportTab() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(new Color(248, 242, 243));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         detailModel = new DefaultTableModel(
                 new String[]{
@@ -255,30 +292,57 @@ public class FinanceDashboard extends JFrame {
         };
         detailTable = new JTable(detailModel);
         detailTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        detailTable.setFillsViewportHeight(true);
         detailTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         JScrollPane tableScroll = new JScrollPane(detailTable);
         tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        styleTable(detailTable, tableScroll);
+        configureDetailedReportColumns();
 
         reportTextArea = new JTextArea(8, 80);
         reportTextArea.setEditable(false);
-        reportTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        reportTextArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
         reportTextArea.setText("Click 'Generate Report' to produce a payroll summary.");
+        reportTextArea.setBackground(Color.WHITE);
+        reportTextArea.setForeground(new Color(48, 36, 38));
+        reportTextArea.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
         JScrollPane textScroll = new JScrollPane(reportTextArea);
-        textScroll.setBorder(BorderFactory.createTitledBorder("Payroll Summary Report"));
+        textScroll.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+        textScroll.getViewport().setBackground(Color.WHITE);
 
         JButton btnRefresh  = new JButton("Refresh Table");
         JButton btnGenerate = new JButton("Generate Report");
+        styleRefreshButton(btnRefresh);
+        styleButton(btnGenerate, true);
         btnRefresh.addActionListener(e  -> loadDetailTable());
         btnGenerate.addActionListener(e -> generateDetailedReport());
 
-        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel sectionTitle = new JLabel("Detailed Payroll Report");
+        sectionTitle.setFont(new Font("Noto Sans Kannada", Font.BOLD, 18));
+        sectionTitle.setForeground(new Color(86, 33, 40));
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonBar.setOpaque(false);
         buttonBar.add(btnRefresh);
         buttonBar.add(btnGenerate);
 
-        JPanel topSection = new JPanel(new BorderLayout(0, 5));
-        topSection.add(tableScroll, BorderLayout.CENTER);
-        topSection.add(buttonBar,   BorderLayout.SOUTH);
+        JPanel tableHeader = new JPanel(new BorderLayout());
+        tableHeader.setOpaque(false);
+        tableHeader.add(sectionTitle, BorderLayout.WEST);
+        tableHeader.add(buttonBar, BorderLayout.EAST);
+
+        JPanel tableCard = new JPanel(new BorderLayout(0, 10));
+        tableCard.setBackground(Color.WHITE);
+        tableCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        tableCard.add(tableHeader, BorderLayout.NORTH);
+        tableCard.add(tableScroll, BorderLayout.CENTER);
 
         lblDetailEmpName  = new JLabel("—", SwingConstants.CENTER);
         lblDetailEmpName.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -298,7 +362,14 @@ public class FinanceDashboard extends JFrame {
         addLabelValuePair(detailGrid, "Total Deductions:", lblDetailTotalDed, "Net Salary:",     lblDetailNet);
 
         JPanel detailPanel = new JPanel(new BorderLayout(0, 5));
-        detailPanel.setBorder(BorderFactory.createTitledBorder("Selected Employee Payslip"));
+        detailPanel.setBackground(Color.WHITE);
+        detailPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                        "Selected Employee Payslip"
+                ),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
         detailPanel.add(lblDetailEmpName, BorderLayout.NORTH);
         detailPanel.add(detailGrid,       BorderLayout.CENTER);
 
@@ -313,13 +384,34 @@ public class FinanceDashboard extends JFrame {
             }
         });
 
-        JSplitPane southSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, textScroll, detailPanel);
-        southSplit.setDividerLocation(160);
-        southSplit.setResizeWeight(0.5);
+        JPanel reportCard = new JPanel(new BorderLayout(0, 8));
+        reportCard.setBackground(Color.WHITE);
+        reportCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        JLabel reportTitle = new JLabel("Payroll Summary Report");
+        reportTitle.setFont(new Font("Noto Sans Kannada", Font.BOLD, 16));
+        reportTitle.setForeground(new Color(86, 33, 40));
+        reportCard.add(reportTitle, BorderLayout.NORTH);
+        reportCard.add(textScroll, BorderLayout.CENTER);
 
-        panel.add(topSection, BorderLayout.CENTER);
+        JSplitPane southSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, reportCard, detailPanel);
+        southSplit.setDividerLocation(210);
+        southSplit.setResizeWeight(0.5);
+        southSplit.setBorder(BorderFactory.createEmptyBorder());
+
+        panel.add(tableCard, BorderLayout.CENTER);
         panel.add(southSplit, BorderLayout.SOUTH);
         return panel;
+    }
+
+    private void configureDetailedReportColumns() {
+        int[] widths = {90, 220, 120, 120, 95, 120, 105, 135, 140, 120};
+        for (int i = 0; i < widths.length && i < detailTable.getColumnModel().getColumnCount(); i++) {
+            detailTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+            detailTable.getColumnModel().getColumn(i).setMinWidth(widths[i]);
+        }
     }
 
     // Adds a bold-name / value pair (×2) to a 4-column grid panel.
@@ -488,30 +580,92 @@ public class FinanceDashboard extends JFrame {
     // =========================================================================
 
     private JPanel buildPayrollByPeriodTab() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(new Color(248, 242, 243));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
-        // --- Top control bar: month/year selectors + Compute + Refresh Log buttons ---
-        cmbPeriodMonth = new JComboBox<>(MONTH_NAMES);
-        cmbPeriodYear  = new JComboBox<>(buildYearItems());
+        // --- Top control bar: coverage selectors + Compute + Refresh Log buttons ---
+        coverageStartChooser = new DateDropdownPanel();
+        coverageEndChooser = new DateDropdownPanel();
+        cutoffPeriodCombo = new JComboBox<>(new String[]{
+            "Custom Range",
+            "First Cutoff (1-15)",
+            "Second Cutoff (16-End)"
+        });
+        cutoffPeriodCombo.addActionListener(e -> applyCutoffSelection());
+        UITheme.styleComboBox(cutoffPeriodCombo);
+        cutoffPeriodCombo.setPreferredSize(new java.awt.Dimension(190, 38));
+        coverageStartChooser.setFieldWidths(82, 78, 96);
+        coverageEndChooser.setFieldWidths(82, 78, 96);
 
         JButton btnComputePeriod = new JButton("Compute Period");
+        styleButton(btnComputePeriod, true);
         btnComputePeriod.addActionListener(e -> runBatchPayrollForPeriod());
 
         JButton btnRefreshLog = new JButton("Refresh Log");
+        styleRefreshButton(btnRefreshLog);
         btnRefreshLog.addActionListener(e -> loadPeriodLogTable());
 
-        JPanel controlBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
-        controlBar.add(new JLabel("Month:"));
-        controlBar.add(cmbPeriodMonth);
-        controlBar.add(new JLabel("Year:"));
-        controlBar.add(cmbPeriodYear);
-        controlBar.add(btnComputePeriod);
-        controlBar.add(btnRefreshLog);
+        JLabel sectionTitle = new JLabel("Payroll by Period");
+        sectionTitle.setFont(new Font("Noto Sans Kannada", Font.BOLD, 18));
+        sectionTitle.setForeground(new Color(86, 33, 40));
 
-        // Wire combo changes to refresh the log table for the newly selected period
-        cmbPeriodMonth.addActionListener(e -> loadPeriodLogTable());
-        cmbPeriodYear.addActionListener(e -> loadPeriodLogTable());
+        JPanel controlGrid = new JPanel(new GridBagLayout());
+        controlGrid.setOpaque(false);
+        GridBagConstraints controlGbc = new GridBagConstraints();
+        controlGbc.insets = new Insets(6, 0, 6, 12);
+        controlGbc.anchor = GridBagConstraints.WEST;
+        controlGbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel cutoffLabel = new JLabel("Cutoff Period:");
+        JLabel startLabel = new JLabel("Coverage Start:");
+        JLabel endLabel = new JLabel("Coverage End:");
+        cutoffLabel.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        startLabel.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        endLabel.setFont(new Font("Noto Sans Kannada", Font.BOLD, 14));
+        cutoffLabel.setForeground(new Color(62, 35, 39));
+        startLabel.setForeground(new Color(62, 35, 39));
+        endLabel.setForeground(new Color(62, 35, 39));
+
+        controlGbc.gridx = 0;
+        controlGbc.gridy = 0;
+        controlGrid.add(cutoffLabel, controlGbc);
+
+        controlGbc.gridx = 1;
+        controlGbc.weightx = 0.32;
+        controlGrid.add(cutoffPeriodCombo, controlGbc);
+
+        controlGbc.gridx = 2;
+        controlGbc.weightx = 0;
+        controlGrid.add(startLabel, controlGbc);
+
+        controlGbc.gridx = 3;
+        controlGbc.weightx = 0.34;
+        controlGrid.add(coverageStartChooser, controlGbc);
+
+        controlGbc.gridx = 4;
+        controlGbc.weightx = 0;
+        controlGrid.add(endLabel, controlGbc);
+
+        controlGbc.gridx = 5;
+        controlGbc.weightx = 0.34;
+        controlGbc.insets = new Insets(6, 0, 6, 0);
+        controlGrid.add(coverageEndChooser, controlGbc);
+
+        JPanel buttonBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonBar.setOpaque(false);
+        buttonBar.add(btnRefreshLog);
+        buttonBar.add(btnComputePeriod);
+
+        JPanel controlCard = new JPanel(new BorderLayout(0, 10));
+        controlCard.setBackground(Color.WHITE);
+        controlCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+        controlCard.add(sectionTitle, BorderLayout.NORTH);
+        controlCard.add(controlGrid, BorderLayout.CENTER);
+        controlCard.add(buttonBar, BorderLayout.SOUTH);
 
         // --- Left panel: searchable employee list ---
         periodEmpModel = new DefaultTableModel(new String[]{"Emp #", "Name"}, 0) {
@@ -521,25 +675,39 @@ public class FinanceDashboard extends JFrame {
         periodEmpTable = new JTable(periodEmpModel);
         periodEmpTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         periodEmpTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        JScrollPane periodEmpScroll = new JScrollPane(periodEmpTable);
+        styleTable(periodEmpTable, periodEmpScroll);
 
         periodSorter = new TableRowSorter<>(periodEmpModel);
         periodEmpTable.setRowSorter(periodSorter);
 
         txtPeriodSearch = new JTextField(15);
+        UITheme.styleTextField(txtPeriodSearch);
         txtPeriodSearch.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { filterPeriodTable(); }
             @Override public void removeUpdate(DocumentEvent e) { filterPeriodTable(); }
             @Override public void changedUpdate(DocumentEvent e) { filterPeriodTable(); }
         });
 
-        JPanel searchBar = new JPanel(new BorderLayout(4, 0));
-        searchBar.add(new JLabel("Search: "), BorderLayout.WEST);
+        JPanel searchBar = new JPanel(new BorderLayout(6, 0));
+        searchBar.setOpaque(false);
+        JLabel searchLabel = new JLabel("Search:");
+        searchLabel.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        searchLabel.setForeground(new Color(62, 35, 39));
+        searchBar.add(searchLabel, BorderLayout.WEST);
         searchBar.add(txtPeriodSearch, BorderLayout.CENTER);
 
         JPanel leftPanel = new JPanel(new BorderLayout(0, 4));
-        leftPanel.setBorder(BorderFactory.createTitledBorder("Employees"));
+        leftPanel.setBackground(Color.WHITE);
+        leftPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                        "Employees"
+                ),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
         leftPanel.add(searchBar,                        BorderLayout.NORTH);
-        leftPanel.add(new JScrollPane(periodEmpTable),  BorderLayout.CENTER);
+        leftPanel.add(periodEmpScroll,  BorderLayout.CENTER);
 
         // Wire row-selection — cancels prior worker before starting a new one
         periodEmpTable.getSelectionModel().addListSelectionListener(e -> {
@@ -549,6 +717,7 @@ public class FinanceDashboard extends JFrame {
                     int modelRow = periodEmpTable.convertRowIndexToModel(viewRow);
                     String empId = (String) periodEmpModel.getValueAt(modelRow, 0);
                     showPeriodPayslip(empId);
+                    loadPeriodLogTable();
                 }
             }
         });
@@ -558,8 +727,9 @@ public class FinanceDashboard extends JFrame {
 
         // --- Split: left list | right detail ---
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        splitPane.setDividerLocation(230);
-        splitPane.setResizeWeight(0.25);
+        splitPane.setDividerLocation(360);
+        splitPane.setResizeWeight(0.32);
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
 
         // --- Bottom panel: payroll log table ---
         periodLogModel = new DefaultTableModel(
@@ -572,22 +742,85 @@ public class FinanceDashboard extends JFrame {
         periodLogTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
         JScrollPane logScroll = new JScrollPane(periodLogTable);
+        styleTable(periodLogTable, logScroll);
         logScroll.setPreferredSize(new java.awt.Dimension(0, 150));
 
         periodLogPanel = new JPanel(new BorderLayout());
-        periodLogPanel.setBorder(BorderFactory.createTitledBorder("Payroll Log — Select a period above"));
+        periodLogPanel.setBackground(Color.WHITE);
+        periodLogPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                        "Payroll Log — Select coverage and employee above"
+                ),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
         periodLogPanel.add(logScroll, BorderLayout.CENTER);
 
-        panel.add(controlBar,    BorderLayout.NORTH);
+        // Wire coverage updates only after all dependent components are ready.
+        wireCoverageChooser(coverageStartChooser);
+        wireCoverageChooser(coverageEndChooser);
+        applyDefaultCutoff();
+
+        panel.add(controlCard,   BorderLayout.NORTH);
         panel.add(splitPane,     BorderLayout.CENTER);
         panel.add(periodLogPanel, BorderLayout.SOUTH);
         return panel;
     }
 
+    private void styleButton(JButton button, boolean primary) {
+        button.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 16));
+        if (primary) {
+            button.setBackground(FINANCE_RED);
+            button.setForeground(Color.WHITE);
+        } else {
+            UITheme.styleNeutralButton(button, new Color(92, 31, 38));
+            return;
+        }
+    }
+
+    private void styleRefreshButton(JButton button) {
+        button.setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBackground(FINANCE_GREEN);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(FINANCE_GREEN_DARK, 1, true),
+                BorderFactory.createEmptyBorder(9, 18, 9, 18)
+        ));
+    }
+
+    private void styleTable(JTable table, JScrollPane scrollPane) {
+        table.setBackground(Color.WHITE);
+        table.setForeground(new Color(41, 34, 36));
+        table.setSelectionBackground(new Color(245, 216, 220));
+        table.setSelectionForeground(new Color(92, 31, 38));
+        table.setGridColor(new Color(236, 230, 231));
+        table.setRowHeight(36);
+        table.setShowVerticalLines(false);
+        table.setShowHorizontalLines(true);
+        table.setIntercellSpacing(new Dimension(0, 1));
+        table.getTableHeader().setBackground(new Color(239, 236, 237));
+        table.getTableHeader().setForeground(Color.BLACK);
+        table.getTableHeader().setFont(new Font("Noto Sans Kannada", Font.BOLD, 13));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        table.getTableHeader().setReorderingAllowed(false);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
+        ));
+    }
+
     // Builds the right-panel label grid for the "Payroll by Period" tab.
     private JPanel buildPeriodDetailPanel() {
         // Initialise all display labels
-        lblPeriodStatus       = new JLabel("Select a period and employee to view payslip");
+        lblPeriodStatus       = new JLabel("Select a coverage and employee to view payslip");
         lblPeriodEmpNum       = new JLabel("—");
         lblPeriodName         = new JLabel("—");
         lblPeriodSssNum       = new JLabel("—");
@@ -605,10 +838,29 @@ public class FinanceDashboard extends JFrame {
         lblPeriodTotalDed     = new JLabel("—");
         lblPeriodGross        = new JLabel("—");
         lblPeriodNet          = new JLabel("—");
+        stylePeriodValueLabel(lblPeriodStatus);
+        stylePeriodValueLabel(lblPeriodEmpNum);
+        stylePeriodValueLabel(lblPeriodName);
+        stylePeriodValueLabel(lblPeriodSssNum);
+        stylePeriodValueLabel(lblPeriodPhilHealthNum);
+        stylePeriodValueLabel(lblPeriodTin);
+        stylePeriodValueLabel(lblPeriodPagibigNum);
+        stylePeriodValueLabel(lblPeriodRice);
+        stylePeriodValueLabel(lblPeriodPhone);
+        stylePeriodValueLabel(lblPeriodClothing);
+        stylePeriodValueLabel(lblPeriodTotalAllow);
+        stylePeriodValueLabel(lblPeriodSss);
+        stylePeriodValueLabel(lblPeriodPhilHealth);
+        stylePeriodValueLabel(lblPeriodPagibig);
+        stylePeriodValueLabel(lblPeriodTax);
+        stylePeriodValueLabel(lblPeriodTotalDed);
+        stylePeriodValueLabel(lblPeriodGross);
+        stylePeriodValueLabel(lblPeriodNet);
 
         JPanel grid = new JPanel(new GridBagLayout());
+        grid.setOpaque(false);
         GridBagConstraints gc = new GridBagConstraints();
-        gc.insets = new Insets(3, 8, 3, 8);
+        gc.insets = new Insets(6, 10, 6, 10);
         gc.anchor = GridBagConstraints.WEST;
         gc.fill   = GridBagConstraints.HORIZONTAL;
         int row = 0;
@@ -627,6 +879,7 @@ public class FinanceDashboard extends JFrame {
         gc.gridx = 0; gc.gridy = row++; gc.gridwidth = 4;
         JLabel sepEarnings = new JLabel("— Earnings —");
         sepEarnings.setFont(sepEarnings.getFont().deriveFont(Font.BOLD));
+        sepEarnings.setForeground(new Color(86, 33, 40));
         grid.add(sepEarnings, gc);
         gc.gridwidth = 1;
 
@@ -637,6 +890,7 @@ public class FinanceDashboard extends JFrame {
         gc.gridx = 0; gc.gridy = row++; gc.gridwidth = 4;
         JLabel sepDeductions = new JLabel("— Deductions —");
         sepDeductions.setFont(sepDeductions.getFont().deriveFont(Font.BOLD));
+        sepDeductions.setForeground(new Color(86, 33, 40));
         grid.add(sepDeductions, gc);
         gc.gridwidth = 1;
 
@@ -648,6 +902,7 @@ public class FinanceDashboard extends JFrame {
         gc.gridx = 0; gc.gridy = row++; gc.gridwidth = 4;
         JLabel sepSummary = new JLabel("— Summary —");
         sepSummary.setFont(sepSummary.getFont().deriveFont(Font.BOLD));
+        sepSummary.setForeground(new Color(86, 33, 40));
         grid.add(sepSummary, gc);
         gc.gridwidth = 1;
 
@@ -658,9 +913,23 @@ public class FinanceDashboard extends JFrame {
         gc.fill = GridBagConstraints.BOTH;
         grid.add(new JPanel(), gc);
 
+        JScrollPane detailScrollPane = new JScrollPane(grid);
+        detailScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        detailScrollPane.getViewport().setBackground(Color.WHITE);
+        detailScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        detailScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        detailScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
         JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setBorder(BorderFactory.createTitledBorder("Payslip Detail"));
-        wrapper.add(grid, BorderLayout.CENTER);
+        wrapper.setBackground(Color.WHITE);
+        wrapper.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(new Color(214, 206, 208), 1, true),
+                        "Payslip Detail"
+                ),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        wrapper.add(detailScrollPane, BorderLayout.CENTER);
         return wrapper;
     }
 
@@ -672,6 +941,7 @@ public class FinanceDashboard extends JFrame {
         gc.gridx = 0; gc.gridy = row;
         JLabel lbl1 = new JLabel(leftLabel);
         lbl1.setFont(lbl1.getFont().deriveFont(Font.BOLD));
+        lbl1.setForeground(new Color(62, 35, 39));
         panel.add(lbl1, gc);
 
         gc.weightx = 0.4;
@@ -682,11 +952,17 @@ public class FinanceDashboard extends JFrame {
         gc.gridx = 2;
         JLabel lbl2 = new JLabel(rightLabel);
         lbl2.setFont(lbl2.getFont().deriveFont(Font.BOLD));
+        lbl2.setForeground(new Color(62, 35, 39));
         panel.add(lbl2, gc);
 
         gc.weightx = 0.4;
         gc.gridx = 3;
         panel.add(rightValue, gc);
+    }
+
+    private void stylePeriodValueLabel(JLabel label) {
+        label.setFont(new Font("Noto Sans Kannada", Font.PLAIN, 14));
+        label.setForeground(new Color(48, 36, 38));
     }
 
     // Populates the left-panel employee table with all employees from EmployeeService.
@@ -710,27 +986,33 @@ public class FinanceDashboard extends JFrame {
     // Populates the bottom log table with stored payroll runs for the selected period.
     // Shows a placeholder row when no period is selected or no logs exist for the period.
     private void loadPeriodLogTable() {
-        int monthIndex = cmbPeriodMonth.getSelectedIndex();
-        int yearIndex  = cmbPeriodYear.getSelectedIndex();
-        boolean periodSelected = (monthIndex > 0 && yearIndex > 0);
-
         periodLogModel.setRowCount(0);
 
-        if (!periodSelected) {
-            periodLogPanel.setBorder(BorderFactory.createTitledBorder("Payroll Log — Select a period above"));
-            periodLogModel.addRow(new Object[]{"—", "Select a month and year above", "", "", "", ""});
+        LocalDate[] coverage = getSelectedCoverage();
+        String selectedEmpId = getSelectedPeriodEmployeeId();
+        if (coverage == null) {
+            periodLogPanel.setBorder(BorderFactory.createTitledBorder("Payroll Log — Select coverage and employee above"));
+            periodLogModel.addRow(new Object[]{"—", "Select a start date and end date above", "", "", "", ""});
             return;
         }
 
-        int month = monthIndex;
-        int year  = parsePeriodYear();
-        String periodLabel = MONTH_NAMES[month] + " " + year;
-        periodLogPanel.setBorder(BorderFactory.createTitledBorder("Payroll Log — " + periodLabel));
+        if (selectedEmpId == null) {
+            periodLogPanel.setBorder(BorderFactory.createTitledBorder("Payroll Log — Select an employee"));
+            periodLogModel.addRow(new Object[]{"—", "Select an employee from the list", "", "", "", ""});
+            return;
+        }
+
+        int month = coverage[0].getMonthValue();
+        int year  = coverage[0].getYear();
+        String periodLabel = coverage[0] + " to " + coverage[1];
+        periodLogPanel.setBorder(BorderFactory.createTitledBorder(
+                "Payroll Log — " + selectedEmpId + " | " + periodLabel));
 
         List<PayrollLog> logs = payrollLogService.getLogsByPeriod(month, year);
+        logs.removeIf(log -> !selectedEmpId.equals(log.empNum()));
 
         if (logs.isEmpty()) {
-            periodLogModel.addRow(new Object[]{"—", "No payroll run for this period", "", "", "", ""});
+            periodLogModel.addRow(new Object[]{"—", "No payroll run for the selected employee/coverage", "", "", "", ""});
             return;
         }
 
@@ -772,29 +1054,19 @@ public class FinanceDashboard extends JFrame {
             currentPeriodWorker.cancel(true);
         }
 
-        int monthIndex = cmbPeriodMonth.getSelectedIndex();  // 0 = placeholder
-        int yearIndex  = cmbPeriodYear.getSelectedIndex();   // 0 = placeholder
-        boolean periodSelected = (monthIndex > 0 && yearIndex > 0);
-
-        if (!periodSelected) {
-            // No period chosen — show hint and clear detail labels
+        LocalDate[] coverage = getSelectedCoverage();
+        if (coverage == null) {
             clearPeriodDetail();
-            lblPeriodStatus.setText("Select a month and year above");
+            lblPeriodStatus.setText("Select a coverage start and end date above");
             return;
         }
-
-        // Capture selected values before entering background thread
-        int month = monthIndex;  // MONTH_NAMES[1] = January = month 1
-        int year  = parsePeriodYear();
 
         SwingWorker<Payroll, Void> worker = new SwingWorker<>() {
             @Override
             protected Payroll doInBackground() {
                 Employee emp = employeeService.getEmployeeById(empId);
                 if (emp == null) return null;
-                LocalDate start = LocalDate.of(year, month, 1);
-                LocalDate end   = YearMonth.of(year, month).atEndOfMonth();
-                Payroll payroll = new Payroll(empId, emp, start, end);
+                Payroll payroll = new Payroll(empId, emp, coverage[0], coverage[1]);
                 payroll.calculateNetSalary();
                 return payroll;
             }
@@ -899,7 +1171,7 @@ public class FinanceDashboard extends JFrame {
 
     // Resets all right-panel labels to the placeholder dash.
     private void clearPeriodDetail() {
-        lblPeriodStatus.setText("Select a period and employee to view payslip");
+        lblPeriodStatus.setText("Select a coverage and employee to view payslip");
         lblPeriodEmpNum.setText("—");
         lblPeriodName.setText("—");
         lblPeriodSssNum.setText("—");
@@ -919,102 +1191,204 @@ public class FinanceDashboard extends JFrame {
         lblPeriodNet.setText("—");
     }
 
-    // Validates the period selection, then computes and logs payroll for all employees.
-    // Employees already logged for the period are skipped; a summary dialog is shown.
+    // Validates the coverage + selected employee, computes one payroll run, and logs it.
     private void runBatchPayrollForPeriod() {
-        if (cmbPeriodMonth.getSelectedIndex() == 0) {
+        LocalDate[] coverage = getSelectedCoverage();
+        if (coverage == null) {
             JOptionPane.showMessageDialog(this,
-                    "Please select a month before computing the period.",
-                    "No Month Selected", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (cmbPeriodYear.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Please select a year before computing the period.",
-                    "No Year Selected", JOptionPane.WARNING_MESSAGE);
+                    "Please select a valid coverage start and end date.",
+                    "Invalid Coverage", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int month = cmbPeriodMonth.getSelectedIndex();  // 1–12
-        int year  = parsePeriodYear();
+        String selectedEmpId = getSelectedPeriodEmployeeId();
+        if (selectedEmpId == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Please select an employee before computing payroll.",
+                    "No Employee Selected", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int month = coverage[0].getMonthValue();
+        int year  = coverage[0].getYear();
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                String.format("Compute payroll for %s %d for all employees?",
-                        MONTH_NAMES[month], year),
-                "Confirm Payroll Run",
+                String.format("Compute payroll for employee %s from %s to %s?",
+                        selectedEmpId, coverage[0], coverage[1]),
+                "Confirm Payroll Computation",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        List<Employee> employees = employeeService.getAllEmployees();
-
-        // Batch run in background to keep the UI responsive
-        new SwingWorker<int[], Void>() {
+        new SwingWorker<Boolean, Void>() {
             @Override
-            protected int[] doInBackground() {
-                int computed = 0, skipped = 0;
-                LocalDate start = LocalDate.of(year, month, 1);
-                LocalDate end   = YearMonth.of(year, month).atEndOfMonth();
-                for (Employee emp : employees) {
-                    String empId = emp.getEmployeeID();
-                    try {
-                        if (payrollLogService.isAlreadyLogged(empId, month, year)) {
-                            skipped++;
-                            continue;
-                        }
-                        Payroll payroll = new Payroll(empId, emp, start, end);
+            protected Boolean doInBackground() {
+                Employee emp = employeeService.getEmployeeById(selectedEmpId);
+                if (emp == null) {
+                    return false;
+                }
+                try {
+                    if (!payrollLogService.isAlreadyLogged(selectedEmpId, month, year)) {
+                        Payroll payroll = new Payroll(selectedEmpId, emp, coverage[0], coverage[1]);
                         payroll.calculateNetSalary();
                         CompensationDetails cd = payroll.getCompensationDetails();
-                        payrollLogService.savePayrollRun(empId, month, year, cd);
-                        computed++;
-                    } catch (Exception ex) {
-                        System.err.println("Batch payroll: error for " + empId + ": " + ex.getMessage());
-                        skipped++;
+                        payrollLogService.savePayrollRun(selectedEmpId, month, year, cd);
                     }
+                    return true;
+                } catch (Exception ex) {
+                    System.err.println("Payroll computation error for " + selectedEmpId + ": " + ex.getMessage());
+                    return false;
                 }
-                return new int[]{computed, skipped};
             }
 
             @Override
             protected void done() {
                 try {
-                    int[] result = get();
+                    boolean success = get();
+                    if (!success) {
+                        JOptionPane.showMessageDialog(FinanceDashboard.this,
+                                "Payroll computation failed for the selected employee.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                     JOptionPane.showMessageDialog(FinanceDashboard.this,
-                            String.format("Payroll run complete for %s %d.%n"
-                                    + "Computed: %d employees%n"
-                                    + "Skipped (already logged or no data): %d employees",
-                                    MONTH_NAMES[month], year, result[0], result[1]),
-                            "Payroll Run Complete",
+                            String.format("Payroll computed for employee %s.%nCoverage: %s to %s",
+                                    selectedEmpId, coverage[0], coverage[1]),
+                            "Payroll Computed",
                             JOptionPane.INFORMATION_MESSAGE);
+                    showPeriodPayslip(selectedEmpId);
                     loadPeriodLogTable();
                 } catch (InterruptedException | ExecutionException ex) {
                     JOptionPane.showMessageDialog(FinanceDashboard.this,
-                            "Payroll run failed: " + ex.getMessage(),
+                            "Payroll computation failed: " + ex.getMessage(),
                             "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }.execute();
     }
 
-    // Parses the year integer from the selected year combo item (e.g. "2025" → 2025).
-    private int parsePeriodYear() {
-        String yearStr = (String) cmbPeriodYear.getSelectedItem();
-        if (yearStr == null || yearStr.equals("Select Year")) return 0;
-        try {
-            return Integer.parseInt(yearStr.trim());
-        } catch (NumberFormatException e) {
-            return 0;
+    private void wireCoverageChooser(DateDropdownPanel chooser) {
+        for (java.awt.Component component : chooser.getComponents()) {
+            if (component instanceof JComboBox<?> comboBox) {
+                comboBox.addActionListener(e -> {
+                    syncCutoffSelectionWithCoverage();
+                    refreshPeriodSelectionState();
+                });
+            }
         }
     }
 
-    // Builds the year combo items dynamically: placeholder + current year + 2 prior years.
-    private static String[] buildYearItems() {
-        int currentYear = LocalDate.now().getYear();
-        return new String[]{
-            "Select Year",
-            String.valueOf(currentYear - 2),
-            String.valueOf(currentYear - 1),
-            String.valueOf(currentYear)
-        };
+    private void applyDefaultCutoff() {
+        updatingCutoffSelection = true;
+        cutoffPeriodCombo.setSelectedIndex(1);
+        updatingCutoffSelection = false;
+        LocalDate now = LocalDate.now();
+        applyCutoffRange(now.getYear(), now.getMonthValue(), true);
+    }
+
+    private void applyCutoffSelection() {
+        if (updatingCutoffSelection) {
+            return;
+        }
+        if (cutoffPeriodCombo.getSelectedIndex() == 0) {
+            refreshPeriodSelectionState();
+            return;
+        }
+
+        LocalDate baseDate = coverageStartChooser.getSelectedDate();
+        if (baseDate == null) {
+            baseDate = coverageEndChooser.getSelectedDate();
+        }
+        if (baseDate == null) {
+            baseDate = LocalDate.now();
+        }
+        applyCutoffRange(baseDate.getYear(), baseDate.getMonthValue(), false);
+    }
+
+    private void applyCutoffRange(int year, int month, boolean suppressRefresh) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate start;
+        LocalDate end;
+        if (cutoffPeriodCombo.getSelectedIndex() == 2) {
+            start = yearMonth.atDay(16);
+            end = yearMonth.atEndOfMonth();
+        } else {
+            start = yearMonth.atDay(1);
+            end = yearMonth.atDay(15);
+        }
+
+        updatingCutoffSelection = true;
+        coverageStartChooser.setDate(start);
+        coverageEndChooser.setDate(end);
+        updatingCutoffSelection = false;
+        if (!suppressRefresh) {
+            refreshPeriodSelectionState();
+        }
+    }
+
+    private void syncCutoffSelectionWithCoverage() {
+        if (updatingCutoffSelection) {
+            return;
+        }
+        LocalDate start = coverageStartChooser.getSelectedDate();
+        LocalDate end = coverageEndChooser.getSelectedDate();
+        if (start == null || end == null) {
+            return;
+        }
+
+        String target = "Custom Range";
+        if (start.getYear() == end.getYear() && start.getMonthValue() == end.getMonthValue()) {
+            int endOfMonth = start.lengthOfMonth();
+            if (start.getDayOfMonth() == 1 && end.getDayOfMonth() == 15) {
+                target = "First Cutoff (1-15)";
+            } else if (start.getDayOfMonth() == 16 && end.getDayOfMonth() == endOfMonth) {
+                target = "Second Cutoff (16-End)";
+            }
+        }
+
+        updatingCutoffSelection = true;
+        cutoffPeriodCombo.setSelectedItem(target);
+        updatingCutoffSelection = false;
+    }
+
+    private void refreshPeriodSelectionState() {
+        if (periodEmpTable == null || periodEmpModel == null || periodLogModel == null || periodLogPanel == null) {
+            return;
+        }
+        loadPeriodLogTable();
+        String selectedEmpId = getSelectedPeriodEmployeeId();
+        if (selectedEmpId != null) {
+            showPeriodPayslip(selectedEmpId);
+        } else {
+            clearPeriodDetail();
+        }
+    }
+
+    private String getSelectedPeriodEmployeeId() {
+        if (periodEmpTable == null || periodEmpModel == null) {
+            return null;
+        }
+        int viewRow = periodEmpTable.getSelectedRow();
+        if (viewRow < 0) {
+            return null;
+        }
+        int modelRow = periodEmpTable.convertRowIndexToModel(viewRow);
+        return (String) periodEmpModel.getValueAt(modelRow, 0);
+    }
+
+    private LocalDate[] getSelectedCoverage() {
+        LocalDate start = coverageStartChooser.getSelectedDate();
+        LocalDate end = coverageEndChooser.getSelectedDate();
+        if (start == null || end == null) {
+            return null;
+        }
+        if (end.isBefore(start)) {
+            return null;
+        }
+        // Current payroll log storage is month/year-based, so keep one-month coverage.
+        if (start.getMonthValue() != end.getMonthValue() || start.getYear() != end.getYear()) {
+            return null;
+        }
+        return new LocalDate[]{start, end};
     }
 }
